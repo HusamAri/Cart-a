@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script src="/scripts/theme-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>Workspaces · Carta</title>
 <meta name="description" content="Choose your Carta workspace: menus, recipes, cost, and pricing for your kitchen or property.">
-<meta name="theme-color" content="#F0E8DE">
-<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<meta name="theme-color" content="#1B2A22">
+<link rel="icon" type="image/png" href="/assets/carta-favicon.png">
+<link rel="apple-touch-icon" href="/assets/carta-apple-touch-icon.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
   body {
@@ -48,7 +50,7 @@
     transition: background var(--dur-2), color var(--dur-2);
   }
   .app-bar__right button:hover { background: var(--surface-container-low); color: var(--primary); }
-  .app-bar__right button:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .app-bar__right button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
   /* Org section header */
   .org-section { margin-bottom: var(--sp-9); }
@@ -85,7 +87,7 @@
     padding: var(--sp-2) 0;
   }
   .ws-card:hover { background: rgb(var(--sage-mist-rgb) / 0.45); box-shadow: var(--shadow-3); transform: translateY(-2px); }
-  .ws-card:focus-within { outline: 2px solid var(--tertiary-container); outline-offset: 3px; }
+  .ws-card:focus-within { outline: 2px solid var(--primary); outline-offset: 3px; }
   .ws-card__name {
     font-family: var(--font-display); font-weight: 400; font-style: italic;
     font-size: 1.65rem; margin: 0 0 6px;
@@ -201,9 +203,10 @@
 <div class="app-screen">
   <div class="container">
     <div class="app-bar">
-      <a href="/" class="site-logo" aria-label="Carta home"><img src="/assets/carta-logo.png" alt="Carta"></a>
+      <a href="/" class="site-logo" aria-label="Carta home"><img src="/assets/carta-logo.png" alt="Carta" width="766" height="264"></a>
       <div class="app-bar__right" id="userBar">
         <span class="user-email" id="userEmail">—</span>
+        <button type="button" class="carta-theme-btn" id="appThemeBtn" aria-label="">◐</button>
         <button type="button" onclick="window.__cartaToggleLang()" id="langSwitch" aria-label="Toggle language">TR</button>
         <button type="button" onclick="window.__cartaSignOut()" data-i18n="app.sign_out">Sign out</button>
       </div>
@@ -287,11 +290,28 @@ import {
 import { getMyRole, can, invalidateRoleCache } from '/src/permissions.js';
 import { applyTranslations, t, setLang, getLang } from '/src/i18n.js';
 import { cartaIcon } from '/src/carta-icon.js';
+import { initTheme, cycleThemePref, getThemePref, themePrefGlyph } from '/src/theme.js';
 applyTranslations();
+initTheme();
+function syncAppThemeBtn() {
+  const btn = document.getElementById('appThemeBtn');
+  if (!btn) return;
+  const pref = getThemePref();
+  btn.textContent = themePrefGlyph(pref);
+  const label = pref === 'system' ? t('ui.theme.aria_system') : pref === 'light' ? t('ui.theme.aria_light') : t('ui.theme.aria_dark');
+  btn.setAttribute('aria-label', label);
+  btn.title = label;
+}
+syncAppThemeBtn();
+document.getElementById('appThemeBtn')?.addEventListener('click', () => {
+  cycleThemePref();
+  syncAppThemeBtn();
+});
+window.addEventListener('carta-theme-change', syncAppThemeBtn);
 
 function setLangBtn() { document.getElementById('langSwitch').textContent = getLang()==='en' ? 'TR' : 'EN'; }
 setLangBtn();
-window.__cartaToggleLang = () => { setLang(getLang()==='en' ? 'tr' : 'en'); setLangBtn(); };
+window.__cartaToggleLang = () => { setLang(getLang()==='en' ? 'tr' : 'en'); setLangBtn(); applyTranslations(); syncAppThemeBtn(); };
 window.__cartaSignOut = signOut;
 
 const $ = id => document.getElementById(id);

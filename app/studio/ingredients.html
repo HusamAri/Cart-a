@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script src="/scripts/theme-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>Ingredient DB · Carta</title>
-<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="icon" type="image/png" href="/assets/carta-favicon.png">
+<link rel="apple-touch-icon" href="/assets/carta-apple-touch-icon.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
   .studio-page {
@@ -57,7 +59,7 @@
   .filter-chip[aria-pressed="true"] {
     background: var(--primary); color: var(--on-primary); border-color: var(--primary);
   }
-  .filter-chip:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .filter-chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
   .search-row {
     display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center;

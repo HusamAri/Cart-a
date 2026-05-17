@@ -2,52 +2,34 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script src="/scripts/theme-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="dns-prefetch" href="https://images.unsplash.com">
 <title>Carta · F&B Operations Studio</title>
 <meta name="description" content="Carta is the F&B operations studio for hotels and serious kitchens: recipes, cost control, menu engineering, allergens, and compliance signals in one editorial workspace.">
-<meta name="theme-color" content="#F0E8DE">
+<meta name="theme-color" content="#1B2A22">
 <meta property="og:title" content="Carta · F&B Operations Studio">
 <meta property="og:description" content="Recipes, cost control, menu engineering, and compliance for hotel and restaurant kitchens.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="icon" type="image/png" href="/assets/carta-favicon.png">
+<link rel="apple-touch-icon" href="/assets/carta-apple-touch-icon.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
-  /* ===== LANDING ART DIRECTION (Degular + parchment + carbon accent) ===== */
-  body.carta-landing {
-    --font-display: 'Degular', 'Plus Jakarta Sans', system-ui, sans-serif;
-    --font-serif: 'Degular', Georgia, 'Times New Roman', serif;
-    --font-sans: 'Degular', 'Plus Jakarta Sans', system-ui, sans-serif;
-    --font-cond: 'Degular', 'Plus Jakarta Sans', sans-serif;
-  }
-  body.carta-landing .display,
-  body.carta-landing .display-lg,
-  body.carta-landing .h1,
-  body.carta-landing .headline-lg,
-  body.carta-landing .eyebrow,
-  body.carta-landing .chapter__num,
-  body.carta-landing .chapter__title,
-  body.carta-landing .chapter__mark-glyph,
-  body.carta-landing .stat .val,
-  body.carta-landing .plan__name,
-  body.carta-landing .plan__price,
-  body.carta-landing .col-name,
-  body.carta-landing .editorial-frame__cap {
-    font-family: var(--font-display);
-  }
+  /* ===== Landing art direction (Occidental palette + Playfair titles) ===== */
+  /* Image treatments + hero framing; fonts come from /styles/tokens.css */
   body.carta-landing main img {
     filter: sepia(0.08) saturate(0.88) contrast(1.04) brightness(0.97);
   }
+  body.carta-landing main img.is-brand-visual,
   body.carta-landing main img.hero__carbon-deco,
   body.carta-landing main img[src*="dashboard-carbon-accent"] {
     filter: none;
   }
   @media (prefers-reduced-motion: reduce) {
-    body.carta-landing main img { filter: sepia(0.06) saturate(0.9) contrast(1.02); }
+    body.carta-landing main img:not(.is-brand-visual) { filter: sepia(0.06) saturate(0.9) contrast(1.02); }
   }
   body.carta-landing .hero__figure {
     position: relative;
@@ -106,7 +88,7 @@
     inset: 0;
     background:
       url('/assets/dashboard-carbon-accent.png') 80% 55% / min(480px, 55vw) no-repeat,
-      radial-gradient(ellipse 70% 50% at 10% 20%, rgb(var(--honey-mist-rgb) / 0.2) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 10% 20%, rgb(241 225 220 / 0.35) 0%, transparent 55%),
       radial-gradient(ellipse 60% 45% at 90% 80%, rgb(var(--sage-mist-rgb) / 0.18) 0%, transparent 50%);
     opacity: 0.35;
     pointer-events: none;
@@ -117,10 +99,10 @@
   }
   body.carta-landing .hero::before {
     background:
-      linear-gradient(118deg, rgb(var(--honey-mist-rgb) / 0.38) 0%, transparent 50%),
+      linear-gradient(118deg, rgb(241 225 220 / 0.42) 0%, transparent 50%),
       linear-gradient(308deg, rgb(var(--sage-mist-rgb) / 0.32) 0%, transparent 48%),
       radial-gradient(ellipse 70% 55% at 90% 100%, rgb(var(--ink-rgb) / 0.09) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 30% at 15% 85%, rgb(var(--tertiary-deep) / 0.06) 0%, transparent 55%);
+      radial-gradient(ellipse 40% 30% at 15% 85%, rgb(var(--primary-rgb) / 0.1) 0%, transparent 55%);
   }
 
   /* ===== HERO ===== */
@@ -133,7 +115,7 @@
   .hero::before {
     content: ''; position: absolute; inset: 0;
     background:
-      linear-gradient(118deg, rgb(var(--honey-mist-rgb) / 0.55) 0%, transparent 46%),
+      linear-gradient(118deg, rgb(241 225 220 / 0.5) 0%, transparent 46%),
       linear-gradient(308deg, rgb(var(--sage-mist-rgb) / 0.45) 0%, transparent 48%),
       radial-gradient(ellipse 80% 60% at 85% 100%, rgb(var(--ink-rgb) / 0.07) 0%, transparent 58%);
     pointer-events: none;
@@ -200,7 +182,7 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      var(--tertiary-container) 36%,
+      var(--primary) 36%,
       var(--secondary) 68%,
       transparent 100%
     );
@@ -224,7 +206,7 @@
       102deg,
       var(--primary) 0%,
       var(--secondary) 42%,
-      var(--tertiary-deep) 94%
+      var(--primary-press) 94%
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -243,7 +225,7 @@
     box-shadow:
       var(--shadow-inner-glow),
       var(--shadow-3),
-      0 18px 40px -16px rgb(var(--honey-mist-rgb) / 0.45);
+      0 18px 40px -16px rgb(var(--primary-rgb) / 0.38);
     filter: saturate(1.05);
   }
   .hero__cta .btn-ghost:hover {
@@ -281,8 +263,8 @@
     width: 5px;
     height: 5px;
     border-radius: var(--r-pill);
-    background: var(--tertiary-container);
-    box-shadow: 0 0 0 7px rgb(var(--honey-mist-rgb) / 0.16);
+    background: var(--primary);
+    box-shadow: 0 0 0 7px rgb(var(--primary-rgb) / 0.12);
     flex-shrink: 0;
   }
 
@@ -299,7 +281,7 @@
     border-radius: var(--r-xl);
     padding: var(--sp-6) var(--glass-padding);
     border: 1px solid rgb(var(--ink-rgb) / 0.1);
-    border-left: 4px solid var(--tertiary-container);
+    border-left: 4px solid var(--primary);
     box-shadow: var(--shadow-inner-glow), var(--shadow-2);
     display: flex; flex-direction: column; gap: var(--sp-3);
   }
@@ -313,10 +295,10 @@
   }
   .principle:nth-child(4) {
     background: var(--primary);
-    border-left-color: var(--tertiary-fixed);
+    border-left-color: var(--primary-container);
     color: var(--on-primary);
     border: 1px solid rgb(255 255 255 / 0.12);
-    border-left: 4px solid var(--tertiary-container);
+    border-left: 4px solid var(--primary-container);
   }
   .principle__num {
     font-family: var(--font-sans); font-weight: 600;
@@ -359,7 +341,7 @@
   .chapter__num {
     font-family: var(--font-sans); font-weight: 600;
     font-size: var(--type-label-sm); letter-spacing: var(--track-caps);
-    text-transform: uppercase; color: var(--tertiary);
+    text-transform: uppercase; color: var(--primary);
     margin-bottom: var(--sp-3);
     display: inline-block;
   }
@@ -409,7 +391,7 @@
   }
   .chapter__mark--sage { background: rgb(var(--sage-mist-rgb) / 0.55); }
   .chapter__mark--mist { background: rgba(223, 228, 221, 0.55); }
-  .chapter__mark--gold { background: rgb(var(--honey-mist-rgb) / 0.35); }
+  .chapter__mark--gold { background: rgb(241 225 220 / 0.45); }
   .chapter__mark--ink {
     background: var(--primary);
     color: var(--on-primary);
@@ -515,8 +497,8 @@
   .plan.featured::before {
     content: 'Popular';
     position: absolute; top: var(--sp-4); right: var(--sp-4);
-    background: var(--tertiary-container);
-    color: var(--on-tertiary-container);
+    background: var(--primary-container);
+    color: var(--on-primary-container);
     font-family: var(--font-sans); font-weight: 700;
     font-size: 10px; letter-spacing: var(--track-caps);
     text-transform: uppercase;
@@ -549,8 +531,8 @@
   }
   .plan li::before { content: '·'; opacity: 0.5; width: 8px; flex-shrink: 0; }
   .plan__cta { display: block; width: 100%; }
-  .plan.featured .btn-primary { background: var(--tertiary-container); color: var(--on-tertiary-container); }
-  .plan.featured .btn-primary:hover { background: var(--tertiary-fixed-dim); }
+  .plan.featured .btn-primary { background: var(--on-primary); color: var(--primary); }
+  .plan.featured .btn-primary:hover { background: rgb(255 255 255 / 0.92); color: var(--primary-hover); }
 
   /* ===== CLOSING ===== */
   .closing {
@@ -561,15 +543,15 @@
     border-radius: var(--r-3xl) var(--r-3xl) 0 0;
     margin-top: var(--sp-10);
   }
-  .closing .eyebrow { color: var(--tertiary-container); margin-bottom: var(--sp-5); }
+  .closing .eyebrow { color: rgb(255 255 255 / 0.82); margin-bottom: var(--sp-5); }
   .closing .display {
     color: var(--on-primary);
     margin-bottom: var(--sp-7);
   }
-  .closing .display em { color: var(--tertiary-container); }
+  .closing .display em { color: var(--primary-container); }
   .closing .lead { color: rgba(255,255,255,0.7); margin: 0 auto var(--sp-7); }
-  .closing .btn-primary { background: var(--tertiary-container); color: var(--on-tertiary-container); }
-  .closing .btn-primary:hover { background: var(--tertiary-fixed-dim); }
+  .closing .btn-primary { background: var(--on-primary); color: var(--primary); }
+  .closing .btn-primary:hover { background: rgb(255 255 255 / 0.92); color: var(--primary-hover); }
 
   /* ===== EDITORIAL INGREDIENT MOSAICS ===== */
   .editorial-strip { padding: var(--sp-10) 0; }
@@ -671,14 +653,15 @@
 
 <header class="site-header" id="siteHeader">
   <div class="container site-header__inner">
-    <a href="/" class="site-logo" aria-label="Carta"><img src="/assets/carta-logo.png" alt="Carta"></a>
+    <a href="/" class="site-logo" aria-label="Carta"><img src="/assets/carta-logo.png" alt="Carta" width="766" height="264"></a>
     <nav class="site-nav" aria-label="Primary">
       <a href="#manifesto" data-i18n="nav.method">Method</a>
       <a href="#chapters" data-i18n="nav.index">Index</a>
       <a href="#plans" data-i18n="nav.plans">Plans</a>
       <a href="/app/login.html" data-i18n="nav.signin">Sign in</a>
     </nav>
-    <div style="display:flex;align-items:center;gap:14px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <button type="button" class="carta-theme-btn" id="themeCycleBtn" aria-label="">◐</button>
       <div class="lang-toggle" role="group" aria-label="Language">
         <button type="button" data-lang-btn="en" aria-pressed="true" onclick="window.__cartaSetLang('en')">EN</button>
         <button type="button" data-lang-btn="tr" aria-pressed="false" onclick="window.__cartaSetLang('tr')">TR</button>
@@ -717,7 +700,7 @@
     </div>
     <figure class="hero__figure">
       <div class="hero__photo-wrap">
-        <img src="https://images.unsplash.com/photo-1600565193348-f74bd2c3cc17?auto=format&amp;fit=crop&amp;w=1200&amp;h=900&amp;q=82" alt="" width="1200" height="900" decoding="async" fetchpriority="high">
+        <img class="is-brand-visual" src="/assets/carta-hero-plate.png" alt="" width="1024" height="824" decoding="async" fetchpriority="high">
       </div>
       <img class="hero__carbon-deco" src="/assets/dashboard-carbon-accent.png" alt="" width="400" height="400" decoding="async" aria-hidden="true">
     </figure>
@@ -739,16 +722,16 @@
     </header>
     <div class="editorial-mosaic editorial-mosaic--3">
       <figure class="editorial-frame editorial-frame--tall">
-        <img src="https://images.unsplash.com/photo-1466637574441-749b8f19452f?auto=format&amp;fit=crop&amp;w=900&amp;h=1100&amp;q=82" alt="" width="900" height="1100" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_1">Herbs · mise en place</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-hero-bar.png" alt="" width="1024" height="824" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_1">Pour · citrus, spirit, craft</i></figcaption>
       </figure>
       <figure class="editorial-frame editorial-frame--tall">
-        <img src="https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&amp;fit=crop&amp;w=900&amp;h=1100&amp;q=82" alt="" width="900" height="1100" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_2">Whole spices · macro</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-editorial-notebook.png" alt="" width="1024" height="764" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_2">Notebook · compliance clips</i></figcaption>
       </figure>
       <figure class="editorial-frame editorial-frame--tall">
-        <img src="https://images.unsplash.com/photo-1546549022-79bf9c6d2173?auto=format&amp;fit=crop&amp;w=900&amp;h=1100&amp;q=82" alt="" width="900" height="1100" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_3">Citrus · rind &amp; oil</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-editorial-marble.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_3">Marble · brass &amp; ledger</i></figcaption>
       </figure>
     </div>
   </div>
@@ -791,16 +774,16 @@
   <div class="container">
     <div class="editorial-mosaic editorial-mosaic--feature">
       <figure class="editorial-frame">
-        <img src="https://images.unsplash.com/photo-1495521821757-a5126b50bf5f?auto=format&amp;fit=crop&amp;w=1100&amp;h=1400&amp;q=82" alt="" width="1100" height="1400" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_4">Grain · before the mill</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-editorial-wine.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_4">Wine · decant &amp; note</i></figcaption>
       </figure>
       <figure class="editorial-frame">
-        <img src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c1?auto=format&amp;fit=crop&amp;w=800&amp;h=600&amp;q=82" alt="" width="800" height="600" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_5">Olive oil · first press</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-editorial-mood-a.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_5">Menu · foil, seal, craft</i></figcaption>
       </figure>
       <figure class="editorial-frame">
-        <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&amp;fit=crop&amp;w=800&amp;h=600&amp;q=82" alt="" width="800" height="600" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_6">Dough · fermentation</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-editorial-mood-b.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_6">Service · tray &amp; linen</i></figcaption>
       </figure>
     </div>
   </div>
@@ -829,7 +812,7 @@
       </div>
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-breakfast.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--sage" aria-hidden="true">
           <span class="chapter__mark-glyph">℞</span>
@@ -842,7 +825,7 @@
   <section class="chapter-interlude" aria-hidden="true">
     <div class="container">
       <figure class="chapter-interlude__frame">
-        <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&amp;fit=crop&amp;w=1120&amp;h=630&amp;q=82" alt="" width="1120" height="630" loading="lazy" decoding="async">
+        <img class="is-brand-visual" src="/assets/carta-editorial-divided.png" alt="" width="1024" height="824" loading="lazy" decoding="async">
       </figure>
     </div>
   </section>
@@ -851,7 +834,7 @@
     <div class="container chapter__inner">
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-room-service.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--gold" aria-hidden="true">
           <span class="chapter__mark-glyph">₺</span>
@@ -885,7 +868,7 @@
       </div>
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-room-service-2.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--ink" aria-hidden="true">
           <span class="chapter__mark-glyph">%</span>
@@ -899,10 +882,10 @@
     <div class="container">
       <div class="chapter-interlude__pair">
         <figure class="chapter-interlude__cell">
-          <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&amp;fit=crop&amp;w=640&amp;h=800&amp;q=82" alt="" width="640" height="800" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-marble.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
         </figure>
         <figure class="chapter-interlude__cell">
-          <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&amp;fit=crop&amp;w=640&amp;h=800&amp;q=82" alt="" width="640" height="800" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-hero-bar.png" alt="" width="1024" height="824" loading="lazy" decoding="async">
         </figure>
       </div>
     </div>
@@ -912,7 +895,7 @@
     <div class="container chapter__inner">
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-wine.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--mist" aria-hidden="true">
           <span class="chapter__mark-glyph">★◐♟○</span>
@@ -946,7 +929,7 @@
       </div>
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-notebook.png" alt="" width="1024" height="764" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--sage" aria-hidden="true">
           <span class="chapter__mark-glyph">Δ</span>
@@ -959,7 +942,7 @@
   <section class="chapter-interlude" aria-hidden="true">
     <div class="container">
       <figure class="chapter-interlude__frame">
-        <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&amp;fit=crop&amp;w=1120&amp;h=630&amp;q=82" alt="" width="1120" height="630" loading="lazy" decoding="async">
+        <img class="is-brand-visual" src="/assets/carta-hero-kitchen.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
       </figure>
     </div>
   </section>
@@ -968,7 +951,7 @@
     <div class="container chapter__inner">
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1543286386-713bdd548da4?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-hero-plate.png" alt="" width="1024" height="824" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--gold" aria-hidden="true">
           <span class="chapter__mark-glyph">EN / TR</span>
@@ -1058,8 +1041,10 @@
   <div class="container">
     <div class="site-footer__top">
       <div>
-        <img src="/assets/carta-logo.png" alt="" style="height:28px;filter:brightness(0) invert(1);margin-bottom:var(--sp-4)">
+        <img class="site-footer__mark" src="/assets/carta-logo.png" alt="Carta" width="766" height="264">
         <p style="font-size:14px;color:rgba(255,255,255,0.7);max-width:36ch;line-height:var(--lh-body)" data-i18n="foot.tagline">A luxury F&B operating system for kitchens that take their craft and their numbers seriously.</p>
+        <img class="site-footer__badges" src="/assets/carta-brand-stickers.png" alt="TGK Ek-10, HACCP, KVKK compliance" width="1024" height="764" loading="lazy" decoding="async">
+        <img class="site-footer__palette" src="/assets/carta-brand-palette.png" alt="Carta color palette: bone cream, sand linen, eucalyptus, antique gold, pale sage, ink graphite" width="1024" height="764" loading="lazy" decoding="async">
       </div>
       <div>
         <h5 data-i18n="foot.product">Product</h5>
@@ -1095,8 +1080,26 @@
 </footer>
 
 <script type="module">
-import { setLang, applyTranslations, getLang } from '/src/i18n.js';
+import { setLang, applyTranslations, getLang, t } from '/src/i18n.js';
 import { mountFloatingBackToTop, mountShortcutsHelp } from '/src/app-chrome.js';
+import { initTheme, cycleThemePref, getThemePref, themePrefGlyph } from '/src/theme.js';
+
+initTheme();
+function syncThemeButton() {
+  const btn = document.getElementById('themeCycleBtn');
+  if (!btn) return;
+  const pref = getThemePref();
+  btn.textContent = themePrefGlyph(pref);
+  const label = pref === 'system' ? t('ui.theme.aria_system') : pref === 'light' ? t('ui.theme.aria_light') : t('ui.theme.aria_dark');
+  btn.setAttribute('aria-label', label);
+  btn.title = label;
+}
+syncThemeButton();
+document.getElementById('themeCycleBtn')?.addEventListener('click', () => {
+  cycleThemePref();
+  syncThemeButton();
+});
+window.addEventListener('carta-theme-change', syncThemeButton);
 
 function syncLangButtons() {
   document.querySelectorAll('[data-lang-btn]').forEach(b => {
@@ -1109,6 +1112,7 @@ window.__cartaSetLang = (lang) => {
   setLang(lang);
   syncLangButtons();
   applyTranslations();
+  syncThemeButton();
 };
 applyTranslations();
 syncLangButtons();
