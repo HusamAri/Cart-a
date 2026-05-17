@@ -225,6 +225,95 @@
   .closing .lead { color: rgba(255,255,255,0.7); margin: 0 auto var(--sp-7); }
   .closing .btn-primary { background: var(--tertiary-container); color: var(--on-tertiary-container); }
   .closing .btn-primary:hover { background: var(--tertiary-fixed-dim); }
+
+  /* ===== EDITORIAL INGREDIENT MOSAICS ===== */
+  .editorial-strip { padding: var(--sp-10) 0; }
+  .editorial-strip:first-of-type { padding-top: var(--sp-6); }
+  .editorial-strip__head {
+    max-width: 72ch; margin: 0 auto var(--sp-6);
+    text-align: center;
+  }
+  .editorial-strip__head .eyebrow { margin-bottom: var(--sp-2); }
+  .editorial-strip__head .lead { margin: 0; opacity: 0.88; }
+
+  .editorial-mosaic {
+    display: grid;
+    gap: var(--sp-3);
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .editorial-mosaic--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .editorial-mosaic--feature {
+    grid-template-columns: 1.15fr 0.85fr;
+    grid-template-rows: 1fr 1fr;
+    max-width: 1200px;
+  }
+  .editorial-mosaic--feature .editorial-frame:first-child {
+    grid-row: 1 / -1;
+    min-height: 340px;
+  }
+  .editorial-mosaic--wide {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1240px;
+  }
+  @media (max-width: 900px) {
+    .editorial-mosaic--3,
+    .editorial-mosaic--feature,
+    .editorial-mosaic--wide {
+      grid-template-columns: 1fr;
+    }
+    .editorial-mosaic--feature .editorial-frame:first-child {
+      grid-row: auto;
+      min-height: 240px;
+    }
+  }
+
+  .editorial-frame {
+    position: relative;
+    border-radius: var(--r-2xl);
+    overflow: hidden;
+    min-height: 200px;
+    box-shadow: var(--shadow-2);
+    border: 1px solid rgba(7, 22, 13, 0.06);
+    background: var(--surface-container-low);
+  }
+  .editorial-frame--tall { min-height: 280px; }
+  .editorial-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.65s var(--ease-linear-out);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .editorial-frame:hover img { transform: scale(1.045); }
+  }
+  .editorial-frame__cap {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: var(--sp-5) var(--sp-4) var(--sp-4);
+    background: linear-gradient(180deg, transparent 0%, rgba(7, 22, 13, 0.12) 35%, rgba(7, 22, 13, 0.82) 100%);
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(0.95rem, 1.5vw, 1.2rem);
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+  }
+  .editorial-frame__cap span {
+    display: block;
+    font-family: var(--font-sans);
+    font-style: normal;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: var(--track-caps);
+    text-transform: uppercase;
+    opacity: 0.85;
+    margin-bottom: 4px;
+  }
 </style>
 </head>
 <body>
@@ -280,6 +369,30 @@
   </div>
 </section>
 
+<!-- ============ EDITORIAL MOSAIC A (hero → method) ============ -->
+<section class="editorial-strip" aria-labelledby="ed-mosaic-a">
+  <div class="container">
+    <header class="editorial-strip__head" id="ed-mosaic-a">
+      <span class="eyebrow eyebrow-accent" data-i18n="editorial.still">Still life</span>
+      <p class="lead" data-i18n="editorial.strip_note">Ingredient truth, in focus.</p>
+    </header>
+    <div class="editorial-mosaic editorial-mosaic--3">
+      <figure class="editorial-frame editorial-frame--tall">
+        <img src="https://images.unsplash.com/photo-1596040033229-a9821ebd053d?auto=format&amp;fit=crop&amp;w=900&amp;h=1100&amp;q=82" alt="" width="900" height="1100" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_1">Herbs · mise en place</i></figcaption>
+      </figure>
+      <figure class="editorial-frame editorial-frame--tall">
+        <img src="https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&amp;fit=crop&amp;w=900&amp;h=1100&amp;q=82" alt="" width="900" height="1100" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_2">Whole spices · macro</i></figcaption>
+      </figure>
+      <figure class="editorial-frame editorial-frame--tall">
+        <img src="https://images.unsplash.com/photo-1546549022-79bf9c6d2173?auto=format&amp;fit=crop&amp;w=900&amp;h=1100&amp;q=82" alt="" width="900" height="1100" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_3">Citrus · rind &amp; oil</i></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
 <!-- ============ MANIFESTO ============ -->
 <section class="manifesto" id="manifesto" aria-labelledby="manifesto-h">
   <div class="container">
@@ -308,6 +421,26 @@
         <h3 class="principle__title"><em data-i18n="manifesto.04_title">Discipline over decoration.</em></h3>
         <p class="principle__body" data-i18n="manifesto.04_body">Material honesty. Considered balance. Every metric answers a question a real cost controller, chef, or F&B manager actually asks.</p>
       </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EDITORIAL MOSAIC B (method → index) ============ -->
+<section class="editorial-strip" aria-hidden="true">
+  <div class="container">
+    <div class="editorial-mosaic editorial-mosaic--feature">
+      <figure class="editorial-frame">
+        <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&amp;fit=crop&amp;w=1100&amp;h=1400&amp;q=82" alt="" width="1100" height="1400" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_4">Grain · before the mill</i></figcaption>
+      </figure>
+      <figure class="editorial-frame">
+        <img src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c1?auto=format&amp;fit=crop&amp;w=800&amp;h=600&amp;q=82" alt="" width="800" height="600" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_5">Olive oil · first press</i></figcaption>
+      </figure>
+      <figure class="editorial-frame">
+        <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&amp;fit=crop&amp;w=800&amp;h=600&amp;q=82" alt="" width="800" height="600" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_6">Dough · fermentation</i></figcaption>
+      </figure>
     </div>
   </div>
 </section>
@@ -348,7 +481,7 @@
       </div>
       <div class="chapter__copy">
         <span class="chapter__num" data-i18n="index.02_num">02 — Cost</span>
-        <h3 class="h1 chapter__title" id="ch02-h"><span data-i18n="index.01_title_l1">The</span> <em data-i18n="index.02_title_em">ledger</em>.</h3>
+        <h3 class="h1 chapter__title" id="ch02-h"><span data-i18n="index.02_title_l1">The</span> <em data-i18n="index.02_title_em">ledger</em>.</h3>
         <p class="lead chapter__lead" data-i18n="index.02_desc">SAP Moving Average Price ingest. Map. Audit. Target GP. VAT-aware. Q-factor.</p>
         <div class="chapter__detail">
           <span class="chip-mist chip" data-i18n="ch.02_detail1">SAP / Excel / CSV</span>
@@ -363,7 +496,7 @@
     <div class="container chapter__inner">
       <div class="chapter__copy">
         <span class="chapter__num" data-i18n="index.03_num">03 — Pricing</span>
-        <h3 class="h1 chapter__title" id="ch03-h"><span data-i18n="index.01_title_l1">The</span> <em data-i18n="index.03_title_em">workspace</em>.</h3>
+        <h3 class="h1 chapter__title" id="ch03-h"><span data-i18n="index.03_title_l1">The</span> <em data-i18n="index.03_title_em">workspace</em>.</h3>
         <p class="lead chapter__lead" data-i18n="index.03_desc">Edit menu prices in place. Watch food cost %, margin, and suggested price update live.</p>
         <div class="chapter__detail">
           <span class="chip" data-i18n="ch.03_detail1">Per-dish FC%</span>
@@ -378,6 +511,26 @@
     </div>
   </section>
 
+  <!-- ============ EDITORIAL MOSAIC C (pricing → engineering) ============ -->
+  <section class="editorial-strip" aria-hidden="true">
+    <div class="container">
+      <div class="editorial-mosaic editorial-mosaic--wide">
+        <figure class="editorial-frame">
+          <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&amp;fit=crop&amp;w=700&amp;h=500&amp;q=82" alt="" width="700" height="500" loading="lazy" decoding="async">
+          <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_7">The pass · calm focus</i></figcaption>
+        </figure>
+        <figure class="editorial-frame">
+          <img src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&amp;fit=crop&amp;w=700&amp;h=500&amp;q=82" alt="" width="700" height="500" loading="lazy" decoding="async">
+          <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_8">Steam · skillet detail</i></figcaption>
+        </figure>
+        <figure class="editorial-frame">
+          <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&amp;fit=crop&amp;w=700&amp;h=500&amp;q=82" alt="" width="700" height="500" loading="lazy" decoding="async">
+          <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_9">Plating · first sketch</i></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
   <section class="chapter reverse" aria-labelledby="ch04-h">
     <div class="container chapter__inner">
       <div class="chapter__visual chapter__visual--mist" aria-hidden="true">
@@ -386,7 +539,7 @@
       </div>
       <div class="chapter__copy">
         <span class="chapter__num" data-i18n="index.04_num">04 — Engineering</span>
-        <h3 class="h1 chapter__title" id="ch04-h"><span data-i18n="index.01_title_l1">The</span> <em data-i18n="index.04_title_em">matrix</em>.</h3>
+        <h3 class="h1 chapter__title" id="ch04-h"><span data-i18n="index.04_title_l1">The</span> <em data-i18n="index.04_title_em">matrix</em>.</h3>
         <p class="lead chapter__lead" data-i18n="index.04_desc">Smith-Kasavana 1982. Stars · Plowhorses · Puzzles · Dogs.</p>
         <div class="chapter__detail">
           <span class="chip" data-i18n="ch.04_detail1">Pavesic 70% threshold</span>
@@ -401,7 +554,7 @@
     <div class="container chapter__inner">
       <div class="chapter__copy">
         <span class="chapter__num" data-i18n="index.05_num">05 — Variance</span>
-        <h3 class="h1 chapter__title" id="ch05-h"><span data-i18n="index.01_title_l1">The</span> <em data-i18n="index.05_title_em">audit</em>.</h3>
+        <h3 class="h1 chapter__title" id="ch05-h"><span data-i18n="index.05_title_l1">The</span> <em data-i18n="index.05_title_em">audit</em>.</h3>
         <p class="lead chapter__lead" data-i18n="index.05_desc">Snapshot every upload. Top movers, anomalies, drop list.</p>
         <div class="chapter__detail">
           <span class="chip-mist chip" data-i18n="ch.05_detail1">12 snapshots retained</span>
@@ -424,7 +577,7 @@
       </div>
       <div class="chapter__copy">
         <span class="chapter__num" data-i18n="index.06_num">06 — Surface</span>
-        <h3 class="h1 chapter__title" id="ch06-h"><span data-i18n="index.01_title_l1">The</span> <em data-i18n="index.06_title_em">output</em>.</h3>
+        <h3 class="h1 chapter__title" id="ch06-h"><span data-i18n="index.06_title_l1">The</span> <em data-i18n="index.06_title_em">output</em>.</h3>
         <p class="lead chapter__lead" data-i18n="index.06_desc">Bilingual EN/TR. Excel import, PDF/PNG export. Offline-capable.</p>
         <div class="chapter__detail">
           <span class="chip" data-i18n="ch.06_detail1">EN · TR</span>

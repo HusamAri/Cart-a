@@ -369,7 +369,7 @@ function quadCard(key, items) {
       </header>
       <p class="quad__desc" data-i18n="${descKey}">${t(descKey)}</p>
       <div class="quad__items">
-        ${items.map(r => `<span class="dish-pill" title="${escapeHTML(formatNumber(r.sold,0))} satış · ${escapeHTML(formatNumber((r.cm||0),2))} ${escapeHTML(currency)} katkı">${escapeHTML(r.name)}</span>`).join('')}
+        ${items.map(r => `<span class="dish-pill" title="${escapeHTML(formatNumber(r.sold,0))} ${escapeHTML(t('matrix.unit_sold'))} · ${escapeHTML(formatNumber((r.cm||0),2))} ${escapeHTML(currency)} ${escapeHTML(t('matrix.unit_contribution'))}">${escapeHTML(r.name)}</span>`).join('')}
         ${items.length === 0 ? `<span class="text-muted" style="font-size:13px;font-style:italic;opacity:0.7">—</span>` : ''}
       </div>
     </section>
