@@ -7,8 +7,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>Studio · Carta</title>
-<link rel="icon" type="image/png" href="/assets/carta-favicon.png">
-<link rel="apple-touch-icon" href="/assets/carta-apple-touch-icon.png">
+<meta name="theme-color" content="#1B2A22">
+<meta name="description" content="Carta F&amp;B Operations Studio: recipes, cost, pricing, menus, and compliance in one workspace.">
+<meta property="og:title" content="Studio · Carta">
+<meta property="og:description" content="Carta F&amp;B Operations Studio: recipes, cost, pricing, menus, and compliance in one workspace.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Carta">
+<meta property="og:image" content="https://cart-a.live/assets/carta-brand-lockup-horizontal.png?v=7">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1024">
+<meta property="og:image:height" content="1024">
+<meta property="og:image:alt" content="Carta · F&amp;B Operations Studio">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cart-a.live/assets/carta-brand-lockup-horizontal.png?v=7">
+<link rel="icon" type="image/png" href="/assets/carta-favicon.png?v=7">
+<link rel="apple-touch-icon" href="/assets/carta-apple-touch-icon.png?v=7">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
   .studio-page {
@@ -166,12 +180,15 @@
     border-radius: var(--r-xl);
     box-shadow: var(--shadow-inner-glow), var(--shadow-2);
   }
-  .studio-mast__cell img {
-    width: 100%;
-    display: block;
-    aspect-ratio: 16 / 11;
-    object-fit: cover;
-    border-radius: var(--r-lg);
+  .studio-mast__cell--brand img {
+    aspect-ratio: auto;
+    min-height: 200px;
+    max-height: min(280px, 38vh);
+    object-fit: contain;
+    background: var(--surface-container-low);
+  }
+  @media (max-width: 700px) {
+    .studio-mast__cell--brand img { max-height: 220px; }
   }
 </style>
 </head>
@@ -195,11 +212,11 @@ main.innerHTML = `
   </div>
 
   <div class="studio-mast" aria-hidden="true">
-    <figure class="studio-mast__cell">
-      <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&amp;fit=crop&amp;w=800&amp;h=550&amp;q=82" alt="" width="800" height="550" loading="lazy" decoding="async">
+    <figure class="studio-mast__cell studio-mast__cell--brand">
+      <img src="/assets/carta-brand-guidelines-board.png?v=7" alt="" width="1024" height="1024" loading="lazy" decoding="async">
     </figure>
-    <figure class="studio-mast__cell">
-      <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&amp;fit=crop&amp;w=800&amp;h=550&amp;q=82" alt="" width="800" height="550" loading="lazy" decoding="async">
+    <figure class="studio-mast__cell studio-mast__cell--brand">
+      <img src="/assets/carta-brand-header-reference.png?v=7" alt="" width="1536" height="1024" loading="lazy" decoding="async">
     </figure>
   </div>
 

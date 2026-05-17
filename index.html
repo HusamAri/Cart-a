@@ -13,9 +13,16 @@
 <meta property="og:description" content="Recipes, cost control, menu engineering, and compliance for hotel and restaurant kitchens.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en">
+<meta property="og:site_name" content="Carta">
+<meta property="og:image" content="https://cart-a.live/assets/carta-brand-lockup-horizontal.png?v=7">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1024">
+<meta property="og:image:height" content="1024">
+<meta property="og:image:alt" content="Carta · F&amp;B Operations Studio">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/png" href="/assets/carta-favicon.png">
-<link rel="apple-touch-icon" href="/assets/carta-apple-touch-icon.png">
+<meta name="twitter:image" content="https://cart-a.live/assets/carta-brand-lockup-horizontal.png?v=7">
+<link rel="icon" type="image/png" href="/assets/carta-favicon.png?v=7">
+<link rel="apple-touch-icon" href="/assets/carta-apple-touch-icon.png?v=7">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
   /* ===== Landing art direction (Occidental palette + Playfair titles) ===== */
@@ -123,6 +130,16 @@
   .hero__eyebrow-row {
     display: flex; align-items: center; gap: var(--sp-3);
     margin-bottom: var(--sp-6);
+  }
+  .hero__brand-seal {
+    height: clamp(20px, 3.2vw, 28px);
+    width: auto;
+    flex-shrink: 0;
+    opacity: 0.88;
+  }
+  html[data-color-scheme="dark"] .hero__brand-seal {
+    opacity: 1;
+    filter: brightness(0) invert(1);
   }
   .hero .display { margin-bottom: var(--sp-6); }
   .hero__lead { margin-bottom: var(--sp-7); max-width: 58ch; }
@@ -542,6 +559,18 @@
     border-radius: var(--r-3xl) var(--r-3xl) 0 0;
     margin-top: var(--sp-10);
   }
+  .closing__brand-mark {
+    margin: 0 auto var(--sp-6);
+    max-width: min(140px, 38vw);
+  }
+  .closing__brand-mark img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+    opacity: 0.95;
+    filter: brightness(0) invert(1);
+  }
   .closing .eyebrow { color: rgb(255 255 255 / 0.82); margin-bottom: var(--sp-5); }
   .closing .display {
     color: var(--on-primary);
@@ -652,14 +681,14 @@
 
 <header class="site-header" id="siteHeader">
   <div class="container site-header__inner">
-    <a href="/" class="site-logo" aria-label="Carta"><img src="/assets/carta-logo.png" alt="Carta" width="766" height="264"></a>
+    <a href="/" class="site-logo" aria-label="Carta"><img src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024"></a>
     <nav class="site-nav" aria-label="Primary">
       <a href="#manifesto" data-i18n="nav.method">Method</a>
       <a href="#chapters" data-i18n="nav.index">Index</a>
       <a href="#plans" data-i18n="nav.plans">Plans</a>
       <a href="/app/login.html" data-i18n="nav.signin">Sign in</a>
     </nav>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div class="site-header__actions">
       <button type="button" class="carta-theme-btn" id="themeCycleBtn" aria-label="">◐</button>
       <div class="lang-toggle" role="group" aria-label="Language">
         <button type="button" data-lang-btn="en" aria-pressed="true" onclick="window.__cartaSetLang('en')">EN</button>
@@ -677,6 +706,7 @@
   <div class="container hero__grid">
     <div class="hero__inner">
       <div class="hero__eyebrow-row">
+        <img class="hero__brand-seal" src="/assets/carta-brand-seal.png?v=7" alt="" width="1536" height="1024" decoding="async" aria-hidden="true">
         <span class="accent-rule hero-accent-rule hero__accent-pulse" aria-hidden="true"></span>
         <span class="eyebrow eyebrow-accent hero-eyebrow-kinetic" data-i18n="hero.eyebrow">Carta · F&B Operations Studio</span>
       </div>
@@ -1027,6 +1057,9 @@
 <!-- ============ CLOSING ============ -->
 <section class="closing" aria-labelledby="closing-h">
   <div class="container-narrow">
+    <div class="closing__brand-mark" aria-hidden="true">
+      <img src="/assets/carta-brand-card.png?v=7" alt="" width="1024" height="1024" loading="lazy" decoding="async">
+    </div>
     <span class="eyebrow" data-i18n="closing.eyebrow">Section 04 — Begin</span>
     <h2 class="display" id="closing-h"><em data-i18n="closing.title">Begin, when you are ready.</em></h2>
     <p class="lead" data-i18n="closing.lead">A magic link in your inbox. No password to remember. Your first workspace before your coffee.</p>
@@ -1040,10 +1073,10 @@
   <div class="container">
     <div class="site-footer__top">
       <div>
-        <img class="site-footer__mark" src="/assets/carta-logo.png" alt="Carta" width="766" height="264">
+        <img class="site-footer__mark" src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024">
         <p style="font-size:14px;color:rgba(255,255,255,0.7);max-width:36ch;line-height:var(--lh-body)" data-i18n="foot.tagline">A luxury F&B operating system for kitchens that take their craft and their numbers seriously.</p>
-        <img class="site-footer__badges" src="/assets/carta-brand-stickers.png" alt="TGK Ek-10, HACCP, KVKK compliance" width="1024" height="764" loading="lazy" decoding="async">
-        <img class="site-footer__palette" src="/assets/carta-brand-palette.png" alt="Carta color palette: bone cream, sand linen, eucalyptus, antique gold, pale sage, ink graphite" width="1024" height="764" loading="lazy" decoding="async">
+        <img class="site-footer__badges" src="/assets/carta-brand-stickers.png?v=7" alt="TGK Ek-10, HACCP, KVKK compliance" width="1024" height="764" loading="lazy" decoding="async">
+        <img class="site-footer__palette" src="/assets/carta-brand-palette.png?v=7" alt="Carta color palette: bone cream, sand linen, eucalyptus, antique gold, pale sage, ink graphite" width="1024" height="764" loading="lazy" decoding="async">
       </div>
       <div>
         <h5 data-i18n="foot.product">Product</h5>
