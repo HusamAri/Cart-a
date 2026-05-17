@@ -49,7 +49,7 @@
     padding: var(--glass-padding);
   }
   .dash-card--viz {
-    animation: dashCardIn 0.52s var(--ease) backwards;
+    animation: dashCardIn 0.52s var(--ease) both;
   }
   .dash-card--viz:nth-child(1) { animation-delay: 0.02s; }
   .dash-card--viz:nth-child(2) { animation-delay: 0.08s; }
@@ -145,7 +145,7 @@
   @media (max-width: 700px) { .dash-kpis { grid-template-columns: repeat(2, 1fr); } }
   .dash-kpi {
     padding: var(--sp-4); background: rgb(var(--ink-rgb) / 0.04); border-radius: var(--r-lg); text-align: center;
-    animation: dashKpiIn 0.55s var(--ease) backwards;
+    animation: dashKpiIn 0.55s var(--ease) both;
   }
   .dash-kpi:nth-child(1) { animation-delay: 0.08s; }
   .dash-kpi:nth-child(2) { animation-delay: 0.14s; }
@@ -261,6 +261,9 @@ main.innerHTML = `
 
 applyTranslations();
 applyRoleGates(role, main);
+await load();
+
+async function load() {
   const [dRes, cRes, clRes] = await Promise.all([
     supabase.from('saved_dishes').select('*').eq('workspace_id', wsId).order('updated_at', { ascending: false }),
     supabase.from('cost_db').select('*').eq('workspace_id', wsId),
@@ -276,6 +279,8 @@ applyRoleGates(role, main);
   clusters = clRes.data || [];
   fillClusterSelect();
   renderDash(costMap);
+  applyTranslations();
+  applyRoleGates(role, main);
 }
 
 function fillClusterSelect() {
@@ -284,7 +289,7 @@ function fillClusterSelect() {
   sel.innerHTML = `<option value="__all__">${escapeHTML(t('dash.scope_all'))}</option>` +
     clusters.map(cl => `<option value="${escapeHTML(cl.id)}">${escapeHTML(cl.name)}</option>`).join('');
   sel.value = clusterFilter;
-  sel.onchange = () => { clusterFilter = sel.value; load(); };
+  sel.onchange = () => { clusterFilter = sel.value; void load(); };
 }
 
 function clusterDishSet(clusterId) {
@@ -611,7 +616,7 @@ function exportCsv(st) {
   URL.revokeObjectURL(a.href);
 }
 
-main.querySelector('#dashRefresh').addEventListener('click', () => load());
+main.querySelector('#dashRefresh').addEventListener('click', () => { void load(); });
 main.querySelector('#dashCsv').addEventListener('click', async () => {
   const { data: costs } = await supabase.from('cost_db').select('*').eq('workspace_id', wsId);
   const costMap = buildCostMap(costs || []);
@@ -626,8 +631,6 @@ window.addEventListener('beforeprint', () => {
 window.addEventListener('afterprint', () => {
   main.querySelectorAll('.dash-calc').forEach(d => d.removeAttribute('open'));
 });
-
-await load();
 
 document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
   setTimeout(() => { renderDash(lastCostMap); applyRoleGates(role, main); }, 0);
