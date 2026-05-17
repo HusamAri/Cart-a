@@ -50,7 +50,47 @@
   }
   .cluster-row:hover { background: rgb(var(--sage-mist-rgb) / 0.35); }
   .cluster-row.active { outline: 2px solid var(--tertiary-container); background: rgb(var(--sage-mist-rgb) / 0.45); }
-  .cluster-row .ico { font-size: 1.35rem; line-height: 1; }
+  .cluster-row .ico {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.65rem;
+    color: var(--primary);
+  }
+  .cluster-row .ico .carta-icon { display: block; }
+  .menu-cluster-ico-fallback { font-size: 1.25rem; line-height: 1; }
+  .menu-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    gap: 8px;
+    max-width: 320px;
+  }
+  .menu-icon-opt {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--r-lg);
+    border: 1px solid rgb(var(--ink-rgb) / 0.12);
+    background: rgba(255, 255, 255, 0.72);
+    cursor: pointer;
+    color: var(--primary);
+    transition: border-color var(--dur-2), background var(--dur-2), box-shadow var(--dur-2);
+  }
+  .menu-icon-opt:hover { border-color: rgb(var(--ink-rgb) / 0.22); background: rgb(var(--sage-mist-rgb) / 0.25); }
+  .menu-icon-opt.selected {
+    border-color: var(--tertiary-container);
+    box-shadow: 0 0 0 2px rgb(var(--sage-mist-rgb) / 0.5);
+    background: rgb(var(--sage-mist-rgb) / 0.35);
+  }
+  .menu-icon-opt:focus-visible {
+    outline: 2px solid var(--tertiary-container);
+    outline-offset: 2px;
+  }
   .cluster-row .meta { flex: 1; min-width: 0; }
   .cluster-row .meta strong { display: block; font-size: 14px; }
   .cluster-row .meta span { font-size: 11px; opacity: 0.75; }
@@ -124,6 +164,13 @@ import { applyTranslations, t } from '/src/i18n.js';
 import { computeRecipe } from '/src/recipe-compute.js';
 import { getMyRole, applyRoleGates, requireCan } from '/src/permissions.js';
 import { downloadWorkbook } from '/src/xlsx-export.js';
+import { cartaIcon } from '/src/carta-icon.js';
+import {
+  MENU_CLUSTER_ICON_OPTIONS,
+  DEFAULT_MENU_CLUSTER_ICON,
+  normalizeMenuClusterIcon,
+  menuClusterIconHtml,
+} from '/src/menu-cluster-icon.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -264,7 +311,7 @@ function renderList() {
     const n = clusterDishIds(cl).length;
     const sub = t('menus.list_count').replace('{n}', String(n));
     return `<button type="button" class="cluster-row ${cl.id === selectedId ? 'active' : ''}" data-cid="${escapeHTML(cl.id)}">
-      <span class="ico">${escapeHTML(cl.icon || '🍽')}</span>
+      <span class="ico">${menuClusterIconHtml(cl.icon, { size: 20 })}</span>
       <span class="meta"><strong>${escapeHTML(cl.name)}</strong><span>${escapeHTML(sub)}</span></span>
     </button>`;
   }).join('');
@@ -303,10 +350,19 @@ function renderEditor() {
           ${['food','drinks','mixed'].map(v => `<option value="${v}" ${cl.type === v ? 'selected' : ''}>${escapeHTML(t('menus.type.' + v))}</option>`).join('')}
         </select>
       </label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">
-        <label><span data-i18n="menus.field_icon">Icon (emoji)</span>
-          <input type="text" id="fIcon" value="${escapeHTML(cl.icon || '🍽')}" maxlength="8">
-        </label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);align-items:start">
+        <div>
+          <label style="display:block;font-size:var(--type-caption);font-weight:600;margin-bottom:8px"><span data-i18n="menus.field_icon">Menu icon</span></label>
+          <p class="text-muted" style="font-size:11px;margin:0 0 10px;line-height:1.4" data-i18n="menus.icon_hint">Pick a symbol for this menu cluster.</p>
+          <input type="hidden" id="fMenuIcon" value="${escapeHTML(normalizeMenuClusterIcon(cl.icon))}">
+          <div class="menu-icon-grid" id="menuIconGrid" role="group" aria-label="Menu icon">
+            ${MENU_CLUSTER_ICON_OPTIONS.map(opt => {
+    const cur = normalizeMenuClusterIcon(cl.icon);
+    const sel = opt.id === cur ? ' selected' : '';
+    return `<button type="button" class="menu-icon-opt${sel}" data-menu-icon="${escapeHTML(opt.id)}" title="${escapeHTML(t(opt.i18n))}" aria-label="${escapeHTML(t(opt.i18n))}" aria-pressed="${opt.id === cur ? 'true' : 'false'}">${cartaIcon(opt.id, { size: 22 })}</button>`;
+  }).join('')}
+          </div>
+        </div>
         <label><span data-i18n="menus.field_color">Color tag</span>
           <select id="fColor">
             ${[...new Set([cl.color || 'navy', 'navy', 'sage', 'gold', 'wine', 'forest'])].map(v => `<option value="${escapeHTML(v)}" ${(cl.color || 'navy') === v ? 'selected' : ''}>${escapeHTML(v)}</option>`).join('')}
@@ -346,6 +402,19 @@ function renderEditor() {
   }
   body.querySelector('#dishSearchQ')?.addEventListener('input', filterDishPicker);
 
+  body.querySelectorAll('.menu-icon-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-menu-icon');
+      const hid = body.querySelector('#fMenuIcon');
+      if (hid && id) hid.value = id;
+      body.querySelectorAll('.menu-icon-opt').forEach(b => {
+        const on = b.getAttribute('data-menu-icon') === id;
+        b.classList.toggle('selected', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    });
+  });
+
   body.querySelector('#btnSaveMenu')?.addEventListener('click', saveSelected);
   body.querySelector('#btnDelMenu')?.addEventListener('click', deleteSelected);
   body.querySelector('#btnExportCsv')?.addEventListener('click', exportCsv);
@@ -368,7 +437,7 @@ async function saveSelected() {
     return;
   }
   const type = main.querySelector('#fType')?.value || 'mixed';
-  const icon = (main.querySelector('#fIcon')?.value || '🍽').trim().slice(0, 8);
+  const icon = normalizeMenuClusterIcon(main.querySelector('#fMenuIcon')?.value);
   const color = main.querySelector('#fColor')?.value || 'navy';
   const checked = [...main.querySelectorAll('#dishPicker input[type=checkbox]:checked')].map(el => el.value);
   const { error } = await supabase.from('menu_clusters').update({
@@ -493,7 +562,7 @@ async function createMenu() {
     name: t('menus.new_menu_default'),
     type: 'mixed',
     color: 'navy',
-    icon: '🍽',
+    icon: DEFAULT_MENU_CLUSTER_ICON,
     dishes: [],
   }).select('id').single();
   if (error) {
