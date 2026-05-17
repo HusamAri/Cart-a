@@ -1,0 +1,190 @@
+// Carta — Workspace management
+import { supabase } from './supabase-client.js';
+
+const ACTIVE_WS_KEY = 'carta_active_workspace_id';
+const ACTIVE_ORG_KEY = 'carta_active_org_id';
+
+// ----- Organizations -----
+
+export async function listMyOrganizations() {
+  // org_members join organizations — RLS only returns orgs the user is in
+  const { data, error } = await supabase
+    .from('org_members')
+    .select('role, joined_at, organizations(id, name, slug, created_at)')
+    .order('joined_at', { ascending: false });
+  if (error) { console.error('listMyOrganizations', error); return []; }
+  return (data || []).map(r => ({ ...r.organizations, role: r.role }));
+}
+
+export async function createOrganization(name) {
+  // created_by and the owner membership are filled by DB default + trigger.
+  const slug = (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Math.random().toString(36).slice(2, 6);
+  const { data: org, error } = await supabase
+    .from('organizations')
+    .insert({ name, slug })
+    .select()
+    .single();
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, organization: org };
+}
+
+export function getActiveOrgId() {
+  try { return localStorage.getItem(ACTIVE_ORG_KEY); } catch(e) { return null; }
+}
+export function setActiveOrg(id) {
+  try { id ? localStorage.setItem(ACTIVE_ORG_KEY, id) : localStorage.removeItem(ACTIVE_ORG_KEY); } catch(e) {}
+}
+
+// ----- Workspaces (facilities) -----
+
+export async function listMyWorkspaces(orgId = null) {
+  // Returns workspaces I have direct membership in (workspace_members)
+  const { data: directMembers, error: e1 } = await supabase
+    .from('workspace_members')
+    .select('role, workspaces(id, name, slug, plan, currency, created_at, organization_id)')
+    .order('joined_at', { ascending: false });
+  if (e1) { console.error(e1); return []; }
+  let workspaces = (directMembers || []).map(r => ({ ...r.workspaces, role: r.role }));
+
+  // Also include workspaces from orgs I'm a member of (cross-facility via org_members)
+  // RLS lets us SELECT workspaces if is_workspace_member is true (which now includes org membership)
+  const { data: orgWorkspaces, error: e2 } = await supabase
+    .from('workspaces')
+    .select('id, name, slug, plan, currency, created_at, organization_id');
+  if (!e2 && orgWorkspaces) {
+    const known = new Set(workspaces.map(w => w.id));
+    for (const w of orgWorkspaces) {
+      if (!known.has(w.id)) workspaces.push({ ...w, role: 'org_member' });
+    }
+  }
+  if (orgId) workspaces = workspaces.filter(w => w.organization_id === orgId);
+  return workspaces;
+}
+
+/**
+ * createWorkspace({name, currency, organizationId})
+ *   If organizationId is omitted, a new organization with the same name is created.
+ *   The new workspace becomes a facility under that organization.
+ */
+export async function createWorkspace({ name, slug, currency = '₺', organizationId = null }) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return { ok: false, error: 'Not signed in' };
+
+  // 1. Ensure we have an organization to attach the workspace to
+  let orgId = organizationId;
+  if (!orgId) {
+    const orgResult = await createOrganization(name);
+    if (!orgResult.ok) return orgResult;
+    orgId = orgResult.organization.id;
+  }
+
+  // 2. Create the workspace (facility) inside the org
+  const finalSlug = (slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')) + '-' + Math.random().toString(36).slice(2, 6);
+  const { data, error } = await supabase
+    .from('workspaces')
+    .insert({ name, slug: finalSlug, currency, organization_id: orgId })
+    .select()
+    .single();
+  if (error) {
+    console.error('createWorkspace error', error);
+    return { ok: false, error: error.message };
+  }
+  setActiveWorkspace(data.id);
+  setActiveOrg(orgId);
+  return { ok: true, workspace: data, organizationId: orgId };
+}
+
+export function getActiveWorkspaceId() {
+  try { return localStorage.getItem(ACTIVE_WS_KEY); } catch(e) { return null; }
+}
+
+export function setActiveWorkspace(id) {
+  try { localStorage.setItem(ACTIVE_WS_KEY, id); } catch(e) {}
+}
+
+export async function getActiveWorkspace() {
+  const id = getActiveWorkspaceId();
+  if (!id) return null;
+  const { data, error } = await supabase
+    .from('workspaces')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) { console.warn(error); return null; }
+  return data;
+}
+
+export async function updateWorkspace(id, patch) {
+  const { data, error } = await supabase
+    .from('workspaces')
+    .update(patch)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, workspace: data };
+}
+
+// Count of artifacts that will be lost when a workspace is deleted.
+// Used in the strong-confirmation UI.
+export async function getWorkspaceArtifactCounts(id) {
+  const [dishes, costs, sales, snaps] = await Promise.all([
+    supabase.from('saved_dishes').select('id', { count: 'exact', head: true }).eq('workspace_id', id),
+    supabase.from('cost_db').select('ingredient_name', { count: 'exact', head: true }).eq('workspace_id', id),
+    supabase.from('sales_data').select('dish_name', { count: 'exact', head: true }).eq('workspace_id', id),
+    supabase.from('cost_history').select('id', { count: 'exact', head: true }).eq('workspace_id', id),
+  ]);
+  return {
+    recipes:   dishes.count ?? 0,
+    costEntries: costs.count ?? 0,
+    salesRows: sales.count ?? 0,
+    snapshots: snaps.count ?? 0,
+  };
+}
+
+// Permanently delete the workspace (and all child rows via DB cascades).
+// Caller MUST have run a strong-confirmation flow before invoking this.
+// Only the owner (auth.uid() = owner_id) can succeed via RLS.
+export async function deleteWorkspace(id) {
+  const { error } = await supabase.from('workspaces').delete().eq('id', id);
+  if (error) return { ok: false, error: error.message };
+  // Clear active workspace cache if it was this one
+  try {
+    if (getActiveWorkspaceId() === id) localStorage.removeItem(ACTIVE_WS_KEY);
+  } catch (e) {}
+  return { ok: true };
+}
+
+// ----- Member management -----
+
+export async function listMembers(wsId) {
+  const { data, error } = await supabase.rpc('workspace_members_with_email', { ws_id: wsId });
+  if (error) { console.error('listMembers', error); return []; }
+  return data || [];
+}
+
+export async function inviteMember(wsId, email, role = 'viewer') {
+  const { data, error } = await supabase.rpc('invite_member_by_email', {
+    ws_id: wsId,
+    invitee_email: email,
+    invitee_role: role,
+  });
+  if (error) return { ok: false, error: error.message };
+  return data || { ok: false, error: 'unknown' };
+}
+
+export async function changeMemberRole(wsId, userId, role) {
+  const { data, error } = await supabase.rpc('set_member_role', {
+    ws_id: wsId, target_user: userId, new_role: role,
+  });
+  if (error) return { ok: false, error: error.message };
+  return data || { ok: false, error: 'unknown' };
+}
+
+export async function removeMember(wsId, userId) {
+  const { data, error } = await supabase.rpc('remove_member', {
+    ws_id: wsId, target_user: userId,
+  });
+  if (error) return { ok: false, error: error.message };
+  return data || { ok: false, error: 'unknown' };
+}

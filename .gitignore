@@ -1,0 +1,38 @@
+# Vercel
+.vercel
+.vercel.local
+
+# Supabase CLI cache
+supabase/.temp/
+supabase/.branches/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Env / secrets — Carta has no .env files yet but defensively block any future ones
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets/
+
+# Node (defensive — no node_modules currently)
+node_modules/
+
+# OS
+Thumbs.db
+desktop.ini

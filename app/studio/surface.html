@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Surface · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(255,224,136,0.28) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(212,231,216,0.35) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page { padding: var(--sp-7) var(--margin-desktop) var(--sp-10); flex: 1; overflow-y: auto; }
+  @media (max-width: 900px) { .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); } }
+  .page-head { max-width: 1200px; margin: 0 auto var(--sp-8); }
+  .page-head .eyebrow { margin-bottom: var(--sp-3); }
+  .page-head h1 { margin: 0 0 var(--sp-3); }
+  .page-head .lead { margin: 0; max-width: 60ch; }
+
+  .exports {
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-5);
+  }
+  @media (max-width: 800px) { .exports { grid-template-columns: 1fr; } }
+
+  .export-card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+    padding: var(--glass-padding);
+    display: flex; flex-direction: column; gap: var(--sp-3);
+  }
+  .export-card__icon {
+    width: 48px; height: 48px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--primary-fixed);
+    color: var(--on-primary-fixed);
+    border-radius: var(--r-lg);
+    align-self: flex-start;
+  }
+  .export-card__icon .material-symbols-outlined { font-size: 28px; }
+  .export-card h3 {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 1.5rem; color: var(--primary);
+    margin: 0;
+  }
+  .export-card p { margin: 0; color: var(--on-surface-variant); font-size: var(--type-caption); line-height: 1.55; }
+  .export-card__row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: var(--sp-4);
+  }
+  .export-card__count {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: 11px; letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant);
+  }
+  .format-note {
+    max-width: 1200px; margin: var(--sp-7) auto 0;
+    text-align: center;
+    font-size: var(--type-caption); color: var(--on-surface-variant);
+  }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+import { supabase } from '/src/supabase-client.js';
+import { applyTranslations, t, getLang } from '/src/i18n.js';
+import { downloadWorkbook } from '/src/xlsx-export.js';
+import {
+  computeRecipe, computeDishCost, suggestedPrice, foodCostPct, marginCurrency,
+  buildCostMap, formatNumber
+} from '/src/recipe-compute.js';
+import { ALLERGEN_LABELS } from '/src/nutrient-db.js';
+
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+
+const ctx = await mountStudioShell({ active: 'surface', main });
+if (!ctx) throw new Error('No session/workspace');
+const ws = ctx.workspace;
+const wsId = ws.id;
+const currency = ws.currency || '₺';
+const targetGp = Number(ws.target_gp) || 70;
+const vatPct   = Number(ws.vat_rate) || 10;
+const qFactor  = Number(ws.q_factor) || 3;
+
+// Load everything in parallel
+const [dishesRes, costRes, salesRes] = await Promise.all([
+  supabase.from('saved_dishes').select('*').eq('workspace_id', wsId),
+  supabase.from('cost_db').select('*').eq('workspace_id', wsId),
+  supabase.from('sales_data').select('*').eq('workspace_id', wsId),
+]);
+const dishes = dishesRes.data || [];
+const costRows = costRes.data || [];
+const costMap = buildCostMap(costRows);
+const sales = salesRes.data || [];
+
+main.innerHTML = `
+  <div class="page-head">
+    <span class="eyebrow eyebrow-accent" data-i18n="surface.title">Surface</span>
+    <h1 class="h1">
+      <span data-i18n="surface.title">Surface</span>
+      <em data-i18n="surface.title_em">output</em>.
+    </h1>
+    <p class="lead" data-i18n="surface.intro">Export your data — Excel, print, share. Bilingual, offline-ready.</p>
+  </div>
+
+  <div class="exports">
+    <article class="export-card">
+      <span class="export-card__icon"><span class="material-symbols-outlined">restaurant_menu</span></span>
+      <h3 data-i18n="surface.recipes_title">Recipes</h3>
+      <p data-i18n="surface.recipes_desc">Every dish with kcal, macros, allergens, diet tags, current menu price.</p>
+      <div class="export-card__row">
+        <span class="export-card__count">${dishes.length} <span data-i18n="recipes.title">items</span></span>
+        <button type="button" class="btn btn-primary btn-sm" id="expRecipes" ${dishes.length===0?'disabled':''}>
+          <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
+          <span data-i18n="surface.export_xls">Export Excel</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="export-card">
+      <span class="export-card__icon"><span class="material-symbols-outlined">account_balance_wallet</span></span>
+      <h3 data-i18n="surface.cost_title">Cost ledger</h3>
+      <p data-i18n="surface.cost_desc">Full ingredient cost ledger with yield % and effective per-gram cost.</p>
+      <div class="export-card__row">
+        <span class="export-card__count">${costRows.length} <span data-i18n="cost.col_ingredient">items</span></span>
+        <button type="button" class="btn btn-primary btn-sm" id="expCost" ${costRows.length===0?'disabled':''}>
+          <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
+          <span data-i18n="surface.export_xls">Export Excel</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="export-card">
+      <span class="export-card__icon"><span class="material-symbols-outlined">sell</span></span>
+      <h3 data-i18n="surface.pricing_title">Pricing analysis</h3>
+      <p data-i18n="surface.pricing_desc">Cost, suggested price, FC %, margin — recipe by recipe.</p>
+      <div class="export-card__row">
+        <span class="export-card__count">${dishes.length} <span data-i18n="pricing.col_dish">items</span></span>
+        <button type="button" class="btn btn-primary btn-sm" id="expPricing" ${dishes.length===0?'disabled':''}>
+          <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
+          <span data-i18n="surface.export_xls">Export Excel</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="export-card">
+      <span class="export-card__icon"><span class="material-symbols-outlined">grid_view</span></span>
+      <h3 data-i18n="surface.matrix_title">Engineering matrix</h3>
+      <p data-i18n="surface.matrix_desc">Smith-Kasavana classification: dish, sold, contribution, quadrant.</p>
+      <div class="export-card__row">
+        <span class="export-card__count">${sales.length} <span data-i18n="matrix.col_dish">items</span></span>
+        <button type="button" class="btn btn-primary btn-sm" id="expMatrix" ${sales.length===0?'disabled':''}>
+          <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
+          <span data-i18n="surface.export_xls">Export Excel</span>
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <p class="format-note" data-i18n="surface.format_note">Format: SpreadsheetML 2003 (.xls) — opens in Excel and Google Sheets.</p>
+`;
+applyTranslations();
+
+const today = new Date().toISOString().slice(0,10);
+const wsSlug = (ws.name || 'workspace').toLowerCase().replace(/[^a-z0-9]+/g,'-');
+
+// ============================================================
+// Exports
+// ============================================================
+document.getElementById('expRecipes').addEventListener('click', () => {
+  const lang = getLang();
+  const rows = [
+    [{ v:'Name', t:'String' }, 'Kind', 'Servings', 'kcal/serving', 'P (g)', 'F (g)', 'C (g)', 'Fi (g)', 'Allergens', 'Diet tags', 'Menu price', 'Currency']
+      .map(c => typeof c === 'string' ? { v:c, t:'String' } : c)
+  ];
+  for (const d of dishes) {
+    const data = d.data || {};
+    const c = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
+    rows.push([
+      d.name,
+      d.kind || 'food',
+      data.servings || 1,
+      { v: round(c.perServing.kcal, 0), t: 'Number' },
+      { v: round(c.perServing.P, 1),    t: 'Number' },
+      { v: round(c.perServing.F, 1),    t: 'Number' },
+      { v: round(c.perServing.C, 1),    t: 'Number' },
+      { v: round(c.perServing.Fi, 1),   t: 'Number' },
+      (c.allergens||[]).map(a => ALLERGEN_LABELS[a]?.[lang] || a).join(', '),
+      (c.dietTags||[]).map(d => t('diet.'+d) || d).join(', '),
+      data.menu_price ? { v: round(data.menu_price, 2), t: 'Number' } : '',
+      currency,
+    ]);
+  }
+  downloadWorkbook(`carta-recipes-${wsSlug}-${today}`, [{ name: 'Recipes', rows }]);
+});
+
+document.getElementById('expCost').addEventListener('click', () => {
+  const rows = [
+    ['Ingredient', 'Per 100g', 'Yield %', 'Eff. /g', 'UOM', 'Source', 'As of', 'SAP code', 'Currency'].map(c => ({ v:c, t:'String' }))
+  ];
+  for (const r of costRows) {
+    const yld = Number(r.yield_pct) || 100;
+    const per100 = Number(r.per_100g) || 0;
+    const effG = (per100 / 100) * (100 / yld);
+    rows.push([
+      r.ingredient_name,
+      { v: round(per100, 2), t: 'Number' },
+      { v: round(yld, 1), t: 'Number' },
+      { v: round(effG, 4), t: 'Number' },
+      r.uom || '100G',
+      r.source || 'manual',
+      r.as_of || '',
+      r.sap_code || '',
+      currency,
+    ]);
+  }
+  downloadWorkbook(`carta-cost-ledger-${wsSlug}-${today}`, [{ name: 'Cost Ledger', rows }]);
+});
+
+document.getElementById('expPricing').addEventListener('click', () => {
+  const rows = [
+    ['Dish', 'Kind', 'Cost/serving', 'Menu price', 'Suggested', 'FC %', 'Margin', 'Currency', 'Missing costs']
+      .map(c => ({ v:c, t:'String' }))
+  ];
+  for (const d of dishes) {
+    const data = d.data || {};
+    const ings = data.ingredients || [];
+    const servings = data.servings || 1;
+    const cost = computeDishCost({ ingredients: ings, servings }, costMap, qFactor);
+    const price = Number(data.menu_price) || 0;
+    const sp = suggestedPrice(cost.perServing, targetGp, vatPct);
+    const fc = price > 0 ? foodCostPct(cost.perServing, price, vatPct) : null;
+    const mg = price > 0 ? marginCurrency(cost.perServing, price, vatPct) : null;
+    rows.push([
+      d.name,
+      d.kind || 'food',
+      { v: round(cost.perServing, 2), t: 'Number' },
+      price ? { v: round(price, 2), t: 'Number' } : '',
+      { v: round(sp, 2), t: 'Number' },
+      fc !== null ? { v: round(fc, 1), t: 'Number' } : '',
+      mg !== null ? { v: round(mg, 2), t: 'Number' } : '',
+      currency,
+      (cost.missing||[]).join(', '),
+    ]);
+  }
+  downloadWorkbook(`carta-pricing-${wsSlug}-${today}`, [{ name: 'Pricing', rows }]);
+});
+
+document.getElementById('expMatrix').addEventListener('click', () => {
+  // Re-run classification quickly
+  const rows = [
+    ['Dish', 'Sold', 'Price', 'Cost/serving', 'Contribution', 'Popularity %', 'Quadrant', 'Currency']
+      .map(c => ({ v:c, t:'String' }))
+  ];
+  const dishMap = new Map();
+  dishes.forEach(d => dishMap.set(d.name, d));
+  const totalSold = sales.reduce((a, s) => a + (Number(s.sold)||0), 0);
+  const cmList = [];
+  const enriched = sales.map(s => {
+    const d = dishMap.get(s.dish_name);
+    const data = d?.data || {};
+    const ings = data.ingredients || [];
+    const servings = data.servings || 1;
+    const cost = computeDishCost({ ingredients: ings, servings }, costMap, qFactor);
+    const price = Number(s.price) || Number(data.menu_price) || 0;
+    const cm = price > 0 ? marginCurrency(cost.perServing, price, vatPct) : null;
+    if (cm !== null) cmList.push(cm);
+    const pop = totalSold > 0 ? (Number(s.sold) || 0) / totalSold : 0;
+    return { name: s.dish_name, sold: Number(s.sold)||0, price, cost: cost.perServing, cm, pop };
+  });
+  const cmMean = cmList.length ? cmList.reduce((a,b)=>a+b,0) / cmList.length : 0;
+  const popThreshold = enriched.length ? 0.70 / enriched.length : 0;
+  for (const r of enriched) {
+    let quad = '';
+    if (r.cm !== null && r.cost > 0) {
+      const hi = r.cm >= cmMean;
+      const ho = r.pop >= popThreshold;
+      quad = hi && ho ? 'Star' : !hi && ho ? 'Plowhorse' : hi && !ho ? 'Puzzle' : 'Dog';
+    }
+    rows.push([
+      r.name,
+      { v: r.sold, t: 'Number' },
+      r.price ? { v: round(r.price, 2), t: 'Number' } : '',
+      { v: round(r.cost, 2), t: 'Number' },
+      r.cm !== null ? { v: round(r.cm, 2), t: 'Number' } : '',
+      { v: round(r.pop * 100, 1), t: 'Number' },
+      quad,
+      currency,
+    ]);
+  }
+  downloadWorkbook(`carta-matrix-${wsSlug}-${today}`, [{ name: 'Engineering Matrix', rows }]);
+});
+
+function round(v, digits = 2) {
+  if (v === null || v === undefined || isNaN(v)) return '';
+  const f = Math.pow(10, digits);
+  return Math.round(v * f) / f;
+}
+</script>
+</body>
+</html>

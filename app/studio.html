@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.45) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.25) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page {
+    padding: var(--sp-7) var(--margin-desktop) var(--sp-10);
+    flex: 1; overflow-y: auto;
+  }
+  @media (max-width: 900px) {
+    .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); }
+  }
+
+  .page-header {
+    max-width: 1120px; margin: 0 auto var(--sp-8);
+  }
+  .page-header .eyebrow { margin-bottom: var(--sp-3); }
+  .page-header h1 { margin: 0 0 var(--sp-4); }
+  .page-header .lead { margin: 0; max-width: 56ch; }
+
+  /* Bento grid of module cards — Recipe gets 2-col span (primary entry point) */
+  .bento {
+    max-width: 1120px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-5);
+  }
+  .bento > .module-card:first-child { grid-column: span 2; min-height: 280px; }
+  .bento > .module-card:first-child .module-card__name { font-size: 2rem; }
+  @media (max-width: 900px) {
+    .bento { grid-template-columns: repeat(2, 1fr); }
+    .bento > .module-card:first-child { grid-column: span 2; }
+  }
+  @media (max-width: 600px) {
+    .bento { grid-template-columns: 1fr; }
+    .bento > .module-card:first-child { grid-column: span 1; min-height: 220px; }
+    .bento > .module-card:first-child .module-card__name { font-size: 1.625rem; }
+  }
+
+  .module-card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border-radius: var(--r-2xl);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-2);
+    padding: var(--glass-padding);
+    display: flex; flex-direction: column; gap: var(--sp-4);
+    min-height: 220px;
+    text-decoration: none; color: inherit;
+    transition: transform var(--dur-2) var(--ease-linear-out),
+                background var(--dur-2),
+                box-shadow var(--dur-2);
+  }
+  .module-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-3);
+  }
+  .module-card:focus-visible {
+    outline: 2px solid var(--tertiary-container);
+    outline-offset: 3px;
+  }
+  .module-card--sage { background: rgba(212,231,216,0.85); color: var(--on-primary-fixed); }
+  .module-card--gold { background: rgba(255,224,136,0.55); color: var(--on-tertiary-fixed); }
+  .module-card--ink  { background: var(--primary); color: var(--on-primary); }
+
+  .module-card__icon {
+    width: 48px; height: 48px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(7,22,13,0.06);
+    border-radius: var(--r-lg);
+  }
+  .module-card--ink .module-card__icon { background: rgba(255,255,255,0.10); }
+  .module-card__icon .material-symbols-outlined { font-size: 28px; }
+
+  .module-card__num {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm);
+    letter-spacing: var(--track-caps); text-transform: uppercase;
+    opacity: 0.65;
+  }
+  .module-card__name {
+    font-family: var(--font-display); font-weight: 400; font-style: italic;
+    font-size: 1.625rem; line-height: 1.25;
+    margin: 0;
+  }
+  .module-card__desc {
+    font-family: var(--font-sans); font-size: var(--type-caption);
+    line-height: 1.5;
+    opacity: 0.85;
+    margin: 0;
+  }
+  .module-card__cta {
+    margin-top: auto;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm);
+    letter-spacing: var(--track-caps); text-transform: uppercase;
+  }
+  .module-card__cta .arrow { transition: transform var(--dur-2); }
+  .module-card:hover .module-card__cta .arrow { transform: translateX(6px); }
+  .module-card__cta-coming {
+    margin-top: auto;
+    display: inline-flex; padding: 6px 14px;
+    background: rgba(7,22,13,0.06);
+    border-radius: var(--r-pill);
+    font-family: var(--font-sans); font-size: 11px;
+    font-weight: 600; letter-spacing: var(--track-caps); text-transform: uppercase;
+    opacity: 0.7;
+    align-self: flex-start;
+  }
+  .module-card--ink .module-card__cta-coming { background: rgba(255,255,255,0.10); }
+
+  /* Module-card is .disabled when "coming soon" — give a different cursor */
+  .module-card.disabled { cursor: default; }
+  .module-card.disabled:hover { transform: none; box-shadow: var(--shadow-2); }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<!-- Studio shell (sidebar + main wrap) will be mounted via JS -->
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+main.innerHTML = `
+  <div class="page-header">
+    <span class="eyebrow eyebrow-accent" data-i18n="studio.section">Studio</span>
+    <h1 class="h1"><em data-i18n="studio.welcome">Welcome to your studio.</em></h1>
+    <p class="lead" data-i18n="studio.welcome_intro">Six instruments. One workspace. Start anywhere.</p>
+  </div>
+
+  <div class="bento">
+    <a class="module-card" href="/app/studio/recipes.html">
+      <span class="module-card__icon"><span class="material-symbols-outlined">temp_preferences_eco</span></span>
+      <span class="module-card__num">01 — Recipe</span>
+      <h2 class="module-card__name" data-i18n="studio.m_builder">The builder</h2>
+      <p class="module-card__desc" data-i18n="studio.d_builder">Dishes, ingredients, kcal · macros · allergens. Food and drinks.</p>
+      <span class="module-card__cta">
+        <span data-i18n="studio.open">Open</span> <span class="arrow">→</span>
+      </span>
+    </a>
+
+    <a class="module-card module-card--gold" href="/app/studio/cost.html">
+      <span class="module-card__icon"><span class="material-symbols-outlined">account_balance_wallet</span></span>
+      <span class="module-card__num">02 — Cost</span>
+      <h2 class="module-card__name" data-i18n="studio.m_ledger">The ledger</h2>
+      <p class="module-card__desc" data-i18n="studio.d_ledger">SAP MAP ingest. Map. Audit. Target GP. VAT-aware.</p>
+      <span class="module-card__cta">
+        <span data-i18n="studio.open">Open</span> <span class="arrow">→</span>
+      </span>
+    </a>
+
+    <a class="module-card module-card--sage" href="/app/studio/pricing.html">
+      <span class="module-card__icon"><span class="material-symbols-outlined">sell</span></span>
+      <span class="module-card__num">03 — Pricing</span>
+      <h2 class="module-card__name" data-i18n="studio.m_pricing">The workspace</h2>
+      <p class="module-card__desc" data-i18n="studio.d_pricing">Edit menu prices in place. FC%, margin, suggested price update live.</p>
+      <span class="module-card__cta">
+        <span data-i18n="studio.open">Open</span> <span class="arrow">→</span>
+      </span>
+    </a>
+
+    <a class="module-card module-card--ink" href="/app/studio/matrix.html">
+      <span class="module-card__icon"><span class="material-symbols-outlined">grid_view</span></span>
+      <span class="module-card__num">04 — Engineering</span>
+      <h2 class="module-card__name" data-i18n="studio.m_matrix">The matrix</h2>
+      <p class="module-card__desc" data-i18n="studio.d_matrix">Smith-Kasavana. Stars · Plowhorses · Puzzles · Dogs.</p>
+      <span class="module-card__cta">
+        <span data-i18n="studio.open">Open</span> <span class="arrow">→</span>
+      </span>
+    </a>
+
+    <a class="module-card" href="/app/studio/variance.html">
+      <span class="module-card__icon"><span class="material-symbols-outlined">analytics</span></span>
+      <span class="module-card__num">05 — Variance</span>
+      <h2 class="module-card__name" data-i18n="studio.m_audit">The audit</h2>
+      <p class="module-card__desc" data-i18n="studio.d_audit">Snapshot every upload. Top movers, anomalies, drop list.</p>
+      <span class="module-card__cta">
+        <span data-i18n="studio.open">Open</span> <span class="arrow">→</span>
+      </span>
+    </a>
+
+    <a class="module-card module-card--gold" href="/app/studio/surface.html">
+      <span class="module-card__icon"><span class="material-symbols-outlined">ios_share</span></span>
+      <span class="module-card__num">06 — Surface</span>
+      <h2 class="module-card__name" data-i18n="studio.m_surface">The output</h2>
+      <p class="module-card__desc" data-i18n="studio.d_surface">Bilingual EN/TR. Excel import, PDF/PNG export.</p>
+      <span class="module-card__cta">
+        <span data-i18n="studio.open">Open</span> <span class="arrow">→</span>
+      </span>
+    </a>
+  </div>
+`;
+
+await mountStudioShell({ active: 'overview', main });
+</script>
+</body>
+</html>

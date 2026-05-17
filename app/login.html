@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  /* mode tabs */
+  .mode-tabs {
+    display: inline-flex; gap: 4px;
+    padding: 4px;
+    background: var(--surface-container);
+    border-radius: var(--r-pill);
+    margin: var(--sp-6) 0 var(--sp-3);
+  }
+  .mode-tabs button {
+    background: transparent; border: 0;
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-caption);
+    letter-spacing: var(--track-caps); text-transform: uppercase;
+    color: var(--on-surface-variant);
+    padding: 8px 18px;
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition: background var(--dur-2), color var(--dur-2);
+  }
+  .mode-tabs button.active {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+</style>
+</head>
+<body class="auth-screen">
+
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<main id="main">
+<form class="auth-card" id="loginForm" novalidate aria-labelledby="login-h">
+  <a href="/" class="site-logo" aria-label="Carta home"><img src="/assets/carta-logo.png" alt="Carta" style="height:30px"></a>
+
+  <span class="eyebrow eyebrow-accent" data-i18n="login.eyebrow">Sign in</span>
+  <h1 class="h1" id="login-h" style="margin-top:var(--sp-3)"><em data-i18n="auth.welcome">Welcome back.</em></h1>
+  <p class="lead" style="margin-top:var(--sp-4)" id="introCopy" data-i18n="auth.welcome_intro">Enter your email and we'll send a one-time link to sign in.</p>
+
+  <div class="mode-tabs" role="group" aria-label="Sign-in method">
+    <button type="button" data-mode="magic" class="active" aria-pressed="true" data-i18n="auth.tab_magic">Magic link</button>
+    <button type="button" data-mode="password" aria-pressed="false" data-i18n="auth.tab_password">Password</button>
+  </div>
+
+  <div style="margin-top:var(--sp-5)">
+    <label class="label" for="email" data-i18n="auth.label_email">Work email</label>
+    <input type="email" id="email" name="email" class="input" placeholder="you@hotel.com" required autocomplete="email">
+  </div>
+
+  <div id="passwordRow" hidden style="margin-top:var(--sp-5)">
+    <label class="label" for="password" data-i18n="auth.label_password">Password</label>
+    <input type="password" id="password" name="password" class="input" placeholder="••••••••" autocomplete="current-password">
+  </div>
+
+  <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn" style="margin-top:var(--sp-7)">
+    <span id="submitLabel" data-i18n="auth.send_link">Send magic link</span>
+    <span class="arrow">→</span>
+  </button>
+
+  <div id="flash" role="status" aria-live="polite"></div>
+
+  <div class="thin-rule" style="margin:var(--sp-7) 0 var(--sp-5)"></div>
+
+  <p style="font-size:var(--type-caption);color:var(--on-surface-variant);margin:0">
+    <span data-i18n="auth.no_account">Don't have an account?</span>
+    <a href="/app/signup.html" style="color:var(--primary);font-weight:600;margin-left:6px" data-i18n="auth.signup_link">Begin →</a>
+  </p>
+</form>
+</main>
+
+<script type="module">
+import { sendMagicLink, signInWithPassword } from '/src/auth.js';
+import { getSession } from '/src/supabase-client.js';
+import { applyTranslations, t } from '/src/i18n.js';
+applyTranslations();
+
+(async () => {
+  const session = await getSession();
+  if (session) window.location.href = '/app/';
+})();
+
+const form = document.getElementById('loginForm');
+const submitBtn = document.getElementById('submitBtn');
+const submitLabel = document.getElementById('submitLabel');
+const flash = document.getElementById('flash');
+const passwordRow = document.getElementById('passwordRow');
+const introCopy = document.getElementById('introCopy');
+const tabs = document.querySelectorAll('.mode-tabs [data-mode]');
+
+let mode = 'magic';
+
+function setMode(next) {
+  mode = next;
+  tabs.forEach(b => {
+    const on = b.dataset.mode === mode;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  if (mode === 'password') {
+    passwordRow.hidden = false;
+    submitLabel.textContent = t('auth.signin_btn');
+    introCopy.textContent = t('auth.signin_intro');
+  } else {
+    passwordRow.hidden = true;
+    submitLabel.textContent = t('auth.send_link');
+    introCopy.textContent = t('auth.welcome_intro');
+  }
+}
+tabs.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('email').value;
+  submitBtn.disabled = true;
+  submitLabel.innerHTML = '<span class="spinner"></span> ' + t('auth.sending');
+  flash.innerHTML = '';
+
+  let result;
+  if (mode === 'password') {
+    const password = document.getElementById('password').value;
+    result = await signInWithPassword(email, password);
+  } else {
+    result = await sendMagicLink(email, { allowSignup: false });
+  }
+
+  submitBtn.disabled = false;
+  submitLabel.textContent = mode === 'password' ? t('auth.signin_btn') : t('auth.send_link');
+
+  if (result.ok) {
+    if (mode === 'password') {
+      window.location.href = '/app/';
+    } else {
+      form.querySelectorAll('input, button').forEach(el => el.disabled = true);
+      flash.innerHTML = `<div class="flash success">${t('auth.check_inbox')} <strong>${result.email}</strong>.</div>`;
+    }
+  } else {
+    flash.innerHTML = `<div class="flash error">${result.error}</div>`;
+  }
+});
+</script>
+</body>
+</html>

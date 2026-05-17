@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engineering Matrix · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.40) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.22) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page { padding: var(--sp-7) var(--margin-desktop) var(--sp-10); flex: 1; overflow-y: auto; }
+  @media (max-width: 900px) { .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); } }
+  .page-head { max-width: 1280px; margin: 0 auto var(--sp-7); }
+  .page-head .eyebrow { margin-bottom: var(--sp-3); }
+  .page-head h1 { margin: 0 0 var(--sp-3); }
+  .page-head .lead { margin: 0; max-width: 64ch; }
+
+  /* Stats strip */
+  .stats {
+    max-width: 1280px; margin: 0 auto var(--sp-5);
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-3);
+  }
+  @media (max-width: 800px) { .stats { grid-template-columns: 1fr 1fr; } }
+  .stat {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-xl);
+    padding: var(--sp-4) var(--sp-5);
+  }
+  .stat .key {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: 11px; letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant);
+    margin: 0 0 8px;
+  }
+  .stat .val {
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 1.65rem; color: var(--primary); line-height: 1;
+  }
+
+  /* Matrix grid */
+  .matrix {
+    max-width: 1280px; margin: 0 auto var(--sp-7);
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-4);
+  }
+  @media (max-width: 800px) { .matrix { grid-template-columns: 1fr; } }
+  .quad {
+    border-radius: var(--r-2xl);
+    padding: var(--sp-5);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    min-height: 200px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .quad-star      { background: rgba(212,231,216,0.85); color: var(--on-primary-fixed); }
+  .quad-plowhorse { background: rgba(255,224,136,0.55); color: var(--on-tertiary-fixed); }
+  .quad-puzzle    { background: rgba(223,228,221,0.85); color: var(--on-secondary-container); }
+  .quad-dog       { background: rgba(255,218,214,0.55); color: var(--on-error-container); }
+  .quad__head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: var(--sp-3);
+  }
+  .quad__title {
+    font-family: var(--font-display); font-weight: 500; font-style: italic;
+    font-size: 1.5rem; margin: 0;
+  }
+  .quad__count {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 1.5rem; opacity: 0.55;
+  }
+  .quad__desc { font-size: var(--type-caption); opacity: 0.85; margin: 0; }
+  .quad__items { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+  .dish-pill {
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.55);
+    border-radius: var(--r-pill);
+    font-family: var(--font-sans);
+    font-size: 12px; font-weight: 500;
+    color: inherit;
+  }
+
+  /* Sales table */
+  .sales-card {
+    max-width: 1280px; margin: 0 auto;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+    overflow: hidden;
+  }
+  .sales-card table { width: 100%; border-collapse: collapse; }
+  .sales-card thead th {
+    text-align: left;
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: 11px; letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant);
+    padding: 14px var(--sp-4);
+    border-bottom: 1px solid var(--outline-variant);
+    background: var(--surface-container-low);
+    white-space: nowrap;
+  }
+  .sales-card tbody td {
+    padding: 12px var(--sp-4);
+    border-bottom: 1px solid var(--outline-variant);
+    font-family: var(--font-sans);
+    color: var(--on-surface);
+    vertical-align: middle;
+  }
+  .sales-card tbody tr:last-child td { border-bottom: 0; }
+  .col-name { font-family: var(--font-display); font-style: italic; color: var(--primary); font-size: 1.05rem; }
+  .col-num  { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .sold-input {
+    width: 90px; padding: 7px 10px;
+    background: var(--surface-container-low);
+    border: 1px solid transparent;
+    border-radius: var(--r-lg);
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 1.05rem; color: var(--primary);
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .sold-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--surface-container-lowest);
+    box-shadow: 0 0 0 2px rgba(7,22,13,0.12);
+  }
+  .q-chip {
+    display: inline-flex; padding: 4px 12px;
+    border-radius: var(--r-pill);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
+  }
+  .q-chip-star      { background: var(--primary-fixed); color: var(--on-primary-fixed); }
+  .q-chip-plowhorse { background: var(--tertiary-fixed); color: var(--on-tertiary-fixed-variant); }
+  .q-chip-puzzle    { background: var(--secondary-container); color: var(--on-secondary-container); }
+  .q-chip-dog       { background: var(--error-container); color: var(--on-error-container); }
+  .q-chip-na        { background: var(--surface-container); color: var(--outline); }
+
+  .save-row {
+    max-width: 1280px; margin: var(--sp-4) auto var(--sp-7);
+    display: flex; justify-content: flex-end; align-items: center; gap: var(--sp-3);
+  }
+  .help-text { color: var(--on-surface-variant); font-size: var(--type-caption); }
+
+  .empty {
+    max-width: 600px; margin: var(--sp-9) auto;
+    text-align: center;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border-radius: var(--r-2xl);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-2);
+    padding: var(--sp-9) var(--sp-7);
+  }
+  @media (max-width: 800px) { .hide-mobile { display: none; } }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+import { supabase } from '/src/supabase-client.js';
+import { applyTranslations, t } from '/src/i18n.js';
+import {
+  computeDishCost, marginCurrency, buildCostMap, formatNumber, formatMoney
+} from '/src/recipe-compute.js';
+
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+
+const ctx = await mountStudioShell({ active: 'matrix', main });
+if (!ctx) throw new Error('No session/workspace');
+const ws = ctx.workspace;
+const wsId = ws.id;
+const currency = ws.currency || '₺';
+const vatPct  = Number(ws.vat_rate) || 10;
+const qFactor = Number(ws.q_factor) || 3;
+
+main.innerHTML = `
+  <div class="page-head">
+    <span class="eyebrow eyebrow-accent" data-i18n="matrix.title">Engineering</span>
+    <h1 class="h1">
+      <span data-i18n="matrix.title">Engineering</span>
+      <em data-i18n="matrix.title_em">matrix</em>.
+    </h1>
+    <p class="lead" data-i18n="matrix.intro">Smith-Kasavana 1982. Classify dishes by margin and popularity.</p>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="matrix" id="quadrants"></div>
+
+  <div id="listOrEmpty"></div>
+  <div class="save-row">
+    <span class="help-text" data-i18n="matrix.help_threshold">Pavesic 70% rule: popularity threshold = 0.70 / N</span>
+    <button type="button" class="btn btn-primary" id="saveAllBtn">
+      <span data-i18n="matrix.save">Save sales</span> <span class="arrow">→</span>
+    </button>
+  </div>
+`;
+applyTranslations();
+
+// ============================================================
+// Load dishes + cost_db + sales_data
+// ============================================================
+let dishes = [];
+let salesMap = {}; // dish_name → { sold, price }
+let costMap  = {};
+
+async function loadAll() {
+  const [dishesRes, costRes, salesRes] = await Promise.all([
+    supabase.from('saved_dishes').select('*').eq('workspace_id', wsId),
+    supabase.from('cost_db').select('*').eq('workspace_id', wsId),
+    supabase.from('sales_data').select('*').eq('workspace_id', wsId),
+  ]);
+  dishes  = dishesRes.data || [];
+  costMap = buildCostMap(costRes.data || []);
+  salesMap = {};
+  (salesRes.data || []).forEach(s => { salesMap[s.dish_name] = s; });
+  render();
+}
+
+function classify(cmList, popList) {
+  // Threshold (median) for CM; 70% / N for popularity (Pavesic)
+  const validCM = cmList.filter(x => isFinite(x));
+  const cmMean = validCM.length ? validCM.reduce((a,b)=>a+b, 0) / validCM.length : 0;
+  const popThreshold = popList.length ? 0.70 / popList.length : 0;
+  return { cmMean, popThreshold };
+}
+
+function render() {
+  if (dishes.length === 0) {
+    main.querySelector('#listOrEmpty').innerHTML = `
+      <div class="empty">
+        <h2 class="h1"><em data-i18n="matrix.no_dishes">No recipes with sales yet.</em></h2>
+        <p style="margin:var(--sp-5) 0"><a class="btn btn-primary btn-lg" href="/app/studio/recipes.html" data-i18n="pricing.go_to_recipes">Go to recipes →</a></p>
+      </div>
+    `;
+    main.querySelector('#quadrants').innerHTML = '';
+    main.querySelector('#stats').innerHTML = '';
+    applyTranslations();
+    return;
+  }
+
+  // Compute per-dish numbers
+  const rows = dishes.map(d => {
+    const data = d.data || {};
+    const ings = data.ingredients || [];
+    const servings = data.servings || 1;
+    const cost = computeDishCost({ ingredients: ings, servings }, costMap, qFactor);
+    const sales = salesMap[d.name] || { sold: 0, price: data.menu_price || 0 };
+    const price = Number(sales.price ?? data.menu_price) || 0;
+    const cm = price > 0 ? marginCurrency(cost.perServing, price, vatPct) : null;
+    return { d, name: d.name, sold: Number(sales.sold) || 0, price, cost: cost.perServing, cm };
+  });
+
+  const totalSold = rows.reduce((a, r) => a + r.sold, 0);
+  const popList = rows.map(r => totalSold > 0 ? r.sold / totalSold : 0);
+  const cmList  = rows.map(r => r.cm).filter(x => x !== null);
+  const { cmMean, popThreshold } = classify(cmList, popList);
+
+  // Tag quadrants
+  rows.forEach((r, i) => {
+    r.pop = popList[i];
+    r.scored = r.cm !== null && r.cost > 0;
+    if (!r.scored) { r.quadrant = null; return; }
+    const highCM = r.cm >= cmMean;
+    const highPop = r.pop >= popThreshold;
+    if (highCM && highPop)   r.quadrant = 'star';
+    else if (!highCM && highPop) r.quadrant = 'plowhorse';
+    else if (highCM && !highPop) r.quadrant = 'puzzle';
+    else                          r.quadrant = 'dog';
+  });
+
+  // Stats strip
+  const counts = { star:0, plowhorse:0, puzzle:0, dog:0, na:0 };
+  rows.forEach(r => counts[r.quadrant || 'na']++);
+  main.querySelector('#stats').innerHTML = `
+    <div class="stat"><p class="key">Star</p><p class="val">${counts.star}</p></div>
+    <div class="stat"><p class="key">Plowhorse</p><p class="val">${counts.plowhorse}</p></div>
+    <div class="stat"><p class="key">Puzzle</p><p class="val">${counts.puzzle}</p></div>
+    <div class="stat"><p class="key">Dog</p><p class="val">${counts.dog}</p></div>
+  `;
+
+  // Quadrants
+  const byQuad = { star:[], plowhorse:[], puzzle:[], dog:[] };
+  rows.forEach(r => { if (r.quadrant) byQuad[r.quadrant].push(r); });
+  main.querySelector('#quadrants').innerHTML = `
+    ${quadCard('star', byQuad.star)}
+    ${quadCard('puzzle', byQuad.puzzle)}
+    ${quadCard('plowhorse', byQuad.plowhorse)}
+    ${quadCard('dog', byQuad.dog)}
+  `;
+
+  // Sales table
+  main.querySelector('#listOrEmpty').innerHTML = `
+    <div class="sales-card">
+      <table aria-label="Sales and margin per dish">
+        <thead>
+          <tr>
+            <th data-i18n="matrix.col_dish">Dish</th>
+            <th class="col-num hide-mobile" data-i18n="matrix.col_price">Price</th>
+            <th class="col-num" data-i18n="matrix.col_sold">Sold</th>
+            <th class="col-num hide-mobile" data-i18n="matrix.col_cm">Contribution</th>
+            <th class="col-num hide-mobile" data-i18n="matrix.col_pop">Popularity</th>
+            <th class="col-num" data-i18n="matrix.col_quadrant">Quadrant</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr data-dish-id="${escapeHTML(r.d.id)}">
+              <td class="col-name">${escapeHTML(r.name)}</td>
+              <td class="col-num hide-mobile">${r.price > 0 ? formatMoney(r.price, currency, 2) : '—'}</td>
+              <td class="col-num"><input type="number" min="0" step="1" value="${r.sold || ''}" class="sold-input" data-dish="${escapeHTML(r.name)}" aria-label="${escapeHTML(t('matrix.col_sold'))}"></td>
+              <td class="col-num hide-mobile">${r.cm !== null ? formatMoney(r.cm, currency, 2) : '—'}</td>
+              <td class="col-num hide-mobile">${formatNumber(r.pop * 100, 1)}%</td>
+              <td class="col-num">${quadChip(r.quadrant)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  // Wire inputs to recompute table on change
+  main.querySelectorAll('.sold-input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const name = inp.getAttribute('data-dish');
+      salesMap[name] = salesMap[name] || { workspace_id: wsId, dish_name: name, sold: 0, price: 0, period: null };
+      salesMap[name].sold = parseInt(inp.value) || 0;
+      // Use dish menu_price if no override in sales row
+      const dish = dishes.find(x => x.name === name);
+      if (dish && (!salesMap[name].price || salesMap[name].price === 0)) {
+        salesMap[name].price = Number(dish.data?.menu_price) || 0;
+      }
+      render(); // re-classify all
+    });
+  });
+
+  applyTranslations();
+}
+
+function quadCard(key, items) {
+  const titleKey = `matrix.q_${key}`;
+  const descKey  = `matrix.q_${key}_desc`;
+  return `
+    <section class="quad quad-${key}" aria-label="${escapeHTML(t(titleKey))}">
+      <header class="quad__head">
+        <h3 class="quad__title" data-i18n="${titleKey}">${t(titleKey)}</h3>
+        <span class="quad__count">${items.length}</span>
+      </header>
+      <p class="quad__desc" data-i18n="${descKey}">${t(descKey)}</p>
+      <div class="quad__items">
+        ${items.map(r => `<span class="dish-pill" title="${escapeHTML(formatNumber(r.sold,0))} satış · ${escapeHTML(formatNumber((r.cm||0),2))} ${escapeHTML(currency)} katkı">${escapeHTML(r.name)}</span>`).join('')}
+        ${items.length === 0 ? `<span class="text-muted" style="font-size:13px;font-style:italic;opacity:0.7">—</span>` : ''}
+      </div>
+    </section>
+  `;
+}
+
+function quadChip(q) {
+  if (!q) return `<span class="q-chip q-chip-na">—</span>`;
+  return `<span class="q-chip q-chip-${q}">${escapeHTML(t('matrix.q_' + q))}</span>`;
+}
+
+// Save all sales rows
+main.querySelector('#saveAllBtn').addEventListener('click', async () => {
+  const rows = Object.values(salesMap).map(s => ({
+    workspace_id: wsId,
+    dish_name: s.dish_name,
+    sold: Number(s.sold) || 0,
+    price: Number(s.price) || 0,
+    period: s.period || new Date().toISOString().slice(0,7),  // YYYY-MM
+  }));
+  if (!rows.length) return;
+  const btn = main.querySelector('#saveAllBtn');
+  btn.disabled = true;
+  const { error } = await supabase.from('sales_data').upsert(rows, { onConflict: 'workspace_id,dish_name' });
+  btn.disabled = false;
+  if (error) { alert(error.message); return; }
+  btn.classList.add('btn-sage');
+  setTimeout(() => btn.classList.remove('btn-sage'), 800);
+});
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+await loadAll();
+</script>
+</body>
+</html>

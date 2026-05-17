@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carta · F&B Operations Studio</title>
+<meta name="description" content="A luxury F&B operating system for hotel and restaurant kitchens. Recipes, cost control, menu engineering, compliance — in one matte-glass studio.">
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 88vh;
+    display: flex; align-items: center;
+    padding: var(--sp-10) 0 var(--sp-9);
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(50% 50% at 80% 20%, rgba(212,231,216,0.85) 0%, transparent 60%),
+      radial-gradient(35% 35% at 12% 90%, rgba(255,224,136,0.45) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero__inner { max-width: 80ch; position: relative; }
+  .hero__eyebrow-row {
+    display: flex; align-items: center; gap: var(--sp-3);
+    margin-bottom: var(--sp-6);
+  }
+  .hero .display { margin-bottom: var(--sp-6); }
+  .hero__lead { margin-bottom: var(--sp-7); max-width: 58ch; }
+  .hero__cta { display: flex; gap: var(--sp-3); flex-wrap: wrap; align-items: center; }
+  .hero__compliance {
+    margin-top: var(--sp-9);
+    display: flex; gap: var(--sp-3); flex-wrap: wrap;
+  }
+
+  /* ===== MANIFESTO ===== */
+  .manifesto { padding: var(--sp-11) 0; }
+  .manifesto__head { margin-bottom: var(--sp-8); max-width: 60ch; }
+  .manifesto__head .eyebrow { margin-bottom: var(--sp-4); }
+  .manifesto__list {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-5);
+  }
+  @media (max-width: 800px) { .manifesto__list { grid-template-columns: 1fr; } }
+  .principle {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border-radius: var(--r-2xl);
+    padding: var(--glass-padding);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-2);
+    display: flex; flex-direction: column; gap: var(--sp-3);
+  }
+  .principle:nth-child(2) { background: rgba(223,228,221,0.65); }
+  .principle:nth-child(3) { background: rgba(212,231,216,0.65); }
+  .principle:nth-child(4) { background: var(--primary); color: var(--on-primary); border: 1px solid rgba(255,255,255,0.08); }
+  .principle__num {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm); letter-spacing: var(--track-caps);
+    text-transform: uppercase; opacity: 0.6;
+  }
+  .principle__title {
+    font-family: var(--font-display); font-weight: 300;
+    font-size: clamp(1.5rem, 1.5vw + 0.5rem, 2rem);
+    line-height: 1.25; margin: 0;
+    color: inherit;
+  }
+  .principle__title em { font-style: italic; font-weight: 700; }
+  .principle__body {
+    font-family: var(--font-sans);
+    font-weight: 300; font-size: var(--type-body);
+    line-height: var(--lh-long);
+    opacity: 0.85; margin: 0;
+  }
+
+  /* ===== CHAPTERS ===== */
+  .chapters { padding: var(--sp-10) 0; }
+  .chapters__head {
+    text-align: center; margin-bottom: var(--sp-10);
+    max-width: 60ch; margin-left: auto; margin-right: auto;
+  }
+  .chapter { padding: var(--sp-9) 0; }
+  .chapter__inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-9);
+    align-items: center;
+  }
+  .chapter.reverse .chapter__inner > *:first-child { order: 2; }
+  @media (max-width: 900px) {
+    .chapter__inner { grid-template-columns: 1fr; gap: var(--sp-6); }
+    .chapter.reverse .chapter__inner > *:first-child { order: 0; }
+  }
+  .chapter__copy { max-width: 52ch; }
+  .chapter__num {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm); letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--tertiary);
+    margin-bottom: var(--sp-3);
+    display: inline-block;
+  }
+  .chapter__title { margin: 0 0 var(--sp-4); }
+  .chapter__lead { margin: 0 0 var(--sp-5); }
+  .chapter__detail { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+
+  .chapter__visual {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--r-2xl);
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-2);
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+  }
+  .chapter__visual--sage { background: rgba(212,231,216,0.85); }
+  .chapter__visual--mist { background: rgba(223,228,221,0.85); }
+  .chapter__visual--gold { background: rgba(255,224,136,0.55); }
+  .chapter__visual--ink  { background: var(--primary); color: var(--on-primary); }
+  .chapter__visual-label {
+    position: absolute; bottom: var(--sp-4); left: var(--sp-4);
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm);
+    letter-spacing: var(--track-caps); text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .chapter__visual-glyph {
+    font-family: var(--font-display);
+    font-weight: 300; font-style: italic;
+    font-size: clamp(3rem, 8vw, 6rem);
+    opacity: 0.85; text-align: center;
+    padding: 0 var(--sp-5); line-height: 1;
+    color: var(--primary);
+  }
+  .chapter__visual--ink .chapter__visual-glyph { color: var(--on-primary); opacity: 0.95; }
+
+  /* ===== PLANS ===== */
+  .plans { padding: var(--sp-11) 0; }
+  .plans__head { text-align: center; margin-bottom: var(--sp-8); max-width: 60ch; margin-left: auto; margin-right: auto; }
+  .plans__head .eyebrow { margin-bottom: var(--sp-4); }
+  .plans__head .h1 { margin-bottom: var(--sp-4); }
+
+  .plans__grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-5);
+    max-width: 1080px; margin: 0 auto;
+  }
+  @media (max-width: 800px) { .plans__grid { grid-template-columns: 1fr; } }
+
+  .plan {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border-radius: var(--r-2xl);
+    padding: var(--glass-padding);
+    box-shadow: var(--shadow-2);
+    border: var(--glass-border);
+    display: flex; flex-direction: column;
+  }
+  .plan.featured {
+    background: var(--primary);
+    color: var(--on-primary);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: var(--shadow-3);
+    position: relative;
+  }
+  .plan.featured::before {
+    content: 'Popular';
+    position: absolute; top: var(--sp-4); right: var(--sp-4);
+    background: var(--tertiary-container);
+    color: var(--on-tertiary-container);
+    font-family: var(--font-sans); font-weight: 700;
+    font-size: 10px; letter-spacing: var(--track-caps);
+    text-transform: uppercase;
+    padding: 4px 12px; border-radius: var(--r-pill);
+  }
+  .plan__name {
+    font-family: var(--font-display); font-weight: 300; font-style: italic;
+    font-size: 1.5rem; margin: 0 0 var(--sp-5);
+  }
+  .plan__price {
+    font-family: var(--font-display); font-weight: 300;
+    font-size: 3rem; letter-spacing: var(--track-display);
+    margin: 0 0 var(--sp-2); line-height: 1;
+  }
+  .plan__price-unit {
+    font-family: var(--font-sans); font-weight: 500;
+    font-size: var(--type-label-sm);
+    letter-spacing: var(--track-caps); text-transform: uppercase;
+    opacity: 0.65;
+    display: block; margin-bottom: var(--sp-5);
+  }
+  .plan__desc { font-size: var(--type-caption); opacity: 0.8; line-height: var(--lh-body); margin: 0 0 var(--sp-6); }
+  .plan ul { list-style: none; padding: 0; margin: 0 0 var(--sp-7); flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .plan li {
+    font-family: var(--font-sans);
+    font-size: var(--type-caption);
+    line-height: 1.5;
+    display: flex; gap: 10px; align-items: baseline;
+    opacity: 0.9;
+  }
+  .plan li::before { content: '·'; opacity: 0.5; width: 8px; flex-shrink: 0; }
+  .plan__cta { display: block; width: 100%; }
+  .plan.featured .btn-primary { background: var(--tertiary-container); color: var(--on-tertiary-container); }
+  .plan.featured .btn-primary:hover { background: var(--tertiary-fixed-dim); }
+
+  /* ===== CLOSING ===== */
+  .closing {
+    padding: var(--sp-11) 0 var(--sp-12);
+    text-align: center;
+    background: var(--primary);
+    color: var(--on-primary);
+    border-radius: var(--r-3xl) var(--r-3xl) 0 0;
+    margin-top: var(--sp-10);
+  }
+  .closing .eyebrow { color: var(--tertiary-container); margin-bottom: var(--sp-5); }
+  .closing .display {
+    color: var(--on-primary);
+    margin-bottom: var(--sp-7);
+  }
+  .closing .display em { color: var(--tertiary-container); }
+  .closing .lead { color: rgba(255,255,255,0.7); margin: 0 auto var(--sp-7); }
+  .closing .btn-primary { background: var(--tertiary-container); color: var(--on-tertiary-container); }
+  .closing .btn-primary:hover { background: var(--tertiary-fixed-dim); }
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<header class="site-header" id="siteHeader">
+  <div class="container site-header__inner">
+    <a href="/" class="site-logo" aria-label="Carta"><img src="/assets/carta-logo.png" alt="Carta"></a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="#manifesto" data-i18n="nav.method">Method</a>
+      <a href="#chapters" data-i18n="nav.index">Index</a>
+      <a href="#plans" data-i18n="nav.plans">Plans</a>
+      <a href="/app/login.html" data-i18n="nav.signin">Sign in</a>
+    </nav>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang-btn="en" aria-pressed="true" onclick="window.__cartaSetLang('en')">EN</button>
+        <button type="button" data-lang-btn="tr" aria-pressed="false" onclick="window.__cartaSetLang('tr')">TR</button>
+      </div>
+      <a href="/app/signup.html" class="btn btn-primary btn-sm"><span data-i18n="nav.begin">Begin</span> <span class="arrow">→</span></a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero__inner">
+      <div class="hero__eyebrow-row">
+        <span class="accent-rule"></span>
+        <span class="eyebrow eyebrow-accent" data-i18n="hero.eyebrow">Carta · F&B Operations Studio</span>
+      </div>
+      <h1 class="display">
+        <span data-i18n="hero.title_l1">The studio</span><br>
+        <em data-i18n="hero.title_l2">for the considered kitchen.</em>
+      </h1>
+      <p class="lead hero__lead" data-i18n="hero.lead">
+        Recipes, cost control, menu engineering, compliance. Measured, considered, complete — in one editorial workspace.
+      </p>
+      <div class="hero__cta">
+        <a href="/app/signup.html" class="btn btn-primary"><span data-i18n="hero.cta_begin">Begin</span> <span class="arrow">→</span></a>
+        <a href="#chapters" class="btn btn-ghost" data-i18n="hero.cta_see">See the system</a>
+      </div>
+      <div class="hero__compliance">
+        <span class="chip" data-i18n="hero.meta_codex">TGK Ek-10 / Ek-13 compliant</span>
+        <span class="chip-mist chip" data-i18n="hero.meta_law">KVKK · VUK · HACCP</span>
+        <span class="chip" data-i18n="hero.meta_offline">Offline-capable</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MANIFESTO ============ -->
+<section class="manifesto" id="manifesto" aria-labelledby="manifesto-h">
+  <div class="container">
+    <div class="manifesto__head">
+      <span class="eyebrow eyebrow-accent" data-i18n="manifesto.eyebrow">Section 01 — Method</span>
+      <h2 class="h1" id="manifesto-h"><em data-i18n="manifesto.title">Four principles, quietly held.</em></h2>
+    </div>
+    <div class="manifesto__list">
+      <article class="principle">
+        <span class="principle__num">01</span>
+        <h3 class="principle__title"><em data-i18n="manifesto.01_title">Construct, do not decorate.</em></h3>
+        <p class="principle__body" data-i18n="manifesto.01_body">A kitchen's economics are not a back-office matter. They are part of the craft. Carta is a construction tool, not a dashboard.</p>
+      </article>
+      <article class="principle">
+        <span class="principle__num">02</span>
+        <h3 class="principle__title"><em data-i18n="manifesto.02_title">Simplicity is power.</em></h3>
+        <p class="principle__body" data-i18n="manifesto.02_body">Six instruments. One workspace. One mental model. No bloat. No vanity charts. Every screen earns its place.</p>
+      </article>
+      <article class="principle">
+        <span class="principle__num">03</span>
+        <h3 class="principle__title"><em data-i18n="manifesto.03_title">Negative space produces meaning.</em></h3>
+        <p class="principle__body" data-i18n="manifesto.03_body">The page breathes. The numbers breathe. The chef breathes. Reduction is more valuable than addition.</p>
+      </article>
+      <article class="principle">
+        <span class="principle__num">04</span>
+        <h3 class="principle__title"><em data-i18n="manifesto.04_title">Discipline over decoration.</em></h3>
+        <p class="principle__body" data-i18n="manifesto.04_body">Material honesty. Considered balance. Every metric answers a question a real cost controller, chef, or F&B manager actually asks.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHAPTERS ============ -->
+<div class="chapters" id="chapters" aria-labelledby="chapters-h">
+  <div class="container">
+    <div class="chapters__head">
+      <span class="eyebrow eyebrow-accent" data-i18n="index.section">Section 02 — Index</span>
+      <h2 class="h1" id="chapters-h" style="margin-top:var(--sp-4)"><em data-i18n="index.title">Six instruments. One studio.</em></h2>
+    </div>
+  </div>
+
+  <section class="chapter" aria-labelledby="ch01-h">
+    <div class="container chapter__inner">
+      <div class="chapter__copy">
+        <span class="chapter__num" data-i18n="index.01_num">01 — Recipe</span>
+        <h3 class="h1 chapter__title" id="ch01-h"><span data-i18n="index.01_title_l1">The</span> <em data-i18n="index.01_title_em">builder</em>.</h3>
+        <p class="lead chapter__lead" data-i18n="index.01_desc">kcal, macros, allergens, diet tags per serving. Food and drinks. Codex-compliant.</p>
+        <div class="chapter__detail">
+          <span class="chip" data-i18n="ch.01_detail1">Atwater compute</span>
+          <span class="chip" data-i18n="ch.01_detail2">14 allergen categories</span>
+          <span class="chip" data-i18n="ch.01_detail3">Vegan · Halal · GF tags</span>
+        </div>
+      </div>
+      <div class="chapter__visual chapter__visual--sage" aria-hidden="true">
+        <span class="chapter__visual-glyph">℞</span>
+        <span class="chapter__visual-label">recipe builder</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter reverse" aria-labelledby="ch02-h">
+    <div class="container chapter__inner">
+      <div class="chapter__visual chapter__visual--gold" aria-hidden="true">
+        <span class="chapter__visual-glyph">₺</span>
+        <span class="chapter__visual-label">cost ledger</span>
+      </div>
+      <div class="chapter__copy">
+        <span class="chapter__num" data-i18n="index.02_num">02 — Cost</span>
+        <h3 class="h1 chapter__title" id="ch02-h"><span data-i18n="index.01_title_l1">The</span> <em data-i18n="index.02_title_em">ledger</em>.</h3>
+        <p class="lead chapter__lead" data-i18n="index.02_desc">SAP Moving Average Price ingest. Map. Audit. Target GP. VAT-aware. Q-factor.</p>
+        <div class="chapter__detail">
+          <span class="chip-mist chip" data-i18n="ch.02_detail1">SAP / Excel / CSV</span>
+          <span class="chip-mist chip" data-i18n="ch.02_detail2">Yield-corrected</span>
+          <span class="chip-mist chip" data-i18n="ch.02_detail3">VUK retention reference</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" aria-labelledby="ch03-h">
+    <div class="container chapter__inner">
+      <div class="chapter__copy">
+        <span class="chapter__num" data-i18n="index.03_num">03 — Pricing</span>
+        <h3 class="h1 chapter__title" id="ch03-h"><span data-i18n="index.01_title_l1">The</span> <em data-i18n="index.03_title_em">workspace</em>.</h3>
+        <p class="lead chapter__lead" data-i18n="index.03_desc">Edit menu prices in place. Watch food cost %, margin, and suggested price update live.</p>
+        <div class="chapter__detail">
+          <span class="chip" data-i18n="ch.03_detail1">Per-dish FC%</span>
+          <span class="chip" data-i18n="ch.03_detail2">Target band 22–35%</span>
+          <span class="chip" data-i18n="ch.03_detail3">Bulk apply</span>
+        </div>
+      </div>
+      <div class="chapter__visual chapter__visual--ink" aria-hidden="true">
+        <span class="chapter__visual-glyph">%</span>
+        <span class="chapter__visual-label">pricing workspace</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter reverse" aria-labelledby="ch04-h">
+    <div class="container chapter__inner">
+      <div class="chapter__visual chapter__visual--mist" aria-hidden="true">
+        <span class="chapter__visual-glyph">★◐♟○</span>
+        <span class="chapter__visual-label">engineering matrix</span>
+      </div>
+      <div class="chapter__copy">
+        <span class="chapter__num" data-i18n="index.04_num">04 — Engineering</span>
+        <h3 class="h1 chapter__title" id="ch04-h"><span data-i18n="index.01_title_l1">The</span> <em data-i18n="index.04_title_em">matrix</em>.</h3>
+        <p class="lead chapter__lead" data-i18n="index.04_desc">Smith-Kasavana 1982. Stars · Plowhorses · Puzzles · Dogs.</p>
+        <div class="chapter__detail">
+          <span class="chip" data-i18n="ch.04_detail1">Pavesic 70% threshold</span>
+          <span class="chip" data-i18n="ch.04_detail2">Contribution margin</span>
+          <span class="chip" data-i18n="ch.04_detail3">Action plan per quadrant</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" aria-labelledby="ch05-h">
+    <div class="container chapter__inner">
+      <div class="chapter__copy">
+        <span class="chapter__num" data-i18n="index.05_num">05 — Variance</span>
+        <h3 class="h1 chapter__title" id="ch05-h"><span data-i18n="index.01_title_l1">The</span> <em data-i18n="index.05_title_em">audit</em>.</h3>
+        <p class="lead chapter__lead" data-i18n="index.05_desc">Snapshot every upload. Top movers, anomalies, drop list.</p>
+        <div class="chapter__detail">
+          <span class="chip-mist chip" data-i18n="ch.05_detail1">12 snapshots retained</span>
+          <span class="chip-mist chip" data-i18n="ch.05_detail2">Anomaly flag |Δ| &gt; 20%</span>
+          <span class="chip-mist chip" data-i18n="ch.05_detail3">Audit log</span>
+        </div>
+      </div>
+      <div class="chapter__visual chapter__visual--sage" aria-hidden="true">
+        <span class="chapter__visual-glyph">Δ</span>
+        <span class="chapter__visual-label">variance report</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter reverse" aria-labelledby="ch06-h">
+    <div class="container chapter__inner">
+      <div class="chapter__visual chapter__visual--gold" aria-hidden="true">
+        <span class="chapter__visual-glyph">EN / TR</span>
+        <span class="chapter__visual-label">surface</span>
+      </div>
+      <div class="chapter__copy">
+        <span class="chapter__num" data-i18n="index.06_num">06 — Surface</span>
+        <h3 class="h1 chapter__title" id="ch06-h"><span data-i18n="index.01_title_l1">The</span> <em data-i18n="index.06_title_em">output</em>.</h3>
+        <p class="lead chapter__lead" data-i18n="index.06_desc">Bilingual EN/TR. Excel import, PDF/PNG export. Offline-capable.</p>
+        <div class="chapter__detail">
+          <span class="chip" data-i18n="ch.06_detail1">EN · TR</span>
+          <span class="chip" data-i18n="ch.06_detail2">Excel · PDF · PNG</span>
+          <span class="chip" data-i18n="ch.06_detail3">Print-friendly</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ PLANS ============ -->
+<section class="plans" id="plans" aria-labelledby="plans-h">
+  <div class="container">
+    <div class="plans__head">
+      <span class="eyebrow eyebrow-accent" data-i18n="plans.section">Section 03 — Plans</span>
+      <h2 class="h1" id="plans-h"><span data-i18n="plans.title_l1">Considered</span> <em data-i18n="plans.title_em">pricing.</em></h2>
+      <p class="lead" style="margin: var(--sp-4) auto 0" data-i18n="plans.lead">Start free with one property. Upgrade when you need multi-property analytics and team workspaces.</p>
+    </div>
+    <div class="plans__grid">
+      <div class="plan">
+        <h3 class="plan__name" data-i18n="pricing.free_name">Free</h3>
+        <div class="plan__price">₺0</div>
+        <span class="plan__price-unit" data-i18n="plans.unit_free">For evaluation</span>
+        <p class="plan__desc" data-i18n="pricing.free_desc">For chefs and single kitchens.</p>
+        <ul>
+          <li data-i18n="pricing.free_li1">1 property</li>
+          <li data-i18n="pricing.free_li2">20 recipes</li>
+          <li data-i18n="pricing.free_li3">Single user</li>
+          <li data-i18n="pricing.free_li4">Local-only (no sync)</li>
+        </ul>
+        <a href="/app/signup.html" class="btn btn-ghost btn-block plan__cta" data-i18n="plans.start_free">Start free →</a>
+      </div>
+      <div class="plan featured">
+        <h3 class="plan__name" data-i18n="pricing.pro_name">Pro</h3>
+        <div class="plan__price">₺5.500</div>
+        <span class="plan__price-unit" data-i18n="pricing.per_prop">/mo · property</span>
+        <p class="plan__desc" data-i18n="pricing.pro_desc">For hotel groups and chains.</p>
+        <ul>
+          <li data-i18n="pricing.pro_li1">Up to 5 properties</li>
+          <li data-i18n="pricing.pro_li2">Unlimited users</li>
+          <li data-i18n="pricing.pro_li3">SAP integration</li>
+          <li data-i18n="pricing.pro_li4">Menu engineering</li>
+          <li data-i18n="pricing.pro_li5">Priority support</li>
+        </ul>
+        <a href="/app/signup.html" class="btn btn-primary btn-block plan__cta" data-i18n="plans.choose_pro">Choose Pro →</a>
+      </div>
+      <div class="plan">
+        <h3 class="plan__name" data-i18n="pricing.ent_name">Enterprise</h3>
+        <div class="plan__price" data-i18n="pricing.custom">Custom</div>
+        <span class="plan__price-unit" data-i18n="plans.unit_ent">By discussion</span>
+        <p class="plan__desc" data-i18n="pricing.ent_desc">Multi-brand, multi-region.</p>
+        <ul>
+          <li data-i18n="pricing.ent_li1">5+ properties</li>
+          <li data-i18n="pricing.ent_li2">SSO · Audit log</li>
+          <li data-i18n="pricing.ent_li3">Custom training</li>
+          <li data-i18n="pricing.ent_li4">SLA &amp; onboarding</li>
+        </ul>
+        <a href="mailto:hello@carta.app?subject=Enterprise%20enquiry" class="btn btn-ghost btn-block plan__cta" data-i18n="plans.contact_us">Contact us →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLOSING ============ -->
+<section class="closing" aria-labelledby="closing-h">
+  <div class="container-narrow">
+    <span class="eyebrow" data-i18n="closing.eyebrow">Section 04 — Begin</span>
+    <h2 class="display" id="closing-h"><em data-i18n="closing.title">Begin, when you are ready.</em></h2>
+    <p class="lead" data-i18n="closing.lead">A magic link in your inbox. No password to remember. Your first workspace before your coffee.</p>
+    <a href="/app/signup.html" class="btn btn-primary"><span data-i18n="hero.cta_begin">Begin</span> <span class="arrow">→</span></a>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="site-footer__top">
+      <div>
+        <img src="/assets/carta-logo.png" alt="" style="height:28px;filter:brightness(0) invert(1);margin-bottom:var(--sp-4)">
+        <p style="font-size:14px;color:rgba(255,255,255,0.7);max-width:36ch;line-height:var(--lh-body)" data-i18n="foot.tagline">A luxury F&B operating system for kitchens that take their craft and their numbers seriously.</p>
+      </div>
+      <div>
+        <h5 data-i18n="foot.product">Product</h5>
+        <ul>
+          <li><a href="#manifesto" data-i18n="nav.method">Method</a></li>
+          <li><a href="#chapters" data-i18n="nav.index">Index</a></li>
+          <li><a href="#plans" data-i18n="nav.plans">Plans</a></li>
+          <li><a href="/app/signup.html" data-i18n="nav.begin">Begin</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5 data-i18n="foot.company">Company</h5>
+        <ul>
+          <li><a href="#" data-i18n="foot.about">About</a></li>
+          <li><a href="mailto:hello@carta.app" data-i18n="foot.contact">Contact</a></li>
+          <li><a href="#" data-i18n="foot.journal">Journal</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5 data-i18n="foot.legal">Legal</h5>
+        <ul>
+          <li><a href="#" data-i18n="foot.privacy">Privacy</a></li>
+          <li><a href="#" data-i18n="foot.terms">Terms</a></li>
+          <li><a href="#" data-i18n="foot.kvkk">KVKK · GDPR</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer__bottom">
+      <span data-i18n="foot.copyright">© MMXXVI Carta · F&B Operations Studio</span>
+      <span data-i18n="foot.made">Made in İstanbul</span>
+    </div>
+  </div>
+</footer>
+
+<script type="module">
+import { setLang, applyTranslations, getLang } from '/src/i18n.js';
+function syncLangButtons() {
+  document.querySelectorAll('[data-lang-btn]').forEach(b => {
+    const on = b.dataset.langBtn === getLang();
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.classList.toggle('active', on);
+  });
+}
+window.__cartaSetLang = (lang) => { setLang(lang); syncLangButtons(); };
+applyTranslations();
+syncLangButtons();
+
+const header = document.getElementById('siteHeader');
+const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 12);
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+</script>
+</body>
+</html>

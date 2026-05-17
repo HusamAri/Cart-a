@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workspaces · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 20% 10%, rgba(212,231,216,0.55) 0%, transparent 60%),
+      radial-gradient(40% 40% at 90% 80%, rgba(255,224,136,0.30) 0%, transparent 65%),
+      var(--surface);
+    min-height: 100vh;
+  }
+  .app-screen { padding: var(--sp-7) 0 var(--sp-10); }
+
+  .app-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: var(--sp-9);
+  }
+  .app-bar .site-logo img { height: 26px; }
+  .app-bar__right { display: inline-flex; align-items: center; gap: var(--sp-3); }
+  .user-email {
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(7,22,13,0.08);
+    border-radius: var(--r-pill);
+    font-family: var(--font-sans); font-size: var(--type-caption);
+    font-weight: 500;
+    color: var(--on-surface-variant);
+  }
+  .app-bar__right button {
+    background: transparent; border: 0;
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm);
+    letter-spacing: var(--track-caps); text-transform: uppercase;
+    color: var(--on-surface-variant);
+    cursor: pointer;
+    min-height: 44px; min-width: 44px;
+    padding: 8px 14px;
+    border-radius: var(--r-pill);
+    transition: background var(--dur-2), color var(--dur-2);
+  }
+  .app-bar__right button:hover { background: rgba(255,255,255,0.7); color: var(--primary); }
+  .app-bar__right button:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+
+  /* Org section header */
+  .org-section { margin-bottom: var(--sp-9); }
+  .org-section__head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: var(--sp-5); gap: var(--sp-3);
+  }
+  .org-section__title {
+    font-family: var(--font-display); font-weight: 400; font-style: italic;
+    font-size: clamp(1.5rem, 2vw + 0.5rem, 2rem);
+    color: var(--primary); margin: 0;
+  }
+  .org-section__meta {
+    display: inline-flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap;
+  }
+
+  /* Workspace cards */
+  .ws-list { display: grid; gap: var(--sp-4); }
+  .ws-card {
+    display: grid; grid-template-columns: 1fr auto auto;
+    align-items: center; gap: var(--sp-4);
+    padding: var(--sp-5) var(--glass-padding);
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+    color: inherit;
+    transition: background var(--dur-2) var(--ease-linear-out),
+                transform var(--dur-2), box-shadow var(--dur-2);
+  }
+  .ws-card__link {
+    grid-column: 1; display: flex; align-items: center; gap: var(--sp-5);
+    text-decoration: none; color: inherit;
+    padding: var(--sp-2) 0;
+  }
+  .ws-card:hover { background: rgba(212,231,216,0.45); box-shadow: var(--shadow-3); transform: translateY(-2px); }
+  .ws-card:focus-within { outline: 2px solid var(--tertiary-container); outline-offset: 3px; }
+  .ws-card__name {
+    font-family: var(--font-display); font-weight: 400; font-style: italic;
+    font-size: 1.65rem; margin: 0 0 6px;
+    color: var(--primary);
+  }
+  .ws-card__meta { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .ws-card__arrow {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 1.5rem; color: var(--outline);
+    transition: transform var(--dur-2), color var(--dur-2);
+  }
+  .ws-card:hover .ws-card__arrow { transform: translateX(8px); color: var(--primary); }
+
+  /* New-workspace card */
+  .ws-create-card {
+    margin-top: var(--sp-7);
+    padding: var(--sp-7) var(--glass-padding);
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(var(--glass-blur-strong)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(160%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+  }
+  .ws-create-card h2 {
+    margin: 0 0 var(--sp-3);
+    font-family: var(--font-display); font-weight: 400; font-style: italic;
+    font-size: 1.625rem; color: var(--primary);
+  }
+  .ws-create-card .caption { margin-bottom: var(--sp-5); }
+  .ws-create-card .row {
+    display: grid; grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--sp-4); align-items: flex-end;
+  }
+  @media (max-width: 700px) { .ws-create-card .row { grid-template-columns: 1fr; } }
+
+  /* Empty state */
+  .empty-state { padding: var(--sp-9) 0 var(--sp-7); text-align: center; }
+  .empty-state .eyebrow { margin-bottom: var(--sp-4); display: inline-block; }
+  .empty-state .h1 { margin: var(--sp-3) 0 var(--sp-5); }
+  .empty-state .lead { margin: 0 auto; }
+
+  .loading-area { padding: var(--sp-10) 0; text-align: center; }
+  .loading-area .spinner { color: var(--primary); }
+
+  /* Manage modal — uses shared .modal-backdrop / .modal classes from tokens.css */
+  .manage-section { margin-bottom: var(--sp-6); }
+  .manage-section h3 {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: 11px; letter-spacing: var(--track-caps); text-transform: uppercase;
+    color: var(--on-surface-variant);
+    margin: 0 0 var(--sp-4);
+  }
+  .member-row {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center;
+    gap: var(--sp-3);
+    padding: 12px 14px;
+    background: var(--surface-container-low);
+    border-radius: var(--r-lg);
+    margin-bottom: 8px;
+  }
+  .member-row .member-email {
+    font-family: var(--font-sans); font-weight: 500; font-size: var(--type-body);
+    color: var(--on-surface);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .member-row select {
+    padding: 6px 10px;
+    background: transparent;
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--r-lg);
+    font-family: var(--font-sans); font-size: 13px;
+    color: var(--primary);
+    min-height: 36px;
+  }
+  .member-row .role-static {
+    padding: 4px 12px;
+    background: var(--primary-fixed);
+    color: var(--on-primary-fixed);
+    border-radius: var(--r-pill);
+    font-size: 11px; font-weight: 700; letter-spacing: var(--track-caps); text-transform: uppercase;
+  }
+  .invite-row {
+    display: grid; grid-template-columns: 1fr 130px 100px; gap: var(--sp-3);
+    align-items: end;
+  }
+  @media (max-width: 600px) { .invite-row { grid-template-columns: 1fr; } }
+  .danger-zone {
+    margin-top: var(--sp-6);
+    padding: var(--sp-5) var(--sp-6);
+    background: rgba(186,26,26,0.05);
+    border: 1px solid rgba(186,26,26,0.25);
+    border-radius: var(--r-xl);
+  }
+  .danger-zone h3 {
+    color: var(--error); font-family: var(--font-sans); font-weight: 700;
+    font-size: 12px; letter-spacing: var(--track-caps); text-transform: uppercase;
+    margin: 0 0 var(--sp-3);
+  }
+  .danger-zone p { margin: 0 0 var(--sp-4); font-size: var(--type-caption); color: var(--on-surface-variant); }
+  .danger-zone .input { margin-bottom: var(--sp-4); }
+  .danger-zone .btn-error { background: var(--error); color: var(--on-error); border: 0; }
+  .danger-zone .btn-error:disabled { opacity: 0.4; cursor: not-allowed; }
+  .danger-zone .btn-error:hover:not(:disabled) { background: var(--on-error-container); }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<div class="app-screen">
+  <div class="container">
+    <div class="app-bar">
+      <a href="/" class="site-logo" aria-label="Carta home"><img src="/assets/carta-logo.png" alt="Carta"></a>
+      <div class="app-bar__right" id="userBar">
+        <span class="user-email" id="userEmail">—</span>
+        <button type="button" onclick="window.__cartaToggleLang()" id="langSwitch" aria-label="Toggle language">TR</button>
+        <button type="button" onclick="window.__cartaSignOut()" data-i18n="app.sign_out">Sign out</button>
+      </div>
+    </div>
+
+    <main id="main">
+
+    <div id="screen-loading" class="loading-area">
+      <span class="spinner"></span>
+      <p class="caption" style="margin-top:var(--sp-4)" data-i18n="app.loading">Loading your workspaces…</p>
+    </div>
+
+    <section id="screen-empty" hidden aria-labelledby="empty-h">
+      <div class="empty-state">
+        <span class="eyebrow eyebrow-accent" data-i18n="ws.first">First workspace</span>
+        <h1 class="h1" id="empty-h"><em data-i18n="ws.empty_title">Name your kitchen.</em></h1>
+        <p class="lead" style="margin: var(--sp-4) auto 0" data-i18n="ws.empty_intro">Each workspace represents one property — a hotel, a restaurant, a single kitchen. Pick a name; you can change it later.</p>
+      </div>
+
+      <div class="ws-create-card" style="max-width:680px;margin:var(--sp-7) auto 0">
+        <form id="createForm" novalidate>
+          <label class="label" for="wsName" data-i18n="ws.label_name">Workspace name</label>
+          <input type="text" id="wsName" class="input" placeholder="Barceló Istanbul · The Populist · Pera Bistro…" required style="margin-bottom:var(--sp-5)">
+
+          <label class="label" for="wsCurrency" data-i18n="ws.label_currency">Currency</label>
+          <input type="text" id="wsCurrency" class="input" value="₺" maxlength="4" style="max-width:160px;margin-bottom:var(--sp-7)">
+
+          <button type="submit" class="btn btn-primary btn-lg" id="createBtn">
+            <span data-i18n="ws.create_btn">Create workspace</span> <span class="arrow">→</span>
+          </button>
+          <div id="createFlash" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="screen-list" hidden aria-labelledby="list-h">
+      <div style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-5)">
+        <span class="accent-rule" style="width:56px"></span>
+        <span class="eyebrow eyebrow-accent" data-i18n="ws.section">Workspaces</span>
+      </div>
+      <h1 class="h1" id="list-h" style="margin-bottom:var(--sp-8)"><em data-i18n="ws.list_title">Choose a workspace.</em></h1>
+
+      <div id="orgList"></div>
+
+      <div class="ws-create-card">
+        <h2 data-i18n="ws.new_title">＋ New workspace</h2>
+        <p class="caption" data-i18n="ws.new_intro">Add another property.</p>
+        <form id="createForm2" novalidate class="row">
+          <div>
+            <label class="label" for="wsName2" data-i18n="ws.label_name">Workspace name</label>
+            <input type="text" id="wsName2" class="input" placeholder="Property name" required>
+          </div>
+          <div>
+            <label class="label" for="wsOrg2">Organization</label>
+            <select id="wsOrg2" class="input"></select>
+          </div>
+          <div>
+            <button type="submit" class="btn btn-gold" id="createBtn2">
+              <span data-i18n="ws.create_short">Create</span> <span class="arrow">→</span>
+            </button>
+          </div>
+        </form>
+        <div id="createFlash2" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    </main>
+  </div>
+</div>
+
+<script type="module">
+import { supabase, getSession } from '/src/supabase-client.js';
+import { signOut } from '/src/auth.js';
+import {
+  listMyWorkspaces, listMyOrganizations, createWorkspace, createOrganization,
+  setActiveWorkspace, setActiveOrg,
+  listMembers, inviteMember, changeMemberRole, removeMember,
+  deleteWorkspace, getWorkspaceArtifactCounts,
+} from '/src/workspaces.js';
+import { getMyRole, can, invalidateRoleCache } from '/src/permissions.js';
+import { applyTranslations, t, setLang, getLang } from '/src/i18n.js';
+applyTranslations();
+
+function setLangBtn() { document.getElementById('langSwitch').textContent = getLang()==='en' ? 'TR' : 'EN'; }
+setLangBtn();
+window.__cartaToggleLang = () => { setLang(getLang()==='en' ? 'tr' : 'en'); setLangBtn(); };
+window.__cartaSignOut = signOut;
+
+const $ = id => document.getElementById(id);
+let orgs = [];
+let workspaces = [];
+
+async function boot() {
+  await new Promise(r => setTimeout(r, 200));
+  const session = await getSession();
+  if (!session) { window.location.href = '/app/login.html'; return; }
+  $('userEmail').textContent = session.user.email;
+
+  [orgs, workspaces] = await Promise.all([listMyOrganizations(), listMyWorkspaces()]);
+  $('screen-loading').hidden = true;
+
+  // Auto-navigate: 1 org with exactly 1 workspace → go straight to studio
+  if (orgs.length === 1 && workspaces.length === 1) {
+    setActiveOrg(orgs[0].id);
+    setActiveWorkspace(workspaces[0].id);
+    window.location.href = '/app/studio.html';
+    return;
+  }
+
+  if (workspaces.length === 0 && orgs.length === 0) {
+    $('screen-empty').hidden = false;
+    setupCreateFirstWorkspace();
+    return;
+  }
+
+  $('screen-list').hidden = false;
+  renderOrgGroups();
+  setupCreateMore();
+}
+
+function renderOrgGroups() {
+  const cl = getLang();
+  const orphan = workspaces.filter(w => !w.organization_id);
+  const byOrg = new Map();
+  for (const w of workspaces) {
+    if (!w.organization_id) continue;
+    if (!byOrg.has(w.organization_id)) byOrg.set(w.organization_id, []);
+    byOrg.get(w.organization_id).push(w);
+  }
+
+  const sections = [];
+  for (const org of orgs) {
+    const ws = byOrg.get(org.id) || [];
+    sections.push(renderOrgSection(org, ws, cl));
+  }
+  if (orphan.length) {
+    sections.push(renderOrgSection({ name: '— Other —', role: 'unknown' }, orphan, cl));
+  }
+
+  $('orgList').innerHTML = sections.join('');
+
+  // Wire card clicks
+  document.querySelectorAll('[data-ws-id]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      // Ignore clicks on the manage button or its children
+      if (e.target.closest('[data-manage]')) return;
+      e.preventDefault();
+      const ws = workspaces.find(w => w.id === el.getAttribute('data-ws-id'));
+      if (!ws) return;
+      setActiveWorkspace(ws.id);
+      if (ws.organization_id) setActiveOrg(ws.organization_id);
+      window.location.href = '/app/studio.html';
+    });
+  });
+
+  // Wire manage buttons
+  document.querySelectorAll('[data-manage]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const wsId = btn.getAttribute('data-manage');
+      const ws = workspaces.find(w => w.id === wsId);
+      if (ws) openManageModal(ws);
+    });
+  });
+}
+
+function renderOrgSection(org, ws, cl) {
+  const showHeader = orgs.length > 1 || ws.length > 1 || org.role === 'unknown';
+  const orgRoleChip = org.role && org.role !== 'unknown'
+    ? `<span class="chip-mist chip" style="font-size:11px">${escapeHTML(t('ws.role_' + org.role) || org.role)}</span>`
+    : '';
+  return `
+    <section class="org-section">
+      ${showHeader ? `
+        <header class="org-section__head">
+          <h2 class="org-section__title">${escapeHTML(org.name)}</h2>
+          <div class="org-section__meta">
+            <span class="chip" style="font-size:11px">${ws.length} ${ws.length === 1 ? escapeHTML(t('studio.m_pricing')||'workspace') : 'workspaces'}</span>
+            ${orgRoleChip}
+          </div>
+        </header>
+      ` : ''}
+      <div class="ws-list">
+        ${ws.map(w => renderWsCard(w, cl)).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderWsCard(w, cl) {
+  const planLabel = (w.plan || 'free').toUpperCase();
+  const dateStr = w.created_at ? new Date(w.created_at).toLocaleDateString(cl==='tr'?'tr-TR':'en-GB') : '';
+  const roleLabel = w.role ? (t('ws.role_' + w.role) || w.role.toUpperCase()) : '';
+  return `
+    <article class="ws-card">
+      <a href="/app/studio.html" data-ws-id="${escapeHTML(w.id)}" class="ws-card__link">
+        <div>
+          <h3 class="ws-card__name">${escapeHTML(w.name)}</h3>
+          <div class="ws-card__meta">
+            <span class="chip" style="font-size:11px">${planLabel}</span>
+            ${roleLabel ? `<span class="chip-mist chip" style="font-size:11px">${escapeHTML(roleLabel)}</span>` : ''}
+            <span class="chip-gold chip" style="font-size:11px">${escapeHTML(dateStr)}</span>
+          </div>
+        </div>
+      </a>
+      <button type="button" class="icon-btn" data-manage="${escapeHTML(w.id)}" aria-label="${escapeHTML(t('ws.manage'))}" title="${escapeHTML(t('ws.manage'))}">
+        <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+      </button>
+      <span class="ws-card__arrow" aria-hidden="true">→</span>
+    </article>
+  `;
+}
+
+// ============================================================
+// Create flows
+// ============================================================
+function setupCreateFirstWorkspace() {
+  const form = $('createForm');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = $('wsName').value.trim();
+    if (!name) return;
+    const currency = $('wsCurrency').value || '₺';
+    $('createBtn').disabled = true;
+    const result = await createWorkspace({ name, currency });
+    $('createBtn').disabled = false;
+    if (result.ok) {
+      window.location.href = '/app/studio.html';
+    } else {
+      $('createFlash').innerHTML = `<div class="flash error">${escapeHTML(result.error)}</div>`;
+    }
+  });
+}
+
+function setupCreateMore() {
+  const sel = $('wsOrg2');
+  sel.innerHTML = `
+    ${orgs.map(o => `<option value="${escapeHTML(o.id)}">${escapeHTML(o.name)}</option>`).join('')}
+    <option value="__new">＋ New organization…</option>
+  `;
+  const form = $('createForm2');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = $('wsName2').value.trim();
+    if (!name) return;
+    let orgId = sel.value;
+    if (orgId === '__new') {
+      const orgName = prompt(t('ws.manage_title') + ': ' + (t('ws.new_title') || 'New organization'));
+      if (!orgName) return;
+      $('createBtn2').disabled = true;
+      const orgRes = await createOrganization(orgName.trim());
+      if (!orgRes.ok) { $('createFlash2').innerHTML = `<div class="flash error">${escapeHTML(orgRes.error)}</div>`; $('createBtn2').disabled = false; return; }
+      orgId = orgRes.organization.id;
+    }
+    $('createBtn2').disabled = true;
+    const result = await createWorkspace({ name, organizationId: orgId });
+    $('createBtn2').disabled = false;
+    if (result.ok) {
+      // Reload list (don't navigate — let user see the new ws in the list)
+      [orgs, workspaces] = await Promise.all([listMyOrganizations(), listMyWorkspaces()]);
+      renderOrgGroups();
+      setupCreateMore();
+      $('wsName2').value = '';
+      $('createFlash2').innerHTML = `<div class="flash success">✓ ${escapeHTML(result.workspace.name)}</div>`;
+    } else {
+      $('createFlash2').innerHTML = `<div class="flash error">${escapeHTML(result.error)}</div>`;
+    }
+  });
+}
+
+// ============================================================
+// Manage modal
+// ============================================================
+async function openManageModal(ws) {
+  const role = await getMyRole(ws.id);
+  const isAdmin = can(role, 'member_manage');
+  const canDelete = can(role, 'workspace_delete');
+
+  const members = await listMembers(ws.id);
+  const counts = await getWorkspaceArtifactCounts(ws.id);
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'manageTitle');
+  modal.innerHTML = `
+    <div class="modal">
+      <header class="modal__head">
+        <div>
+          <span class="eyebrow eyebrow-accent" style="margin-bottom:4px;display:block">${escapeHTML(t('ws.manage_title'))}</span>
+          <h2 class="h2" id="manageTitle"><em>${escapeHTML(ws.name)}</em></h2>
+        </div>
+        <button class="modal__close" aria-label="${escapeHTML(t('ws.close'))}" id="closeBtn">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </header>
+      <div class="modal__body">
+        <section class="manage-section">
+          <h3>${escapeHTML(t('ws.members'))}</h3>
+          <p style="margin:0 0 var(--sp-4);font-size:var(--type-caption);color:var(--on-surface-variant)">${escapeHTML(t('ws.members_intro'))}</p>
+          <div id="memberList"></div>
+
+          ${isAdmin ? `
+          <h3 style="margin-top:var(--sp-6)">${escapeHTML(t('ws.invite_label'))}</h3>
+          <p style="margin:0 0 var(--sp-3);font-size:var(--type-caption);color:var(--on-surface-variant)">${escapeHTML(t('ws.invite_hint'))}</p>
+          <div class="invite-row">
+            <input id="inviteEmail" class="input" type="email" placeholder="you@hotel.com">
+            <select id="inviteRole" class="input">
+              <option value="viewer">${escapeHTML(t('ws.role_viewer'))}</option>
+              <option value="chef">${escapeHTML(t('ws.role_chef'))}</option>
+              <option value="food_engineer">${escapeHTML(t('ws.role_food_engineer'))}</option>
+              <option value="manager" selected>${escapeHTML(t('ws.role_manager'))}</option>
+              <option value="cost_controller">${escapeHTML(t('ws.role_cost_controller'))}</option>
+              <option value="admin">${escapeHTML(t('ws.role_admin'))}</option>
+            </select>
+            <button type="button" class="btn btn-primary btn-sm" id="inviteBtn">${escapeHTML(t('ws.invite_send'))}</button>
+          </div>
+          <div id="inviteFlash" role="status" aria-live="polite"></div>
+          ` : ''}
+        </section>
+
+        ${canDelete ? `
+        <div class="danger-zone">
+          <h3>${escapeHTML(t('ws.danger_zone'))}</h3>
+          <p><strong>${escapeHTML(t('ws.delete_title'))}.</strong> ${escapeHTML(t('ws.delete_body'))}</p>
+          <p style="background:rgba(255,255,255,0.55);padding:10px 14px;border-radius:var(--r-lg);font-size:12px;color:var(--error)">${escapeHTML(formatArtifactCounts(counts))}</p>
+          <label class="label" for="confirmName" style="margin-top:var(--sp-4);color:var(--error)">${escapeHTML(t('ws.delete_type_to_confirm'))} <code style="background:rgba(186,26,26,0.10);padding:2px 6px;border-radius:4px">${escapeHTML(ws.name)}</code></label>
+          <input id="confirmName" class="input" type="text" autocomplete="off">
+          <button type="button" class="btn btn-error" id="deleteBtn" disabled>${escapeHTML(t('ws.delete_btn'))}</button>
+          <div id="deleteFlash" role="status" aria-live="polite"></div>
+        </div>
+        ` : ''}
+      </div>
+      <footer class="modal__foot">
+        <div></div>
+        <div class="modal__foot__right">
+          <button type="button" class="btn btn-ghost" id="closeBtn2">${escapeHTML(t('ws.close'))}</button>
+        </div>
+      </footer>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  // Render members list
+  function renderMembers() {
+    modal.querySelector('#memberList').innerHTML = members.map(m => renderMemberRow(m, ws, isAdmin)).join('');
+    // Wire role change selects
+    modal.querySelectorAll('[data-change-role]').forEach(sel => {
+      sel.addEventListener('change', async (ev) => {
+        const userId = sel.getAttribute('data-change-role');
+        const newRole = sel.value;
+        sel.disabled = true;
+        const result = await changeMemberRole(ws.id, userId, newRole);
+        sel.disabled = false;
+        if (!result.ok) {
+          alert(result.error === 'cannot_change_owner' ? t('ws.cannot_change_owner') : result.error);
+          // reset
+          const member = members.find(x => x.user_id === userId);
+          if (member) sel.value = member.role;
+        } else {
+          const member = members.find(x => x.user_id === userId);
+          if (member) member.role = newRole;
+          invalidateRoleCache(ws.id);
+        }
+      });
+    });
+    // Wire remove buttons
+    modal.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm(t('ws.remove_member_confirm'))) return;
+        const userId = btn.getAttribute('data-remove');
+        btn.disabled = true;
+        const result = await removeMember(ws.id, userId);
+        if (!result.ok) {
+          alert(result.error === 'cannot_remove_owner' ? t('ws.cannot_change_owner') : result.error);
+          btn.disabled = false;
+          return;
+        }
+        const idx = members.findIndex(x => x.user_id === userId);
+        if (idx >= 0) members.splice(idx, 1);
+        renderMembers();
+      });
+    });
+  }
+  renderMembers();
+
+  // Invite handler
+  const inviteBtn = modal.querySelector('#inviteBtn');
+  if (inviteBtn) {
+    inviteBtn.addEventListener('click', async () => {
+      const email = modal.querySelector('#inviteEmail').value.trim();
+      const role  = modal.querySelector('#inviteRole').value;
+      if (!email) return;
+      inviteBtn.disabled = true;
+      const result = await inviteMember(ws.id, email, role);
+      inviteBtn.disabled = false;
+      const flash = modal.querySelector('#inviteFlash');
+      if (!result.ok) {
+        flash.innerHTML = `<div class="flash error">${escapeHTML(result.error === 'no_account' ? t('ws.invite_no_account') : (result.error || 'Error'))}</div>`;
+        return;
+      }
+      flash.innerHTML = `<div class="flash success">${escapeHTML(t('ws.invite_success'))} ${escapeHTML(email)}</div>`;
+      // Refresh members list
+      const refreshed = await listMembers(ws.id);
+      members.length = 0;
+      members.push(...refreshed);
+      renderMembers();
+      modal.querySelector('#inviteEmail').value = '';
+    });
+  }
+
+  // Delete handler (strong confirmation — accent + case tolerant)
+  const deleteBtn = modal.querySelector('#deleteBtn');
+  const confirmInput = modal.querySelector('#confirmName');
+  const norm = (s) => String(s||'')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')   // strip diacritics
+    .toLocaleLowerCase('tr-TR')
+    .replace(/ı/g,'i').replace(/ş/g,'s').replace(/ğ/g,'g')
+    .replace(/ç/g,'c').replace(/ö/g,'o').replace(/ü/g,'u')
+    .replace(/\s+/g,' ').trim();
+  if (deleteBtn && confirmInput) {
+    const target = norm(ws.name);
+    confirmInput.addEventListener('input', () => {
+      deleteBtn.disabled = norm(confirmInput.value) !== target;
+    });
+    deleteBtn.addEventListener('click', async () => {
+      if (norm(confirmInput.value) !== target) return;
+      deleteBtn.disabled = true;
+      const result = await deleteWorkspace(ws.id);
+      if (!result.ok) {
+        modal.querySelector('#deleteFlash').innerHTML = `<div class="flash error">${escapeHTML(result.error)}</div>`;
+        deleteBtn.disabled = false;
+        return;
+      }
+      modal.remove();
+      // reload list
+      [orgs, workspaces] = await Promise.all([listMyOrganizations(), listMyWorkspaces()]);
+      if (workspaces.length === 0 && orgs.length === 0) {
+        $('screen-empty').hidden = false;
+        $('screen-list').hidden = true;
+        setupCreateFirstWorkspace();
+      } else {
+        renderOrgGroups();
+      }
+    });
+  }
+
+  // Close handlers
+  modal.querySelector('#closeBtn').addEventListener('click', () => modal.remove());
+  modal.querySelector('#closeBtn2').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+  document.addEventListener('keydown', function escClose(e) {
+    if (e.key === 'Escape') { modal.remove(); document.removeEventListener('keydown', escClose); }
+  });
+}
+
+function renderMemberRow(m, ws, isAdmin) {
+  const isOwner = m.role === 'owner';
+  const cl = getLang();
+  const dateStr = m.joined_at ? new Date(m.joined_at).toLocaleDateString(cl==='tr'?'tr-TR':'en-GB') : '';
+  return `
+    <div class="member-row">
+      <span class="member-email">${escapeHTML(m.email)} <span style="font-size:11px;color:var(--outline);margin-left:4px">${escapeHTML(dateStr)}</span></span>
+      ${isOwner || !isAdmin
+        ? `<span class="role-static">${escapeHTML(t('ws.role_' + m.role) || m.role.toUpperCase())}</span>`
+        : `<select data-change-role="${escapeHTML(m.user_id)}">
+            ${['viewer','chef','food_engineer','manager','cost_controller','admin'].map(r => `<option value="${r}" ${r===m.role?'selected':''}>${escapeHTML(t('ws.role_'+r) || r)}</option>`).join('')}
+          </select>`}
+      ${(isAdmin && !isOwner) ? `<button type="button" class="icon-btn" data-remove="${escapeHTML(m.user_id)}" aria-label="${escapeHTML(t('ws.remove_member'))}" title="${escapeHTML(t('ws.remove_member'))}"><span class="material-symbols-outlined" aria-hidden="true">person_remove</span></button>` : '<span></span>'}
+    </div>
+  `;
+}
+
+function formatArtifactCounts(c) {
+  const tmpl = t('ws.delete_artifacts');
+  return tmpl
+    .replace('{n}', c.recipes)
+    .replace('{m}', c.costEntries)
+    .replace('{k}', c.salesRows)
+    .replace('{s}', c.snapshots);
+}
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+boot();
+</script>
+</body>
+</html>

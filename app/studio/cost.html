@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cost Ledger · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(255,224,136,0.30) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(212,231,216,0.35) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page {
+    padding: var(--sp-7) var(--margin-desktop) var(--sp-10);
+    flex: 1; overflow-y: auto;
+  }
+  @media (max-width: 900px) {
+    .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); }
+  }
+
+  .page-head {
+    max-width: 1200px; margin: 0 auto var(--sp-8);
+    display: grid; grid-template-columns: 1fr auto;
+    gap: var(--sp-5); align-items: end;
+  }
+  @media (max-width: 760px) { .page-head { grid-template-columns: 1fr; } }
+  .page-head__title .eyebrow { margin-bottom: var(--sp-3); }
+  .page-head__title h1 { margin: 0 0 var(--sp-3); }
+  .page-head__title .lead { margin: 0; max-width: 56ch; }
+  .page-head__actions {
+    display: flex; gap: var(--sp-3); align-items: center;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-pill);
+    padding: 6px 6px 6px 18px;
+  }
+  .page-head__actions input {
+    background: transparent; border: 0;
+    font-family: var(--font-sans); font-size: var(--type-body);
+    padding: 10px 8px; outline: none; min-width: 220px;
+    color: var(--on-surface);
+  }
+  .page-head__actions input::placeholder { color: var(--outline); }
+  .page-head__actions .divider { width: 1px; height: 24px; background: var(--outline-variant); }
+
+  /* TABLE */
+  .ledger {
+    max-width: 1200px; margin: 0 auto;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+    overflow: hidden;
+  }
+  .ledger table { width: 100%; border-collapse: collapse; }
+  .ledger thead th {
+    text-align: left;
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm); letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant);
+    padding: 16px var(--sp-5);
+    border-bottom: 1px solid var(--outline-variant);
+    background: var(--surface-container-low);
+  }
+  .ledger tbody td {
+    padding: 14px var(--sp-5);
+    border-bottom: 1px solid var(--outline-variant);
+    font-family: var(--font-sans);
+    font-size: var(--type-body);
+    color: var(--on-surface);
+    vertical-align: middle;
+  }
+  .ledger tbody tr:last-child td { border-bottom: 0; }
+  .ledger tbody tr {
+    cursor: pointer;
+    transition: background var(--dur-2);
+  }
+  .ledger tbody tr:hover { background: rgba(255,255,255,0.7); }
+  .ledger tbody tr:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: -2px; }
+  .ledger .col-name {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 1.1rem; color: var(--primary);
+  }
+  .ledger .col-num { font-variant-numeric: tabular-nums; text-align: right; }
+  .ledger .col-tag { white-space: nowrap; }
+  @media (max-width: 700px) {
+    .ledger .hide-mobile { display: none; }
+  }
+
+  .empty {
+    max-width: 600px; margin: var(--sp-9) auto;
+    text-align: center;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border-radius: var(--r-2xl);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-2);
+    padding: var(--sp-9) var(--sp-7);
+  }
+  .empty .eyebrow { margin-bottom: var(--sp-4); }
+  .empty h2 { margin: 0 0 var(--sp-4); }
+  .empty .lead { margin: 0 auto var(--sp-7); }
+
+  /* MODAL — borrowed from recipes */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(7,22,13,0.55);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    display: flex; align-items: center; justify-content: center;
+    padding: var(--sp-5);
+    z-index: 100;
+    animation: fadeIn 0.25s var(--ease-linear-out);
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(var(--glass-blur-strong)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(160%);
+    border-radius: var(--r-2xl);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-4);
+    width: 100%; max-width: 680px;
+    max-height: 92vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .modal__head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: var(--sp-5) var(--sp-6);
+    border-bottom: 1px solid var(--outline-variant);
+  }
+  .modal__head h2 { margin: 0; }
+  .modal__close {
+    width: 44px; height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; border: 0;
+    border-radius: var(--r-pill);
+    color: var(--on-surface-variant);
+    cursor: pointer;
+  }
+  .modal__close:hover { background: var(--surface-container); color: var(--primary); }
+  .modal__close:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .modal__form { padding: var(--sp-6); overflow-y: auto; flex: 1; }
+  .form-row { margin-bottom: var(--sp-4); }
+  .form-grid-2 {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: var(--sp-4);
+  }
+  @media (max-width: 600px) { .form-grid-2 { grid-template-columns: 1fr; } }
+
+  .eff-hint {
+    margin: var(--sp-4) 0 0;
+    padding: 12px 16px;
+    background: var(--primary-fixed);
+    color: var(--on-primary-fixed);
+    border-radius: var(--r-lg);
+    font-size: var(--type-caption);
+    font-family: var(--font-sans);
+  }
+  .eff-hint b { font-family: var(--font-display); font-weight: 500; font-size: 1.1em; }
+
+  .modal__foot {
+    display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3);
+    padding: var(--sp-4) var(--sp-6);
+    border-top: 1px solid var(--outline-variant);
+    background: var(--surface-container-low);
+  }
+  .modal__foot__right { display: flex; gap: var(--sp-3); }
+  .btn-error {
+    background: transparent; color: var(--error);
+    border: 1px solid rgba(186,26,26,0.35);
+  }
+  .btn-error:hover { background: var(--error-container); color: var(--on-error-container); border-color: var(--error); }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+import { supabase } from '/src/supabase-client.js';
+import { applyTranslations, t, getLang } from '/src/i18n.js';
+import { formatNumber } from '/src/recipe-compute.js';
+import { suggestNutrients } from '/src/nutrient-db.js';
+
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+
+const ctx = await mountStudioShell({ active: 'cost', main });
+if (!ctx) throw new Error('No session/workspace');
+const wsId = ctx.workspace.id;
+const currency = ctx.workspace.currency || '₺';
+
+main.innerHTML = `
+  <div class="page-head">
+    <div class="page-head__title">
+      <span class="eyebrow eyebrow-accent" data-i18n="cost.title">Cost</span>
+      <h1 class="h1">
+        <span data-i18n="cost.title">Cost</span>
+        <em data-i18n="cost.title_em">ledger</em>.
+      </h1>
+      <p class="lead" data-i18n="cost.intro">Per-ingredient cost. Yield-aware. SAP-compatible.</p>
+    </div>
+    <div class="page-head__actions">
+      <span class="material-symbols-outlined" aria-hidden="true" style="color:var(--outline);font-size:20px">search</span>
+      <input id="searchInput" type="search" data-i18n-ph="cost.search_ph" autocomplete="off">
+      <span class="divider" aria-hidden="true"></span>
+      <button class="btn btn-primary btn-sm" id="newBtn">
+        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
+        <span data-i18n="cost.new">New entry</span>
+      </button>
+    </div>
+  </div>
+  <div id="listOrEmpty"></div>
+`;
+applyTranslations();
+const ph = main.querySelector('[data-i18n-ph]'); if (ph) ph.placeholder = t(ph.getAttribute('data-i18n-ph'));
+
+let allEntries = [];
+
+async function loadEntries() {
+  const { data, error } = await supabase
+    .from('cost_db')
+    .select('*')
+    .eq('workspace_id', wsId)
+    .order('ingredient_name', { ascending: true });
+  if (error) {
+    console.error('loadEntries', error);
+    main.querySelector('#listOrEmpty').innerHTML = `<p class="flash error" style="max-width:600px;margin:var(--sp-6) auto">${error.message}</p>`;
+    return;
+  }
+  allEntries = data || [];
+  render();
+}
+
+function render(filter = '') {
+  const container = main.querySelector('#listOrEmpty');
+  let items = allEntries;
+  if (filter) {
+    const q = filter.toLowerCase();
+    items = items.filter(e => (e.ingredient_name || '').toLowerCase().includes(q) || (e.sap_code || '').toLowerCase().includes(q));
+  }
+  if (allEntries.length === 0) {
+    container.innerHTML = renderEmpty();
+    container.querySelector('#emptyNewBtn').addEventListener('click', () => openEditor(null));
+    applyTranslations();
+    return;
+  }
+  if (items.length === 0) {
+    container.innerHTML = `<p style="text-align:center;margin:var(--sp-9) auto;max-width:400px;color:var(--on-surface-variant)" data-i18n="cost.no_results">${t('cost.no_results')}</p>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="ledger">
+      <table aria-label="Cost ledger">
+        <thead>
+          <tr>
+            <th scope="col" data-i18n="cost.col_ingredient">Ingredient</th>
+            <th scope="col" class="col-num" data-i18n="cost.col_price">Per 100g</th>
+            <th scope="col" class="col-num hide-mobile" data-i18n="cost.col_yield">Yield</th>
+            <th scope="col" class="hide-mobile" data-i18n="cost.col_source">Source</th>
+            <th scope="col" class="hide-mobile" data-i18n="cost.col_as_of">As of</th>
+          </tr>
+        </thead>
+        <tbody>${items.map(rowMarkup).join('')}</tbody>
+      </table>
+    </div>
+  `;
+  applyTranslations();
+  container.querySelectorAll('[data-row-id]').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const id = tr.getAttribute('data-row-id');
+      const e = allEntries.find(x => uniqueKey(x) === id);
+      if (e) openEditor(e);
+    });
+    tr.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tr.click(); }
+    });
+  });
+}
+
+function rowMarkup(e) {
+  const id = uniqueKey(e);
+  const sourceLabel = t('cost.source_' + (e.source || 'manual').toLowerCase()) || e.source;
+  return `
+    <tr tabindex="0" role="button" data-row-id="${escapeHTML(id)}" aria-label="${escapeHTML(e.ingredient_name)}">
+      <td class="col-name">${escapeHTML(e.ingredient_name)}</td>
+      <td class="col-num">${escapeHTML(currency)} ${formatNumber(e.per_100g, 2)}</td>
+      <td class="col-num hide-mobile">${formatNumber(e.yield_pct ?? 100, 0)}%</td>
+      <td class="col-tag hide-mobile"><span class="chip ${e.source === 'SAP' ? 'chip-mist' : ''}" style="font-size:11px">${escapeHTML(sourceLabel)}</span></td>
+      <td class="hide-mobile" style="color:var(--on-surface-variant);font-size:13px">${e.as_of ? new Date(e.as_of).toLocaleDateString() : '—'}</td>
+    </tr>
+  `;
+}
+
+function renderEmpty() {
+  return `
+    <div class="empty">
+      <span class="accent-rule" style="margin:0 auto var(--sp-4)"></span>
+      <span class="eyebrow eyebrow-accent" data-i18n="cost.empty_eyebrow">First entry</span>
+      <h2 class="h1" style="margin-top:var(--sp-3)"><em data-i18n="cost.empty_title">Start your cost ledger.</em></h2>
+      <p class="lead" data-i18n="cost.empty_intro">Add ingredients with their per-100g price and yield %.</p>
+      <button class="btn btn-primary btn-lg" id="emptyNewBtn">
+        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
+        <span data-i18n="cost.new">New entry</span>
+      </button>
+    </div>
+  `;
+}
+
+main.querySelector('#newBtn').addEventListener('click', () => openEditor(null));
+main.querySelector('#searchInput').addEventListener('input', (e) => render(e.target.value));
+
+// ============================================================
+// Modal editor
+// ============================================================
+function openEditor(entry) {
+  const editor = buildEditorEl(entry);
+  document.body.appendChild(editor);
+  const onKey = (e) => { if (e.key === 'Escape') closeEditor(); };
+  document.addEventListener('keydown', onKey);
+  editor._cleanup = () => document.removeEventListener('keydown', onKey);
+  setTimeout(() => editor.querySelector('#editName')?.focus(), 50);
+}
+function closeEditor() {
+  const e = document.getElementById('costEditor');
+  if (e) { e._cleanup?.(); e.remove(); }
+}
+
+function buildEditorEl(entry) {
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-backdrop';
+  wrap.id = 'costEditor';
+  wrap.setAttribute('role', 'dialog');
+  wrap.setAttribute('aria-modal', 'true');
+  wrap.setAttribute('aria-labelledby', 'costEditorTitle');
+
+  const isEdit = !!entry;
+  const e = entry || { ingredient_name:'', per_100g:'', yield_pct:100, uom:'100G', source:'manual', as_of:'', sap_code:'' };
+
+  wrap.innerHTML = `
+    <div class="modal">
+      <header class="modal__head">
+        <h2 class="h2" id="costEditorTitle" data-i18n="${isEdit?'cost.edit_title':'cost.new_title'}">${isEdit?'Edit cost entry':'New cost entry'}</h2>
+        <button class="modal__close" aria-label="Close" id="editorClose">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </header>
+      <form class="modal__form" id="costForm" novalidate>
+        <div class="form-row" style="position:relative">
+          <label class="label" for="editName" data-i18n="cost.col_ingredient">Ingredient</label>
+          <input class="input" id="editName" type="text" required value="${escapeHTML(e.ingredient_name)}" ${isEdit?'readonly':''} autocomplete="off">
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label class="label" for="editPrice" data-i18n="cost.label_price_per_100g">Price per 100g</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="font-family:var(--font-display);color:var(--on-surface-variant)">${escapeHTML(currency)}</span>
+              <input class="input" id="editPrice" type="number" min="0" step="0.01" required value="${e.per_100g ?? ''}">
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="label" for="editYield" data-i18n="cost.label_yield">Yield (%)</label>
+            <input class="input" id="editYield" type="number" min="1" max="100" step="0.1" value="${e.yield_pct ?? 100}">
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label class="label" for="editUom" data-i18n="cost.label_uom">UOM</label>
+            <input class="input" id="editUom" type="text" maxlength="8" value="${escapeHTML(e.uom || '100G')}">
+          </div>
+          <div class="form-row">
+            <label class="label" for="editSource" data-i18n="cost.label_source">Source</label>
+            <select class="input" id="editSource">
+              <option value="manual" ${e.source==='manual'?'selected':''} data-i18n="cost.source_manual">Manual</option>
+              <option value="SAP"    ${e.source==='SAP'?'selected':''}    data-i18n="cost.source_sap">SAP</option>
+              <option value="csv"    ${e.source==='csv'?'selected':''}    data-i18n="cost.source_csv">CSV</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label class="label" for="editAsOf" data-i18n="cost.label_as_of">As of</label>
+            <input class="input" id="editAsOf" type="date" value="${e.as_of || ''}">
+          </div>
+          <div class="form-row">
+            <label class="label" for="editSap" data-i18n="cost.label_sap_code">SAP code</label>
+            <input class="input" id="editSap" type="text" value="${escapeHTML(e.sap_code || '')}">
+          </div>
+        </div>
+        <p class="eff-hint" id="effHint">—</p>
+      </form>
+      <footer class="modal__foot">
+        <div>
+          ${isEdit ? `<button type="button" class="btn btn-sm btn-error" id="deleteBtn" data-i18n="cost.delete">Delete</button>` : ''}
+        </div>
+        <div class="modal__foot__right">
+          <button type="button" class="btn btn-ghost" id="cancelBtn" data-i18n="cost.cancel">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveBtn">
+            <span data-i18n="cost.save">Save</span> <span class="arrow">→</span>
+          </button>
+        </div>
+      </footer>
+    </div>
+  `;
+
+  // Autocomplete on name (only for new entries)
+  if (!isEdit) {
+    const nameInput = wrap.querySelector('#editName');
+    let dropdown;
+    nameInput.addEventListener('input', () => {
+      const q = nameInput.value.trim();
+      if (!q) { closeAC(); return; }
+      const suggestions = suggestNutrients(q, 6);
+      closeAC();
+      if (!suggestions.length) return;
+      dropdown = document.createElement('div');
+      dropdown.style.cssText = 'position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface-container-lowest);border:var(--glass-border);border-radius:var(--r-lg);box-shadow:var(--shadow-2);max-height:200px;overflow-y:auto;z-index:5';
+      dropdown.innerHTML = suggestions.map(s => `<div style="padding:10px 14px;cursor:pointer;font-size:var(--type-caption)" role="option" data-name="${escapeHTML(s)}">${escapeHTML(s)}</div>`).join('');
+      dropdown.querySelectorAll('[data-name]').forEach(item => {
+        item.addEventListener('mouseenter', () => item.style.background = 'var(--surface-container)');
+        item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+        item.addEventListener('mousedown', (ev) => {
+          ev.preventDefault();
+          nameInput.value = item.getAttribute('data-name');
+          closeAC();
+        });
+      });
+      nameInput.parentElement.appendChild(dropdown);
+    });
+    nameInput.addEventListener('blur', () => setTimeout(closeAC, 150));
+    function closeAC() { if (dropdown) { dropdown.remove(); dropdown = null; } }
+  }
+
+  // Compute "effective per gram" hint
+  function updateHint() {
+    const price = parseFloat(wrap.querySelector('#editPrice').value);
+    const yld   = parseFloat(wrap.querySelector('#editYield').value) || 100;
+    if (!isFinite(price) || price <= 0) { wrap.querySelector('#effHint').textContent = '—'; return; }
+    const perGram = (price / 100) * (100 / yld);
+    wrap.querySelector('#effHint').innerHTML = `${t('cost.eff_per_g')}: <b>${escapeHTML(currency)} ${formatNumber(perGram, 4)}</b> / g`;
+  }
+  wrap.querySelector('#costForm').addEventListener('input', updateHint);
+  updateHint();
+
+  // Close
+  wrap.querySelector('#editorClose').addEventListener('click', closeEditor);
+  wrap.querySelector('#cancelBtn').addEventListener('click', closeEditor);
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) closeEditor(); });
+
+  // Save
+  wrap.querySelector('#saveBtn').addEventListener('click', async () => {
+    const name = wrap.querySelector('#editName').value.trim();
+    const price = parseFloat(wrap.querySelector('#editPrice').value);
+    if (!name) { wrap.querySelector('#editName').focus(); return; }
+    if (!isFinite(price) || price <= 0) { wrap.querySelector('#editPrice').focus(); return; }
+    const payload = {
+      workspace_id: wsId,
+      ingredient_name: name,
+      per_100g: price,
+      yield_pct: parseFloat(wrap.querySelector('#editYield').value) || 100,
+      uom:      wrap.querySelector('#editUom').value.trim() || '100G',
+      source:   wrap.querySelector('#editSource').value || 'manual',
+      as_of:    wrap.querySelector('#editAsOf').value || null,
+      sap_code: wrap.querySelector('#editSap').value.trim() || null,
+    };
+    const saveBtn = wrap.querySelector('#saveBtn');
+    saveBtn.disabled = true;
+    try {
+      // cost_db has composite PK (workspace_id, ingredient_name) — upsert
+      const { error } = await supabase.from('cost_db').upsert(payload, { onConflict: 'workspace_id,ingredient_name' });
+      if (error) throw error;
+      closeEditor();
+      await loadEntries();
+    } catch (err) {
+      console.error('save cost', err);
+      alert((err && err.message) || 'Save failed');
+      saveBtn.disabled = false;
+    }
+  });
+
+  // Delete
+  if (isEdit) {
+    wrap.querySelector('#deleteBtn').addEventListener('click', async () => {
+      if (!confirm(t('cost.delete_confirm'))) return;
+      const { error } = await supabase.from('cost_db')
+        .delete()
+        .eq('workspace_id', wsId)
+        .eq('ingredient_name', entry.ingredient_name);
+      if (error) { alert(error.message); return; }
+      closeEditor();
+      await loadEntries();
+    });
+  }
+
+  applyTranslations();
+  return wrap;
+}
+
+function uniqueKey(e) {
+  return `${e.workspace_id}::${e.ingredient_name}`;
+}
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+await loadEntries();
+</script>
+</body>
+</html>

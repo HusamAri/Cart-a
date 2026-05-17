@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Price Workspace · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.42) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.22) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page {
+    padding: var(--sp-7) var(--margin-desktop) var(--sp-10);
+    flex: 1; overflow-y: auto;
+  }
+  @media (max-width: 900px) {
+    .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); }
+  }
+  .page-head {
+    max-width: 1280px; margin: 0 auto var(--sp-7);
+    display: grid; grid-template-columns: 1fr auto;
+    gap: var(--sp-5); align-items: end;
+  }
+  @media (max-width: 760px) { .page-head { grid-template-columns: 1fr; } }
+  .page-head__title .eyebrow { margin-bottom: var(--sp-3); }
+  .page-head__title h1 { margin: 0 0 var(--sp-3); }
+  .page-head__title .lead { margin: 0; max-width: 56ch; }
+
+  /* Settings card with target GP/VAT/Q */
+  .settings-card {
+    max-width: 1280px; margin: 0 auto var(--sp-5);
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-xl);
+    padding: var(--sp-4) var(--sp-5);
+    display: grid; grid-template-columns: auto repeat(3, auto) 1fr auto;
+    gap: var(--sp-5); align-items: center;
+  }
+  .settings-card .label-sm { font-weight: 700; }
+  @media (max-width: 800px) {
+    .settings-card { grid-template-columns: 1fr 1fr; }
+    .settings-card .filler { display: none; }
+  }
+  .settings-card .pair {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .settings-card .pair input {
+    width: 64px; padding: 8px 10px;
+    background: transparent;
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--r-lg);
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 1.1rem; color: var(--primary);
+    text-align: right;
+  }
+  .settings-card .pair input:focus { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+
+  /* Filter row */
+  .filter-row {
+    max-width: 1280px; margin: 0 auto var(--sp-5);
+    display: flex; gap: var(--sp-4); flex-wrap: wrap; align-items: center;
+  }
+  .seg {
+    display: inline-flex; gap: 4px; padding: 4px;
+    background: var(--surface-container);
+    border-radius: var(--r-pill);
+  }
+  .seg button {
+    background: transparent; border: 0;
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm); letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant);
+    min-height: 40px; padding: 8px 18px;
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition: background var(--dur-2), color var(--dur-2);
+  }
+  .seg button[aria-pressed="true"] {
+    background: var(--primary); color: var(--on-primary);
+  }
+  .seg button:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .search-pill {
+    display: flex; gap: var(--sp-3); align-items: center;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-pill);
+    padding: 6px 6px 6px 18px;
+    flex: 1; min-width: 240px;
+  }
+  .search-pill input {
+    background: transparent; border: 0;
+    font-family: var(--font-sans); font-size: var(--type-body);
+    padding: 10px 8px; outline: none; flex: 1;
+    color: var(--on-surface);
+  }
+  .search-pill input::placeholder { color: var(--outline); }
+
+  /* Pricing table */
+  .pricing-card {
+    max-width: 1280px; margin: 0 auto;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+    overflow: hidden;
+  }
+  .pricing-card table { width: 100%; border-collapse: collapse; }
+  .pricing-card thead th {
+    text-align: left;
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm); letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant);
+    padding: 16px var(--sp-4);
+    border-bottom: 1px solid var(--outline-variant);
+    background: var(--surface-container-low);
+    white-space: nowrap;
+  }
+  .pricing-card tbody td {
+    padding: 14px var(--sp-4);
+    border-bottom: 1px solid var(--outline-variant);
+    font-family: var(--font-sans);
+    font-size: var(--type-body);
+    color: var(--on-surface);
+    vertical-align: middle;
+  }
+  .pricing-card tbody tr:last-child td { border-bottom: 0; }
+  .pricing-card .col-name {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 1.1rem; color: var(--primary);
+    min-width: 200px;
+  }
+  .pricing-card .col-num {
+    font-variant-numeric: tabular-nums; text-align: right;
+    white-space: nowrap;
+  }
+  .pricing-card .price-wrap {
+    display: inline-flex; align-items: center; gap: 6px;
+    justify-content: flex-end;
+  }
+  .pricing-card .price-input {
+    width: 110px; padding: 8px 12px;
+    background: var(--surface-container-low);
+    border: 1px solid transparent;
+    border-radius: var(--r-lg);
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 1.1rem; color: var(--primary);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .pricing-card .price-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--surface-container-lowest);
+    box-shadow: 0 0 0 2px rgba(7,22,13,0.12);
+  }
+  .save-status {
+    width: 18px; height: 18px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 14px; line-height: 1;
+    color: var(--outline);
+    transition: color 220ms var(--ease-linear-out), opacity 220ms;
+    opacity: 0;
+  }
+  .save-status.is-saving  { opacity: 1; color: var(--outline); }
+  .save-status.is-saved   { opacity: 1; color: var(--success); }
+  .save-status.is-error   { opacity: 1; color: var(--error); }
+  .save-status.is-dirty   { opacity: 1; color: var(--tertiary); }
+  .pricing-card .fc-chip {
+    display: inline-flex; padding: 4px 10px; border-radius: var(--r-pill);
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .fc-ok    { background: var(--primary-fixed); color: var(--on-primary-fixed); }
+  .fc-high  { background: var(--error-container); color: var(--on-error-container); }
+  .fc-low   { background: var(--tertiary-fixed); color: var(--on-tertiary-fixed-variant); }
+  .fc-na    { background: var(--surface-container); color: var(--outline); }
+
+  .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid transparent;
+    border-radius: var(--r-pill);
+    color: var(--on-surface-variant);
+    cursor: pointer;
+  }
+  .icon-btn:hover { background: var(--surface-container); color: var(--primary); border-color: var(--outline-variant); }
+  .icon-btn:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+
+  .empty {
+    max-width: 600px; margin: var(--sp-9) auto;
+    text-align: center;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border-radius: var(--r-2xl);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-2);
+    padding: var(--sp-9) var(--sp-7);
+  }
+
+  @media (max-width: 800px) {
+    .hide-mobile { display: none; }
+  }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+import { supabase } from '/src/supabase-client.js';
+import { applyTranslations, t } from '/src/i18n.js';
+import {
+  computeDishCost, suggestedPrice, foodCostPct, marginCurrency,
+  buildCostMap, formatNumber, formatMoney
+} from '/src/recipe-compute.js';
+
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+
+const ctx = await mountStudioShell({ active: 'pricing', main });
+if (!ctx) throw new Error('No session/workspace');
+const ws = ctx.workspace;
+const wsId = ws.id;
+const currency = ws.currency || '₺';
+
+// Workspace defaults
+let targetGp = Number(ws.target_gp) || 70;
+let vatPct   = Number(ws.vat_rate) || 10;
+let qFactor  = Number(ws.q_factor) || 3;
+
+let filterKind = 'all';
+let filterText = '';
+
+main.innerHTML = `
+  <div class="page-head">
+    <div class="page-head__title">
+      <span class="eyebrow eyebrow-accent" data-i18n="pricing.title">Price</span>
+      <h1 class="h1">
+        <span data-i18n="pricing.title">Price</span>
+        <em data-i18n="pricing.title_em">workspace</em>.
+      </h1>
+      <p class="lead" data-i18n="pricing.intro">Cost, margin, suggested price — recipe by recipe. Edit in place.</p>
+    </div>
+  </div>
+
+  <div class="settings-card" aria-label="Workspace pricing settings">
+    <span class="label-sm" data-i18n="pricing.settings" style="text-transform:uppercase;letter-spacing:var(--track-caps);font-size:12px">Workspace settings</span>
+    <div class="pair">
+      <label for="cfgGp" class="label-sm" style="font-size:12px" data-i18n="pricing.target_gp">Target GP %</label>
+      <input id="cfgGp" type="number" min="0" max="99" step="0.5" value="${targetGp}">
+    </div>
+    <div class="pair">
+      <label for="cfgVat" class="label-sm" style="font-size:12px" data-i18n="pricing.vat">VAT %</label>
+      <input id="cfgVat" type="number" min="0" max="50" step="0.5" value="${vatPct}">
+    </div>
+    <div class="pair">
+      <label for="cfgQ" class="label-sm" style="font-size:12px" data-i18n="pricing.q_factor">Q-factor %</label>
+      <input id="cfgQ" type="number" min="0" max="50" step="0.5" value="${qFactor}">
+    </div>
+    <span class="filler"></span>
+    <button type="button" class="btn btn-sage btn-sm" id="saveCfg">
+      <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">check</span>
+      <span data-i18n="pricing.save_row">Save</span>
+    </button>
+  </div>
+
+  <div class="filter-row">
+    <div class="seg" role="group" aria-label="Filter by kind">
+      <button type="button" data-kind="all"   aria-pressed="true"  data-i18n="pricing.kind_all">All</button>
+      <button type="button" data-kind="food"  aria-pressed="false" data-i18n="pricing.kind_food">Food</button>
+      <button type="button" data-kind="drink" aria-pressed="false" data-i18n="pricing.kind_drink">Drinks</button>
+    </div>
+    <div class="search-pill">
+      <span class="material-symbols-outlined" aria-hidden="true" style="color:var(--outline);font-size:20px">search</span>
+      <input id="searchInput" type="search" data-i18n-ph="pricing.search_ph" autocomplete="off">
+    </div>
+  </div>
+
+  <div id="listOrEmpty"></div>
+`;
+
+applyTranslations();
+const ph = main.querySelector('[data-i18n-ph]'); if (ph) ph.placeholder = t(ph.getAttribute('data-i18n-ph'));
+
+// Wire filter
+main.querySelectorAll('.seg [data-kind]').forEach(b => {
+  b.addEventListener('click', () => {
+    filterKind = b.getAttribute('data-kind');
+    main.querySelectorAll('.seg [data-kind]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    render();
+  });
+});
+main.querySelector('#searchInput').addEventListener('input', (e) => { filterText = e.target.value; render(); });
+
+// Settings save
+main.querySelector('#saveCfg').addEventListener('click', async () => {
+  targetGp = parseFloat(main.querySelector('#cfgGp').value)  || 70;
+  vatPct   = parseFloat(main.querySelector('#cfgVat').value) || 10;
+  qFactor  = parseFloat(main.querySelector('#cfgQ').value)   || 3;
+  const btn = main.querySelector('#saveCfg');
+  btn.disabled = true;
+  const { error } = await supabase.from('workspaces')
+    .update({ target_gp: targetGp, vat_rate: vatPct, q_factor: qFactor })
+    .eq('id', wsId);
+  btn.disabled = false;
+  if (error) { alert(error.message); return; }
+  render();
+});
+
+// ============================================================
+// Data
+// ============================================================
+let dishes = [];
+let costMap = {};
+
+async function loadAll() {
+  const [dishesRes, costRes] = await Promise.all([
+    supabase.from('saved_dishes').select('*').eq('workspace_id', wsId).order('updated_at', { ascending: false }),
+    supabase.from('cost_db').select('*').eq('workspace_id', wsId),
+  ]);
+  if (dishesRes.error) { console.error(dishesRes.error); }
+  if (costRes.error)   { console.error(costRes.error);   }
+  dishes  = dishesRes.data || [];
+  costMap = buildCostMap(costRes.data || []);
+  render();
+}
+
+function render() {
+  const container = main.querySelector('#listOrEmpty');
+
+  if (dishes.length === 0) {
+    container.innerHTML = `
+      <div class="empty">
+        <span class="accent-rule" style="margin:0 auto var(--sp-4)"></span>
+        <h2 class="h1"><em data-i18n="pricing.no_dishes">No recipes yet. Build some in the recipe library first.</em></h2>
+        <p style="margin:var(--sp-5) 0 var(--sp-6)">
+          <a class="btn btn-primary btn-lg" href="/app/studio/recipes.html" data-i18n="pricing.go_to_recipes">Go to recipes →</a>
+        </p>
+      </div>
+    `;
+    applyTranslations();
+    return;
+  }
+
+  let items = dishes;
+  if (filterKind !== 'all') items = items.filter(d => d.kind === filterKind);
+  if (filterText) {
+    const q = filterText.toLowerCase();
+    items = items.filter(d => (d.name || '').toLowerCase().includes(q));
+  }
+  if (items.length === 0) {
+    container.innerHTML = `<p style="text-align:center;margin:var(--sp-9) auto;max-width:400px;color:var(--on-surface-variant)" data-i18n="pricing.no_results">${t('pricing.no_results')}</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="pricing-card">
+      <table aria-label="Pricing workspace">
+        <thead>
+          <tr>
+            <th data-i18n="pricing.col_dish">Dish</th>
+            <th class="col-num" data-i18n="pricing.col_cost">Cost / serving</th>
+            <th class="col-num" data-i18n="pricing.col_price">Menu price</th>
+            <th class="col-num" data-i18n="pricing.col_fc">FC %</th>
+            <th class="col-num hide-mobile" data-i18n="pricing.col_margin">Margin</th>
+            <th class="col-num hide-mobile" data-i18n="pricing.col_suggested">Suggested</th>
+            <th aria-label="Actions"></th>
+          </tr>
+        </thead>
+        <tbody>${items.map(rowMarkup).join('')}</tbody>
+      </table>
+    </div>
+  `;
+  applyTranslations();
+
+  // Wire per-row interactions — auto-save on blur with visual feedback
+  container.querySelectorAll('[data-dish-id]').forEach(tr => {
+    const id = tr.getAttribute('data-dish-id');
+    const dish = dishes.find(d => d.id === id);
+    if (!dish) return;
+
+    const priceInput = tr.querySelector('.price-input');
+    const applyBtn   = tr.querySelector('.apply-btn');
+    const status     = tr.querySelector('.save-status');
+
+    let savedValue = priceInput.value;
+    let debounce;
+
+    function setStatus(s, content) {
+      status.classList.remove('is-saving', 'is-saved', 'is-error', 'is-dirty');
+      if (s) status.classList.add(`is-${s}`);
+      status.textContent = content || '';
+    }
+    async function persist() {
+      const value = parseFloat(priceInput.value);
+      const newData = { ...(dish.data||{}), menu_price: isFinite(value) ? value : null };
+      if (priceInput.value === savedValue) return;       // nothing to save
+      setStatus('saving', '…');
+      const { error } = await supabase.from('saved_dishes').update({ data: newData }).eq('id', dish.id);
+      if (error) { setStatus('error', '!'); console.error('save price', error); return; }
+      dish.data = newData;
+      savedValue = priceInput.value;
+      setStatus('saved', '✓');
+      setTimeout(() => { if (priceInput.value === savedValue) setStatus(null); }, 1800);
+    }
+
+    priceInput.addEventListener('input', () => {
+      recomputeRow(tr, dish);
+      if (priceInput.value !== savedValue) setStatus('dirty', '•');
+      else setStatus(null);
+      clearTimeout(debounce);
+      debounce = setTimeout(persist, 1200);              // debounced auto-save
+    });
+    priceInput.addEventListener('blur', () => {
+      clearTimeout(debounce);
+      persist();
+    });
+    priceInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); priceInput.blur(); }
+    });
+
+    applyBtn.addEventListener('click', () => {
+      const data = dish.data || {};
+      const compute = computeDishCost({ ingredients: data.ingredients||[], servings: data.servings||1 }, costMap, qFactor);
+      const sp = suggestedPrice(compute.perServing, targetGp, vatPct);
+      priceInput.value = formatNumber(sp, 2);
+      recomputeRow(tr, dish);
+      setStatus('dirty', '•');
+      clearTimeout(debounce);
+      debounce = setTimeout(persist, 400);              // shorter debounce for explicit action
+    });
+  });
+}
+
+function rowMarkup(d) {
+  const data = d.data || {};
+  const ings = data.ingredients || [];
+  const servings = data.servings || 1;
+  const cost = computeDishCost({ ingredients: ings, servings }, costMap, qFactor);
+  const price = Number(data.menu_price) || 0;
+  const sp    = suggestedPrice(cost.perServing, targetGp, vatPct);
+  const fc    = price > 0 ? foodCostPct(cost.perServing, price, vatPct) : null;
+  const mg    = price > 0 ? marginCurrency(cost.perServing, price, vatPct) : null;
+  const kindLabel = d.kind === 'drink' ? t('pricing.kind_drink') : t('pricing.kind_food');
+  return `
+    <tr data-dish-id="${escapeHTML(d.id)}">
+      <td class="col-name">
+        ${escapeHTML(d.name || '—')}
+        <div style="font-size:11px;font-family:var(--font-sans);color:var(--on-surface-variant);font-style:normal;margin-top:2px">
+          <span class="chip chip-mist" style="font-size:10px">${escapeHTML(kindLabel)}</span>
+          ${cost.missing.length ? `<span class="chip chip-gold" style="font-size:10px;margin-left:4px" title="${escapeHTML(cost.missing.join(', '))}">${cost.missing.length} ${escapeHTML(t('pricing.missing_costs'))}</span>` : ''}
+        </div>
+      </td>
+      <td class="col-num cost-cell">${formatMoney(cost.perServing, currency, 2)}</td>
+      <td class="col-num">
+        <div class="price-wrap">
+          <span class="save-status" aria-live="polite" aria-atomic="true"></span>
+          <input type="number" min="0" step="0.01" value="${price || ''}" class="price-input" aria-label="Menu price">
+        </div>
+      </td>
+      <td class="col-num fc-cell">${renderFcChip(fc)}</td>
+      <td class="col-num hide-mobile margin-cell">${mg !== null ? formatMoney(mg, currency, 2) : '—'}</td>
+      <td class="col-num hide-mobile">${formatMoney(sp, currency, 2)}</td>
+      <td class="row-actions">
+        <button type="button" class="icon-btn apply-btn" aria-label="${escapeHTML(t('pricing.set_price_to_suggested'))}" title="${escapeHTML(t('pricing.set_price_to_suggested'))}">
+          <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
+        </button>
+      </td>
+    </tr>
+  `;
+}
+
+function recomputeRow(tr, d) {
+  const data = d.data || {};
+  const ings = data.ingredients || [];
+  const servings = data.servings || 1;
+  const cost = computeDishCost({ ingredients: ings, servings }, costMap, qFactor);
+  const priceInput = tr.querySelector('.price-input');
+  const price = parseFloat(priceInput.value) || 0;
+  const fc = price > 0 ? foodCostPct(cost.perServing, price, vatPct) : null;
+  const mg = price > 0 ? marginCurrency(cost.perServing, price, vatPct) : null;
+  tr.querySelector('.cost-cell').textContent = formatMoney(cost.perServing, currency, 2);
+  tr.querySelector('.fc-cell').innerHTML     = renderFcChip(fc);
+  const mgCell = tr.querySelector('.margin-cell');
+  if (mgCell) mgCell.textContent = mg !== null ? formatMoney(mg, currency, 2) : '—';
+}
+
+function renderFcChip(fc) {
+  if (fc === null || isNaN(fc)) return `<span class="fc-chip fc-na">—</span>`;
+  let cls = 'fc-ok', labelKey = 'pricing.fc_band_ok';
+  if (fc > 35) { cls = 'fc-high'; labelKey = 'pricing.fc_band_high'; }
+  else if (fc < 22) { cls = 'fc-low'; labelKey = 'pricing.fc_band_low'; }
+  return `<span class="fc-chip ${cls}" title="${escapeHTML(t(labelKey))}">${formatNumber(fc, 1)}%</span>`;
+}
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+await loadAll();
+</script>
+</body>
+</html>

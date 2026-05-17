@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Begin · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+</head>
+<body class="auth-screen">
+
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<main id="main">
+<form class="auth-card" id="signupForm" novalidate aria-labelledby="signup-h">
+  <a href="/" class="site-logo" aria-label="Carta home"><img src="/assets/carta-logo.png" alt="Carta" style="height:30px"></a>
+
+  <span class="eyebrow eyebrow-accent" data-i18n="signup.eyebrow">Begin · Workspace</span>
+  <h1 class="h1" id="signup-h" style="margin-top:var(--sp-3)"><em data-i18n="auth.signup_title">Begin a workspace.</em></h1>
+  <p class="lead" style="margin-top:var(--sp-4)" data-i18n="auth.signup_intro">One email. A magic link. Your kitchen's operations studio in thirty seconds.</p>
+
+  <div style="margin-top:var(--sp-7)">
+    <label class="label" for="email" data-i18n="auth.label_email">Work email</label>
+    <input type="email" id="email" name="email" class="input" placeholder="you@hotel.com" required autocomplete="email">
+  </div>
+
+  <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn" style="margin-top:var(--sp-7)">
+    <span id="submitLabel" data-i18n="auth.send_link">Send magic link</span>
+    <span class="arrow">→</span>
+  </button>
+
+  <div id="flash" role="status" aria-live="polite"></div>
+
+  <div class="thin-rule" style="margin:var(--sp-7) 0 var(--sp-5)"></div>
+
+  <p style="font-size:var(--type-caption);color:var(--on-surface-variant);margin:0">
+    <span data-i18n="auth.have_account">Already have an account?</span>
+    <a href="/app/login.html" style="color:var(--primary);font-weight:600;margin-left:6px" data-i18n="auth.signin_link">Sign in →</a>
+  </p>
+</form>
+</main>
+
+<script type="module">
+import { sendMagicLink } from '/src/auth.js';
+import { getSession } from '/src/supabase-client.js';
+import { applyTranslations, t } from '/src/i18n.js';
+applyTranslations();
+
+(async () => {
+  const session = await getSession();
+  if (session) window.location.href = '/app/';
+})();
+
+const form = document.getElementById('signupForm');
+const submitBtn = document.getElementById('submitBtn');
+const submitLabel = document.getElementById('submitLabel');
+const flash = document.getElementById('flash');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('email').value;
+  submitBtn.disabled = true;
+  submitLabel.innerHTML = '<span class="spinner"></span> ' + t('auth.sending');
+  flash.innerHTML = '';
+
+  const result = await sendMagicLink(email, { allowSignup: true });
+
+  submitBtn.disabled = false;
+  submitLabel.textContent = t('auth.send_link');
+
+  if (result.ok) {
+    form.querySelectorAll('input, button').forEach(el => el.disabled = true);
+    flash.innerHTML = `<div class="flash success">${t('auth.check_inbox')} <strong>${result.email}</strong>.</div>`;
+  } else {
+    flash.innerHTML = `<div class="flash error">${result.error}</div>`;
+  }
+});
+</script>
+</body>
+</html>

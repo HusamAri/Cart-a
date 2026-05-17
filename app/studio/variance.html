@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variance Audit · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.40) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.18) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page { padding: var(--sp-7) var(--margin-desktop) var(--sp-10); flex: 1; overflow-y: auto; }
+  @media (max-width: 900px) { .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); } }
+
+  .page-head { max-width: 1200px; margin: 0 auto var(--sp-7);
+    display: grid; grid-template-columns: 1fr auto;
+    gap: var(--sp-5); align-items: end;
+  }
+  @media (max-width: 760px) { .page-head { grid-template-columns: 1fr; } }
+  .page-head .eyebrow { margin-bottom: var(--sp-3); }
+  .page-head h1 { margin: 0 0 var(--sp-3); }
+  .page-head .lead { margin: 0; max-width: 56ch; }
+
+  .stats {
+    max-width: 1200px; margin: 0 auto var(--sp-5);
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-3);
+  }
+  .stat {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-xl);
+    padding: var(--sp-4) var(--sp-5);
+  }
+  .stat .key { font-family: var(--font-sans); font-weight: 600;
+    font-size: 11px; letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant); margin: 0 0 8px; }
+  .stat .val { font-family: var(--font-display); font-weight: 500;
+    font-size: 1.65rem; color: var(--primary); line-height: 1; }
+
+  /* Snapshots table */
+  .snaps-card {
+    max-width: 1200px; margin: 0 auto;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+    overflow: hidden;
+  }
+  .snaps-card table { width: 100%; border-collapse: collapse; }
+  .snaps-card thead th {
+    text-align: left;
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: 11px; letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant);
+    padding: 14px var(--sp-5);
+    border-bottom: 1px solid var(--outline-variant);
+    background: var(--surface-container-low);
+  }
+  .snaps-card tbody td {
+    padding: 14px var(--sp-5);
+    border-bottom: 1px solid var(--outline-variant);
+    font-family: var(--font-sans);
+    color: var(--on-surface);
+    vertical-align: middle;
+  }
+  .snaps-card tbody tr:last-child td { border-bottom: 0; }
+  .col-date { font-family: var(--font-display); font-style: italic; color: var(--primary); font-size: 1.05rem; }
+  .col-num  { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+
+  /* Empty */
+  .empty {
+    max-width: 600px; margin: var(--sp-9) auto;
+    text-align: center;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border-radius: var(--r-2xl);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-2);
+    padding: var(--sp-9) var(--sp-7);
+  }
+  .empty .accent-rule { margin: 0 auto var(--sp-4); }
+
+  /* Diff modal */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(7,22,13,0.55);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    display: flex; align-items: center; justify-content: center;
+    padding: var(--sp-5); z-index: 100;
+  }
+  .modal {
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(var(--glass-blur-strong)) saturate(160%);
+    border-radius: var(--r-2xl);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-4);
+    width: 100%; max-width: 880px;
+    max-height: 92vh; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .modal__head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: var(--sp-5) var(--sp-6);
+    border-bottom: 1px solid var(--outline-variant);
+  }
+  .modal__close {
+    width: 44px; height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; border: 0;
+    border-radius: var(--r-pill);
+    color: var(--on-surface-variant); cursor: pointer;
+  }
+  .modal__close:hover { background: var(--surface-container); color: var(--primary); }
+  .modal__close:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .modal__body { overflow-y: auto; flex: 1; }
+  .modal__foot {
+    display: flex; justify-content: space-between; gap: var(--sp-3);
+    padding: var(--sp-4) var(--sp-6);
+    border-top: 1px solid var(--outline-variant);
+    background: var(--surface-container-low);
+  }
+  .modal__foot__right { display: flex; gap: var(--sp-3); }
+  .btn-error { background: transparent; color: var(--error);
+    border: 1px solid rgba(186,26,26,0.35); }
+  .btn-error:hover { background: var(--error-container); color: var(--on-error-container); border-color: var(--error); }
+
+  .diff-summary {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    padding: var(--sp-4) var(--sp-6);
+    background: var(--surface-container-low);
+  }
+  .diff-stat { font-family: var(--font-sans); font-size: 12px; color: var(--on-surface-variant); }
+  .diff-stat b { display: block; font-family: var(--font-display); font-size: 1.5rem; color: var(--primary); }
+  .diff-stat--add b { color: var(--success); }
+  .diff-stat--rem b { color: var(--error); }
+
+  .diff-table { width: 100%; border-collapse: collapse; }
+  .diff-table thead th {
+    text-align: left;
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: 11px; letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant);
+    padding: 14px var(--sp-5);
+    border-bottom: 1px solid var(--outline-variant);
+    position: sticky; top: 0; background: var(--surface-container-lowest); z-index: 1;
+  }
+  .diff-table tbody td {
+    padding: 10px var(--sp-5);
+    border-bottom: 1px solid var(--outline-variant);
+    font-family: var(--font-sans);
+    color: var(--on-surface);
+    vertical-align: middle;
+  }
+  .delta-pos { color: var(--error); font-weight: 600; }
+  .delta-neg { color: var(--success); font-weight: 600; }
+  .anomaly-chip {
+    display: inline-block; padding: 3px 10px;
+    background: var(--error-container); color: var(--on-error-container);
+    border-radius: var(--r-pill); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  @media (max-width: 600px) { .hide-mobile { display: none; } }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+import { supabase } from '/src/supabase-client.js';
+import { applyTranslations, t, getLang } from '/src/i18n.js';
+import { formatNumber, formatMoney } from '/src/recipe-compute.js';
+
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+
+const ctx = await mountStudioShell({ active: 'variance', main });
+if (!ctx) throw new Error('No session/workspace');
+const ws = ctx.workspace;
+const wsId = ws.id;
+const currency = ws.currency || '₺';
+
+main.innerHTML = `
+  <div class="page-head">
+    <div>
+      <span class="eyebrow eyebrow-accent" data-i18n="variance.title">Variance</span>
+      <h1 class="h1">
+        <span data-i18n="variance.title">Variance</span>
+        <em data-i18n="variance.title_em">audit</em>.
+      </h1>
+      <p class="lead" data-i18n="variance.intro">Snapshot your cost ledger. Compare. See what moved.</p>
+    </div>
+    <button type="button" class="btn btn-primary" id="captureBtn">
+      <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">photo_camera</span>
+      <span data-i18n="variance.capture_now">Capture snapshot</span>
+    </button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div id="listOrEmpty"></div>
+`;
+applyTranslations();
+
+// ============================================================
+// Data
+// ============================================================
+let snapshots = [];
+let currentCostDb = [];
+
+async function loadAll() {
+  const [snapsRes, costRes] = await Promise.all([
+    supabase.from('cost_history').select('*').eq('workspace_id', wsId).order('created_at', { ascending: false }).limit(50),
+    supabase.from('cost_db').select('*').eq('workspace_id', wsId),
+  ]);
+  snapshots = snapsRes.data || [];
+  currentCostDb = costRes.data || [];
+  render();
+}
+
+function render() {
+  // Stats
+  const last = snapshots[0];
+  main.querySelector('#stats').innerHTML = `
+    <div class="stat"><p class="key">${escapeHTML(t('variance.snapshots_count'))}</p><p class="val">${snapshots.length}</p></div>
+    <div class="stat"><p class="key">${escapeHTML(t('variance.last'))}</p><p class="val">${last ? new Date(last.created_at).toLocaleString(getLang()==='tr'?'tr-TR':'en-GB', {dateStyle:'medium',timeStyle:'short'}) : '—'}</p></div>
+  `;
+
+  const container = main.querySelector('#listOrEmpty');
+
+  if (currentCostDb.length === 0 && snapshots.length === 0) {
+    container.innerHTML = `
+      <div class="empty">
+        <span class="accent-rule"></span>
+        <h2 class="h1" style="margin-top:var(--sp-4)"><em data-i18n="variance.no_costs">Your cost ledger is empty.</em></h2>
+        <p class="lead" style="margin:var(--sp-4) auto var(--sp-6)" data-i18n="variance.no_costs">Add ingredients first to compare against.</p>
+        <a class="btn btn-primary btn-lg" href="/app/studio/cost.html">
+          <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
+          <span data-i18n="cost.new">New entry</span>
+        </a>
+      </div>
+    `;
+    applyTranslations();
+    return;
+  }
+
+  if (snapshots.length === 0) {
+    container.innerHTML = `
+      <div class="empty">
+        <span class="accent-rule"></span>
+        <h2 class="h1" style="margin-top:var(--sp-4)"><em data-i18n="variance.no_snapshots">No snapshots yet.</em></h2>
+        <p class="lead" style="margin:var(--sp-4) auto var(--sp-6)" data-i18n="variance.no_snapshots_intro">Take a snapshot of your current cost ledger.</p>
+      </div>
+    `;
+    applyTranslations();
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="snaps-card">
+      <table aria-label="Cost snapshots">
+        <thead>
+          <tr>
+            <th data-i18n="variance.col_date">Captured at</th>
+            <th data-i18n="variance.col_source">Source</th>
+            <th class="col-num" data-i18n="variance.col_count">Items</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${snapshots.map(s => `
+            <tr data-snap-id="${escapeHTML(s.id)}">
+              <td class="col-date">${new Date(s.created_at).toLocaleString(getLang()==='tr'?'tr-TR':'en-GB', {dateStyle:'medium',timeStyle:'short'})}</td>
+              <td><span class="chip" style="font-size:11px">${escapeHTML(s.source || 'manual')}</span></td>
+              <td class="col-num">${s.count ?? '—'}</td>
+              <td style="text-align:right">
+                <button type="button" class="btn btn-ghost btn-sm view-diff">
+                  <span data-i18n="variance.view_diff">View diff</span> <span class="arrow">→</span>
+                </button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  applyTranslations();
+
+  container.querySelectorAll('[data-snap-id]').forEach(tr => {
+    const id = tr.getAttribute('data-snap-id');
+    tr.querySelector('.view-diff').addEventListener('click', () => openDiff(id));
+  });
+}
+
+// Capture snapshot
+main.querySelector('#captureBtn').addEventListener('click', async () => {
+  if (!currentCostDb.length) { alert(t('variance.no_costs')); return; }
+  const btn = main.querySelector('#captureBtn');
+  btn.disabled = true;
+  const snapshot = currentCostDb.map(r => ({
+    ingredient_name: r.ingredient_name,
+    per_100g: r.per_100g,
+    yield_pct: r.yield_pct,
+    uom: r.uom,
+    source: r.source,
+  }));
+  const { error } = await supabase.from('cost_history').insert({
+    workspace_id: wsId,
+    source: 'manual',
+    snapshot,
+    count: snapshot.length,
+  });
+  btn.disabled = false;
+  if (error) { alert(error.message); return; }
+  await loadAll();
+});
+
+// ============================================================
+// Diff modal
+// ============================================================
+function openDiff(snapId) {
+  const snap = snapshots.find(s => s.id === snapId);
+  if (!snap) return;
+
+  // Compute diff: ingredient → { prev, curr, delta, deltaPct, status }
+  const prevMap = new Map();
+  (snap.snapshot || []).forEach(r => prevMap.set(r.ingredient_name, Number(r.per_100g) || 0));
+  const currMap = new Map();
+  currentCostDb.forEach(r => currMap.set(r.ingredient_name, Number(r.per_100g) || 0));
+
+  const allNames = new Set([...prevMap.keys(), ...currMap.keys()]);
+  const rows = [];
+  for (const name of allNames) {
+    const prev = prevMap.get(name);
+    const curr = currMap.get(name);
+    let status = 'unchanged', delta = 0, pct = 0;
+    if (prev === undefined) { status = 'added'; delta = curr; pct = 100; }
+    else if (curr === undefined) { status = 'removed'; delta = -prev; pct = -100; }
+    else {
+      delta = curr - prev;
+      pct = prev !== 0 ? (delta / prev) * 100 : 0;
+      if (Math.abs(pct) < 0.5) status = 'unchanged';
+      else status = 'changed';
+    }
+    rows.push({ name, prev, curr, delta, pct, status });
+  }
+
+  // Sort: changed by |pct| desc, then added/removed, then unchanged
+  const order = { changed: 0, added: 1, removed: 1, unchanged: 2 };
+  rows.sort((a, b) => order[a.status] - order[b.status] || Math.abs(b.pct) - Math.abs(a.pct));
+
+  const counts = {
+    changed: rows.filter(r => r.status === 'changed').length,
+    added:   rows.filter(r => r.status === 'added').length,
+    removed: rows.filter(r => r.status === 'removed').length,
+  };
+  const anomalies = rows.filter(r => r.status === 'changed' && Math.abs(r.pct) > 20).length;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-backdrop';
+  wrap.id = 'diffModal';
+  wrap.setAttribute('role', 'dialog');
+  wrap.setAttribute('aria-modal', 'true');
+  wrap.setAttribute('aria-labelledby', 'diffTitle');
+
+  wrap.innerHTML = `
+    <div class="modal">
+      <header class="modal__head">
+        <div>
+          <h2 class="h2" id="diffTitle" data-i18n="variance.diff_title">Snapshot diff</h2>
+          <p style="margin:4px 0 0;color:var(--on-surface-variant);font-size:12px">${new Date(snap.created_at).toLocaleString(getLang()==='tr'?'tr-TR':'en-GB', {dateStyle:'medium',timeStyle:'short'})}</p>
+        </div>
+        <button class="modal__close" aria-label="Close" id="diffClose">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </header>
+      <div class="diff-summary">
+        <div class="diff-stat"><b>${counts.changed}</b> ${anomalies ? `<span class="anomaly-chip" style="margin-left:6px">${anomalies} ${escapeHTML(t('variance.anomaly'))}</span>` : ''} ${escapeHTML(t('variance.unchanged') === 'unchanged' ? 'changed' : 'değişen')}</div>
+        <div class="diff-stat diff-stat--add"><b>${counts.added}</b> ${escapeHTML(t('variance.added'))}</div>
+        <div class="diff-stat diff-stat--rem"><b>${counts.removed}</b> ${escapeHTML(t('variance.removed'))}</div>
+      </div>
+      <div class="modal__body">
+        ${rows.length === 0 ? `<p style="text-align:center;padding:var(--sp-7);color:var(--on-surface-variant)" data-i18n="variance.no_diff">No changes since this snapshot.</p>` : `
+          <table class="diff-table">
+            <thead>
+              <tr>
+                <th data-i18n="variance.diff_ing">Ingredient</th>
+                <th class="col-num" data-i18n="variance.diff_prev">Previous</th>
+                <th class="col-num" data-i18n="variance.diff_curr">Current</th>
+                <th class="col-num hide-mobile" data-i18n="variance.diff_delta">Δ</th>
+                <th class="col-num" data-i18n="variance.diff_delta_pct">Δ %</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr>
+                  <td>
+                    ${escapeHTML(r.name)}
+                    ${r.status === 'added' ? `<span class="chip chip-mist" style="font-size:10px;margin-left:6px">${escapeHTML(t('variance.added'))}</span>` : ''}
+                    ${r.status === 'removed' ? `<span class="chip" style="font-size:10px;margin-left:6px;background:var(--error-container);color:var(--on-error-container)">${escapeHTML(t('variance.removed'))}</span>` : ''}
+                    ${(r.status === 'changed' && Math.abs(r.pct) > 20) ? `<span class="anomaly-chip" style="margin-left:6px">${escapeHTML(t('variance.anomaly'))}</span>` : ''}
+                  </td>
+                  <td class="col-num">${r.prev !== undefined ? formatMoney(r.prev, currency, 2) : '—'}</td>
+                  <td class="col-num">${r.curr !== undefined ? formatMoney(r.curr, currency, 2) : '—'}</td>
+                  <td class="col-num hide-mobile ${r.delta > 0 ? 'delta-pos' : r.delta < 0 ? 'delta-neg' : ''}">${r.delta ? (r.delta > 0 ? '+' : '') + formatNumber(r.delta, 2) : '—'}</td>
+                  <td class="col-num ${r.pct > 0 ? 'delta-pos' : r.pct < 0 ? 'delta-neg' : ''}">${r.pct ? (r.pct > 0 ? '+' : '') + formatNumber(r.pct, 1) + '%' : '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `}
+      </div>
+      <footer class="modal__foot">
+        <button type="button" class="btn btn-sm btn-error" id="deleteSnap" data-i18n="variance.delete">Delete</button>
+        <div class="modal__foot__right">
+          <button type="button" class="btn btn-ghost" id="diffCancel" data-i18n="auth.cancel" style="">Close</button>
+        </div>
+      </footer>
+    </div>
+  `;
+  document.body.appendChild(wrap);
+  applyTranslations();
+
+  const close = () => { wrap.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  wrap.querySelector('#diffClose').addEventListener('click', close);
+  wrap.querySelector('#diffCancel').addEventListener('click', close);
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) close(); });
+
+  wrap.querySelector('#deleteSnap').addEventListener('click', async () => {
+    if (!confirm(t('variance.delete_confirm'))) return;
+    const { error } = await supabase.from('cost_history').delete().eq('id', snap.id);
+    if (error) { alert(error.message); return; }
+    close();
+    await loadAll();
+  });
+}
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+await loadAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recipes · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.40) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.20) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page {
+    padding: var(--sp-7) var(--margin-desktop) var(--sp-10);
+    flex: 1; overflow-y: auto;
+  }
+  @media (max-width: 900px) {
+    .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); }
+  }
+
+  .page-head {
+    max-width: 1200px; margin: 0 auto var(--sp-8);
+    display: grid; grid-template-columns: 1fr auto;
+    gap: var(--sp-5); align-items: end;
+  }
+  @media (max-width: 760px) { .page-head { grid-template-columns: 1fr; } }
+  .page-head__title .eyebrow { margin-bottom: var(--sp-3); }
+  .page-head__title h1 { margin: 0 0 var(--sp-3); }
+  .page-head__title .lead { margin: 0; max-width: 52ch; }
+  .page-head__actions {
+    display: flex; gap: var(--sp-3); align-items: center;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-pill);
+    padding: 6px 6px 6px 18px;
+  }
+  .page-head__actions input {
+    background: transparent; border: 0;
+    font-family: var(--font-sans); font-size: var(--type-body);
+    padding: 10px 8px; outline: none; min-width: 220px;
+    color: var(--on-surface);
+  }
+  .page-head__actions input::placeholder { color: var(--outline); }
+  .page-head__actions .divider { width: 1px; height: 24px; background: var(--outline-variant); }
+
+  /* GRID */
+  .recipes-grid {
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-5);
+  }
+  @media (max-width: 1000px) { .recipes-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px)  { .recipes-grid { grid-template-columns: 1fr; } }
+
+  .recipe-card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border-radius: var(--r-2xl);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-2);
+    padding: var(--glass-padding);
+    display: flex; flex-direction: column; gap: var(--sp-4);
+    text-align: left; cursor: pointer;
+    font-family: var(--font-sans);
+    color: inherit;
+    text-decoration: none;
+    transition: transform var(--dur-2) var(--ease-linear-out), box-shadow var(--dur-2);
+  }
+  .recipe-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-3); }
+  .recipe-card:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 3px; }
+
+  .recipe-card__kind { align-self: flex-start; }
+  .recipe-card__name {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 1.5rem; line-height: 1.2;
+    color: var(--primary);
+    margin: 0;
+  }
+  .recipe-card__meta {
+    display: flex; gap: var(--sp-4);
+    font-family: var(--font-sans);
+    font-size: var(--type-caption);
+    color: var(--on-surface-variant);
+  }
+  .recipe-card__meta .num { font-family: var(--font-display); font-weight: 500; color: var(--primary); font-size: 1.25rem; line-height: 1; display: block; margin-bottom: 2px; }
+  .recipe-card__tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; }
+
+  /* EMPTY STATE */
+  .empty {
+    max-width: 600px; margin: var(--sp-9) auto;
+    text-align: center;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border-radius: var(--r-2xl);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-2);
+    padding: var(--sp-9) var(--sp-7);
+  }
+  .empty .eyebrow { margin-bottom: var(--sp-4); }
+  .empty h2 { margin: 0 0 var(--sp-4); }
+  .empty .lead { margin: 0 auto var(--sp-7); }
+
+  /* MODAL */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(7,22,13,0.55);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    display: flex; align-items: center; justify-content: center;
+    padding: var(--sp-5);
+    z-index: 100;
+    animation: fadeIn 0.25s var(--ease-linear-out);
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(var(--glass-blur-strong)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(160%);
+    border-radius: var(--r-2xl);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-4);
+    width: 100%; max-width: 920px;
+    max-height: 92vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .modal__head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: var(--sp-5) var(--sp-6);
+    border-bottom: 1px solid var(--outline-variant);
+  }
+  .modal__head h2 { margin: 0; }
+  .modal__close {
+    width: 44px; height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; border: 0;
+    border-radius: var(--r-pill);
+    color: var(--on-surface-variant);
+    cursor: pointer;
+  }
+  .modal__close:hover { background: var(--surface-container); color: var(--primary); }
+  .modal__close:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .modal__body {
+    display: grid; grid-template-columns: 1.5fr 1fr;
+    gap: 0;
+    overflow: hidden;
+    flex: 1;
+  }
+  @media (max-width: 800px) { .modal__body { grid-template-columns: 1fr; } }
+
+  .modal__form { padding: var(--sp-6); overflow-y: auto; }
+  .modal__preview {
+    background: var(--surface-container-low);
+    padding: var(--sp-6);
+    overflow-y: auto;
+    border-left: 1px solid var(--outline-variant);
+  }
+  @media (max-width: 800px) {
+    .modal__preview { border-left: 0; border-top: 1px solid var(--outline-variant); }
+  }
+
+  .form-row { margin-bottom: var(--sp-5); }
+  .form-row .label { margin-bottom: 8px; }
+
+  /* Segmented kind toggle */
+  .seg {
+    display: inline-flex; gap: 4px; padding: 4px;
+    background: var(--surface-container);
+    border-radius: var(--r-pill);
+  }
+  .seg button {
+    background: transparent; border: 0;
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm);
+    letter-spacing: var(--track-caps); text-transform: uppercase;
+    color: var(--on-surface-variant);
+    min-height: 40px; padding: 8px 18px;
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition: background var(--dur-2), color var(--dur-2);
+  }
+  .seg button[aria-pressed="true"] {
+    background: var(--primary); color: var(--on-primary);
+  }
+  .seg button:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+
+  /* Ingredient rows */
+  .ing-list { display: flex; flex-direction: column; gap: var(--sp-3); }
+  .ing-row {
+    display: grid;
+    grid-template-columns: 2fr 100px 110px 40px;
+    gap: 8px; align-items: start;
+    position: relative;
+  }
+  @media (max-width: 600px) {
+    .ing-row { grid-template-columns: 1fr 1fr 40px; }
+    .ing-row .col-amount { grid-column: 1; }
+    .ing-row .col-unit { grid-column: 2; }
+    .ing-row .col-rm { grid-column: 3; }
+    .ing-row .col-name { grid-column: 1 / -1; order: -1; }
+  }
+  .ing-row .input { padding: 10px 14px; font-size: var(--type-body); }
+  .ing-row .rm-btn {
+    width: 40px; height: 40px;
+    background: transparent; border: 0;
+    border-radius: var(--r-pill);
+    color: var(--outline);
+    cursor: pointer;
+  }
+  .ing-row .rm-btn:hover { background: var(--error-container); color: var(--on-error-container); }
+  .ing-row .rm-btn:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+
+  /* Autocomplete dropdown */
+  .ac-dropdown {
+    position: absolute;
+    top: calc(100% + 4px); left: 0; right: calc(40px + 110px + 100px + 24px);
+    background: var(--surface-container-lowest);
+    border: var(--glass-border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-2);
+    max-height: 200px; overflow-y: auto;
+    z-index: 5;
+  }
+  @media (max-width: 600px) { .ac-dropdown { right: 0; } }
+  .ac-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: var(--type-caption);
+    color: var(--on-surface);
+  }
+  .ac-item:hover, .ac-item[aria-selected="true"] { background: var(--surface-container); }
+  .ac-empty { padding: 10px 14px; font-size: var(--type-caption); color: var(--outline); }
+
+  /* Live preview panel */
+  .preview-eyebrow { display: block; margin-bottom: var(--sp-4); }
+  .preview-kcal {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: 3.5rem; line-height: 1; letter-spacing: var(--track-display);
+    color: var(--primary);
+    margin: 0;
+  }
+  .preview-kcal-unit {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm);
+    letter-spacing: var(--track-caps); text-transform: uppercase;
+    color: var(--on-surface-variant);
+    display: block; margin-top: 4px;
+  }
+  .preview-section { margin-top: var(--sp-6); }
+  .preview-section h4 {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: var(--type-label-sm); letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant);
+    margin: 0 0 var(--sp-3);
+  }
+  .macros { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .macro {
+    background: var(--surface-container-lowest);
+    border-radius: var(--r-lg);
+    padding: 12px 14px;
+    display: flex; flex-direction: column;
+    border: 1px solid var(--outline-variant);
+  }
+  .macro__label { font-family: var(--font-sans); font-size: 12px; color: var(--on-surface-variant); }
+  .macro__value { font-family: var(--font-display); font-weight: 500; font-size: 1.25rem; color: var(--primary); }
+
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .text-muted { color: var(--on-surface-variant); font-size: var(--type-caption); margin: 0; }
+
+  /* Modal footer */
+  .modal__foot {
+    display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3);
+    padding: var(--sp-4) var(--sp-6);
+    border-top: 1px solid var(--outline-variant);
+    background: var(--surface-container-low);
+  }
+  .modal__foot__right { display: flex; gap: var(--sp-3); }
+  .btn-error {
+    background: transparent; color: var(--error);
+    border: 1px solid rgba(186,26,26,0.35);
+  }
+  .btn-error:hover { background: var(--error-container); color: var(--on-error-container); border-color: var(--error); }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+import { supabase } from '/src/supabase-client.js';
+import { applyTranslations, t, getLang } from '/src/i18n.js';
+import { NUTRIENT_DB, ALLERGEN_LABELS, suggestNutrients } from '/src/nutrient-db.js';
+import { computeRecipe, formatNumber } from '/src/recipe-compute.js';
+import { getMyRole, applyRoleGates } from '/src/permissions.js';
+
+// ============================================================
+// 1. Mount sidebar shell + get workspace context
+// ============================================================
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+
+const ctx = await mountStudioShell({ active: 'recipes', main });
+if (!ctx) throw new Error('No session/workspace');
+const wsId = ctx.workspace.id;
+
+// ============================================================
+// 2. Build top + grid markup
+// ============================================================
+main.innerHTML = `
+  <div class="page-head">
+    <div class="page-head__title">
+      <span class="eyebrow eyebrow-accent" data-i18n="recipes.title">Recipe</span>
+      <h1 class="h1">
+        <span data-i18n="recipes.title">Recipe</span>
+        <em data-i18n="recipes.title_em">library</em>.
+      </h1>
+      <p class="lead" data-i18n="recipes.intro">Build, edit, compute. Codex-compliant kcal, macros, allergens.</p>
+    </div>
+    <div class="page-head__actions">
+      <span class="material-symbols-outlined" aria-hidden="true" style="color:var(--outline);font-size:20px">search</span>
+      <label class="visually-hidden" for="searchInput" data-i18n="recipes.search_ph">Search recipes…</label>
+      <input id="searchInput" type="search" placeholder="" data-i18n-ph="recipes.search_ph" autocomplete="off">
+      <span class="divider" aria-hidden="true"></span>
+      <button class="btn btn-primary btn-sm" id="newBtn">
+        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
+        <span data-i18n="recipes.new">New recipe</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="listOrEmpty"></div>
+`;
+
+applyTranslations();
+// Translate placeholder explicitly
+const placeholderEl = main.querySelector('[data-i18n-ph]');
+if (placeholderEl) placeholderEl.placeholder = t(placeholderEl.getAttribute('data-i18n-ph'));
+
+// ============================================================
+// 3. Load recipes from Supabase
+// ============================================================
+let allRecipes = [];
+
+async function loadRecipes() {
+  const { data, error } = await supabase
+    .from('saved_dishes')
+    .select('*')
+    .eq('workspace_id', wsId)
+    .order('updated_at', { ascending: false });
+  if (error) {
+    console.error('loadRecipes', error);
+    main.querySelector('#listOrEmpty').innerHTML = `<p class="flash error" style="max-width:600px;margin:var(--sp-6) auto">${error.message}</p>`;
+    return;
+  }
+  allRecipes = data || [];
+  render();
+}
+
+function render(filter = '') {
+  const container = main.querySelector('#listOrEmpty');
+  const cl = getLang();
+
+  let items = allRecipes;
+  if (filter) {
+    const q = filter.toLowerCase();
+    items = items.filter(r => (r.name || '').toLowerCase().includes(q));
+  }
+
+  if (allRecipes.length === 0) {
+    container.innerHTML = renderEmpty();
+    main.querySelector('#emptyNewBtn').addEventListener('click', () => openEditor(null));
+    return;
+  }
+  if (items.length === 0) {
+    container.innerHTML = `<p class="text-muted" style="text-align:center;margin:var(--sp-9) auto;max-width:400px" data-i18n="recipes.no_results">${escapeHTML(t('recipes.no_results'))}</p>`;
+    return;
+  }
+
+  container.innerHTML = `<div class="recipes-grid">${items.map(r => renderCard(r, cl)).join('')}</div>`;
+  container.querySelectorAll('[data-recipe-id]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.getAttribute('data-recipe-id');
+      const r = allRecipes.find(x => x.id === id);
+      if (r) openEditor(r);
+    });
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        el.click();
+      }
+    });
+  });
+}
+
+function renderEmpty() {
+  return `
+    <div class="empty">
+      <span class="accent-rule" style="margin:0 auto var(--sp-4)"></span>
+      <span class="eyebrow eyebrow-accent" data-i18n="recipes.empty_eyebrow">First recipe</span>
+      <h2 class="h1" style="margin-top:var(--sp-3)"><em data-i18n="recipes.empty_title">Create your first recipe.</em></h2>
+      <p class="lead" data-i18n="recipes.empty_intro">Add a dish or a drink. kcal, allergens, and diet tags compute as you go.</p>
+      <button class="btn btn-primary btn-lg" id="emptyNewBtn">
+        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
+        <span data-i18n="recipes.new">New recipe</span>
+      </button>
+    </div>
+  `;
+}
+
+function renderCard(r, cl) {
+  const data = r.data || {};
+  const computed = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
+  const kindLabel = r.kind === 'drink' ? t('recipes.kind_drink') : t('recipes.kind_food');
+  const kindClass = r.kind === 'drink' ? 'chip-gold' : 'chip-mist';
+  const allergens = (computed.allergens || []).slice(0, 3);
+  const diets = (computed.dietTags || []).slice(0, 2);
+  return `
+    <article tabindex="0" role="button" data-recipe-id="${escapeHTML(r.id)}" class="recipe-card" aria-label="${escapeHTML(r.name)}">
+      <span class="chip recipe-card__kind ${kindClass}">${escapeHTML(kindLabel)}</span>
+      <h3 class="recipe-card__name">${escapeHTML(r.name || '—')}</h3>
+      <div class="recipe-card__meta">
+        <div><span class="num">${formatNumber(computed.perServing.kcal, 0)}</span> ${escapeHTML(t('recipes.kcal_per_serving'))}</div>
+        <div><span class="num">${data.servings || 1}</span> ${escapeHTML(t('recipes.servings'))}</div>
+      </div>
+      <div class="recipe-card__tags">
+        ${allergens.map(a => `<span class="chip chip-gold" style="font-size:11px">${escapeHTML(ALLERGEN_LABELS[a]?.[cl] || a)}</span>`).join('')}
+        ${diets.map(d => `<span class="chip" style="font-size:11px">${escapeHTML(t('diet.' + d) || d)}</span>`).join('')}
+      </div>
+    </article>
+  `;
+}
+
+main.querySelector('#newBtn').addEventListener('click', () => openEditor(null));
+main.querySelector('#searchInput').addEventListener('input', (e) => render(e.target.value));
+
+// ============================================================
+// 4. Editor modal — open/close + state
+// ============================================================
+let currentRecipe = null; // null = creating, else = editing
+
+function openEditor(recipe) {
+  currentRecipe = recipe;
+  const data = recipe?.data || { servings: 1, ingredients: [{ name:'', amount:'', unit:'g' }] };
+  if (!data.ingredients?.length) data.ingredients = [{ name:'', amount:'', unit:'g' }];
+
+  const editor = buildEditorEl({ recipe, data });
+  document.body.appendChild(editor);
+  // Trap focus + Escape
+  const onKey = (e) => {
+    if (e.key === 'Escape') closeEditor();
+  };
+  document.addEventListener('keydown', onKey);
+  editor._cleanup = () => document.removeEventListener('keydown', onKey);
+
+  // Focus first field
+  setTimeout(() => editor.querySelector('#editName')?.focus(), 50);
+}
+
+function closeEditor() {
+  const e = document.getElementById('recipeEditor');
+  if (e) { e._cleanup?.(); e.remove(); }
+}
+
+function buildEditorEl({ recipe, data }) {
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-backdrop';
+  wrap.id = 'recipeEditor';
+  wrap.setAttribute('role', 'dialog');
+  wrap.setAttribute('aria-modal', 'true');
+  wrap.setAttribute('aria-labelledby', 'editorTitle');
+
+  const isEdit = !!recipe;
+  const titleKey = isEdit ? 'recipes.edit_title' : 'recipes.new_title';
+  const kind = recipe?.kind || 'food';
+
+  wrap.innerHTML = `
+    <div class="modal">
+      <header class="modal__head">
+        <h2 class="h2" id="editorTitle" data-i18n="${titleKey}">${isEdit ? 'Edit recipe' : 'New recipe'}</h2>
+        <button class="modal__close" aria-label="Close" id="editorClose">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </header>
+      <div class="modal__body">
+        <section class="modal__form">
+          <div class="form-row">
+            <label class="label" for="editName" data-i18n="recipes.col_name">Name</label>
+            <input class="input" id="editName" type="text" required value="${escapeHTML(recipe?.name || '')}" placeholder="${escapeHTML(t('recipes.name_placeholder'))}">
+          </div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:var(--sp-5);align-items:center" class="form-row">
+            <div>
+              <span class="label" data-i18n="recipes.kind_food">Kind</span>
+              <div class="seg" role="group" aria-label="Recipe kind">
+                <button type="button" data-kind="food"  aria-pressed="${kind==='food'}"  data-i18n="recipes.kind_food">Food</button>
+                <button type="button" data-kind="drink" aria-pressed="${kind==='drink'}" data-i18n="recipes.kind_drink">Drink</button>
+              </div>
+            </div>
+            <div>
+              <label class="label" for="editServings" data-i18n="recipes.servings">Servings</label>
+              <input class="input" id="editServings" type="number" min="1" max="999" value="${Number(data.servings) || 1}" style="max-width:140px">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <span class="label" data-i18n="recipes.ingredients">Ingredients</span>
+            <div class="ing-list" id="ingList"></div>
+            <button type="button" class="btn btn-ghost btn-sm" id="addIngBtn" style="margin-top:var(--sp-3)" data-i18n="recipes.add_ing">＋ Add ingredient</button>
+          </div>
+        </section>
+        <aside class="modal__preview" aria-live="polite">
+          <span class="eyebrow eyebrow-accent preview-eyebrow" data-i18n="recipes.computed">Live preview</span>
+          <div>
+            <p class="preview-kcal" id="prevKcal">0</p>
+            <span class="preview-kcal-unit" data-i18n="recipes.kcal_per_serving">kcal / serving</span>
+          </div>
+          <div class="preview-section">
+            <h4 data-i18n="recipes.macros">Macros</h4>
+            <div class="macros">
+              <div class="macro"><span class="macro__label" data-i18n="recipes.protein">Protein</span><span class="macro__value" id="prevP">—</span></div>
+              <div class="macro"><span class="macro__label" data-i18n="recipes.fat">Fat</span><span class="macro__value" id="prevF">—</span></div>
+              <div class="macro"><span class="macro__label" data-i18n="recipes.carb">Carb</span><span class="macro__value" id="prevC">—</span></div>
+              <div class="macro"><span class="macro__label" data-i18n="recipes.fibre">Fibre</span><span class="macro__value" id="prevFi">—</span></div>
+            </div>
+          </div>
+          <div class="preview-section">
+            <h4 data-i18n="recipes.allergens">Allergens</h4>
+            <div class="chip-row" id="prevAllergens"><span class="text-muted" data-i18n="recipes.allergens_none">No declared allergens.</span></div>
+          </div>
+          <div class="preview-section">
+            <h4 data-i18n="recipes.diet_tags">Diet tags</h4>
+            <div class="chip-row" id="prevDiet"><span class="text-muted" data-i18n="recipes.diet_none">—</span></div>
+          </div>
+        </aside>
+      </div>
+      <footer class="modal__foot">
+        <div style="display:flex;gap:8px">
+          ${isEdit ? `<button type="button" class="btn btn-sm btn-error" id="deleteBtn" data-i18n="recipes.delete">Delete</button>` : ''}
+          ${isEdit ? `<button type="button" class="btn btn-sm btn-ghost" id="duplicateBtn" data-i18n="recipes.duplicate">Duplicate</button>` : ''}
+        </div>
+        <div class="modal__foot__right">
+          <button type="button" class="btn btn-ghost" id="cancelBtn" data-i18n="recipes.cancel">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveBtn">
+            <span data-i18n="recipes.save">Save</span> <span class="arrow">→</span>
+          </button>
+        </div>
+      </footer>
+    </div>
+  `;
+
+  // Populate ingredients
+  const ingList = wrap.querySelector('#ingList');
+  data.ingredients.forEach(i => ingList.appendChild(buildIngRow(i)));
+
+  // Wire kind segmented
+  let editorKind = kind;
+  wrap.querySelectorAll('.seg [data-kind]').forEach(b => {
+    b.addEventListener('click', () => {
+      editorKind = b.getAttribute('data-kind');
+      wrap.querySelectorAll('.seg [data-kind]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    });
+  });
+
+  // Add ingredient
+  wrap.querySelector('#addIngBtn').addEventListener('click', () => {
+    ingList.appendChild(buildIngRow({ name:'', amount:'', unit:'g' }));
+    recompute();
+  });
+
+  // Close handlers
+  wrap.querySelector('#editorClose').addEventListener('click', closeEditor);
+  wrap.querySelector('#cancelBtn').addEventListener('click', closeEditor);
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) closeEditor(); });
+
+  // Save
+  wrap.querySelector('#saveBtn').addEventListener('click', async () => {
+    const name = wrap.querySelector('#editName').value.trim();
+    if (!name) { wrap.querySelector('#editName').focus(); return; }
+    const servings = Math.max(1, parseInt(wrap.querySelector('#editServings').value) || 1);
+    const ingredients = readIngredients(wrap);
+    const computed = computeRecipe({ ingredients, servings });
+    const data = { servings, ingredients, computed };
+    const saveBtn = wrap.querySelector('#saveBtn');
+    saveBtn.disabled = true;
+    try {
+      if (recipe) {
+        const { error } = await supabase.from('saved_dishes').update({ name, kind: editorKind, data }).eq('id', recipe.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('saved_dishes').insert({ workspace_id: wsId, name, kind: editorKind, data });
+        if (error) throw error;
+      }
+      closeEditor();
+      await loadRecipes();
+    } catch (err) {
+      console.error('save', err);
+      alert((err && err.message) || 'Save failed');
+      saveBtn.disabled = false;
+    }
+  });
+
+  // Delete
+  if (isEdit) {
+    wrap.querySelector('#deleteBtn').addEventListener('click', async () => {
+      if (!confirm(t('recipes.delete_confirm'))) return;
+      const { error } = await supabase.from('saved_dishes').delete().eq('id', recipe.id);
+      if (error) { alert(error.message); return; }
+      closeEditor();
+      await loadRecipes();
+    });
+
+    // Duplicate — clones the recipe into a new row with " (copy)" suffix
+    wrap.querySelector('#duplicateBtn').addEventListener('click', async () => {
+      const dupBtn = wrap.querySelector('#duplicateBtn');
+      dupBtn.disabled = true;
+      const newName = `${recipe.name} ${t('recipes.copy_suffix')}`;
+      // Capture current form state (in case the user has edited but not saved)
+      const servings = Math.max(1, parseInt(wrap.querySelector('#editServings').value) || 1);
+      const ingredients = readIngredients(wrap);
+      const computed = computeRecipe({ ingredients, servings });
+      const newData = { servings, ingredients, computed };
+      const { data, error } = await supabase
+        .from('saved_dishes')
+        .insert({ workspace_id: wsId, name: newName, kind: editorKind, data: newData })
+        .select()
+        .single();
+      dupBtn.disabled = false;
+      if (error) { alert(error.message); return; }
+      closeEditor();
+      await loadRecipes();
+      // Open the new dish for immediate editing
+      openEditor(data);
+    });
+  }
+
+  // Wire compute on any input within form
+  wrap.querySelector('.modal__form').addEventListener('input', () => recompute());
+
+  function recompute() {
+    const servings = Math.max(1, parseInt(wrap.querySelector('#editServings').value) || 1);
+    const ings = readIngredients(wrap);
+    const c = computeRecipe({ ingredients: ings, servings });
+    wrap.querySelector('#prevKcal').textContent = formatNumber(c.perServing.kcal, 0);
+    wrap.querySelector('#prevP').textContent  = formatNumber(c.perServing.P, 1) + ' g';
+    wrap.querySelector('#prevF').textContent  = formatNumber(c.perServing.F, 1) + ' g';
+    wrap.querySelector('#prevC').textContent  = formatNumber(c.perServing.C, 1) + ' g';
+    wrap.querySelector('#prevFi').textContent = formatNumber(c.perServing.Fi, 1) + ' g';
+    const cl = getLang();
+    const allEl = wrap.querySelector('#prevAllergens');
+    if (c.allergens.length) {
+      allEl.innerHTML = c.allergens.map(a => `<span class="chip chip-gold" style="font-size:11px">${escapeHTML(ALLERGEN_LABELS[a]?.[cl] || a)}</span>`).join('');
+    } else {
+      allEl.innerHTML = `<span class="text-muted">${escapeHTML(t('recipes.allergens_none'))}</span>`;
+    }
+    const dietEl = wrap.querySelector('#prevDiet');
+    if (c.dietTags.length) {
+      dietEl.innerHTML = c.dietTags.map(d => `<span class="chip" style="font-size:11px">${escapeHTML(t('diet.'+d) || d)}</span>`).join('');
+    } else {
+      dietEl.innerHTML = `<span class="text-muted">${escapeHTML(t('recipes.diet_none'))}</span>`;
+    }
+  }
+
+  // Translate any newly-rendered text
+  applyTranslations();
+  recompute();
+  return wrap;
+}
+
+function buildIngRow(ing) {
+  const row = document.createElement('div');
+  row.className = 'ing-row';
+  row.innerHTML = `
+    <div class="col-name" style="position:relative">
+      <input class="input ing-name" type="text" placeholder="${escapeHTML(t('recipes.col_name'))}" value="${escapeHTML(ing.name || '')}" autocomplete="off">
+    </div>
+    <div class="col-amount">
+      <input class="input ing-amount" type="number" min="0" step="0.1" placeholder="${escapeHTML(t('recipes.col_amount'))}" value="${ing.amount ?? ''}">
+    </div>
+    <div class="col-unit">
+      <select class="input ing-unit" aria-label="${escapeHTML(t('recipes.col_unit'))}">
+        ${['g','kg','ml','l','yk','tk','ck','sb','ad'].map(u => `<option value="${u}" ${u===(ing.unit||'g')?'selected':''}>${u}</option>`).join('')}
+      </select>
+    </div>
+    <div class="col-rm">
+      <button type="button" class="rm-btn" aria-label="Remove ingredient">
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </div>
+  `;
+  // Wire autocomplete
+  const nameInput = row.querySelector('.ing-name');
+  let dropdown;
+  nameInput.addEventListener('input', () => {
+    const q = nameInput.value.trim();
+    if (!q) { closeAC(); return; }
+    const suggestions = suggestNutrients(q, 8);
+    if (!suggestions.length) {
+      showAC([], t('recipes.no_match'));
+      return;
+    }
+    showAC(suggestions);
+  });
+  nameInput.addEventListener('blur', () => setTimeout(closeAC, 150));
+  function showAC(items, emptyMsg) {
+    closeAC();
+    dropdown = document.createElement('div');
+    dropdown.className = 'ac-dropdown';
+    dropdown.setAttribute('role', 'listbox');
+    if (!items.length) {
+      dropdown.innerHTML = `<div class="ac-empty">${escapeHTML(emptyMsg)}</div>`;
+    } else {
+      dropdown.innerHTML = items.map(s => `<div class="ac-item" role="option" tabindex="-1">${escapeHTML(s)}</div>`).join('');
+      dropdown.querySelectorAll('.ac-item').forEach(item => {
+        item.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          nameInput.value = item.textContent;
+          closeAC();
+          nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+      });
+    }
+    row.querySelector('.col-name').appendChild(dropdown);
+  }
+  function closeAC() {
+    if (dropdown) { dropdown.remove(); dropdown = null; }
+  }
+  // Remove
+  row.querySelector('.rm-btn').addEventListener('click', () => {
+    row.remove();
+    document.getElementById('recipeEditor')?.querySelector('.modal__form')?.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  return row;
+}
+
+function readIngredients(wrap) {
+  return [...wrap.querySelectorAll('.ing-row')].map(row => ({
+    name:   row.querySelector('.ing-name').value.trim(),
+    amount: row.querySelector('.ing-amount').value,
+    unit:   row.querySelector('.ing-unit').value,
+  })).filter(i => i.name);
+}
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Visually hidden helper (for the search label)
+const vh = document.createElement('style');
+vh.textContent = '.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}';
+document.head.appendChild(vh);
+
+await loadRecipes();
+</script>
+</body>
+</html>
