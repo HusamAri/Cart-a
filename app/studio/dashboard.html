@@ -92,7 +92,8 @@
 import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
-import { computeRecipe, computeDishCost, buildCostMap, formatNumber } from '/src/recipe-compute.js';
+import { computeRecipe, computeDishCost, buildCostMap, formatNumber, computeRecipeClimate, toGrams } from '/src/recipe-compute.js';
+import { emissionIntensityKgCo2ePerKg } from '/src/carbon-factors.js';
 import { ALLERGEN_LABELS } from '/src/nutrient-db.js';
 
 const main = document.createElement('main');
@@ -114,7 +115,7 @@ main.innerHTML = `
   <div class="page-head">
     <span class="eyebrow eyebrow-accent" data-i18n="dash.page_eyebrow">Menu intelligence</span>
     <h1 class="h1"><span data-i18n="dash.page_title">Kitchen</span> <em data-i18n="dash.page_title_em">dashboard</em></h1>
-    <p class="lead" data-i18n="dash.page_intro">Workspace-wide signals from saved recipes: nutrition mix, allergens, diet coverage, and cost completeness.</p>
+    <p class="lead" data-i18n="dash.page_intro">Workspace-wide signals from saved recipes: nutrition mix, allergens, diet coverage, a greenhouse-gas proxy, and cost completeness.</p>
   </div>
 
   <div class="dash-toolbar">
@@ -205,6 +206,11 @@ function analyze(rows, costMap) {
   const ingCount = {};
   let foodN = 0, drinkN = 0;
   let costFull = 0, costPartial = 0, costNone = 0;
+  let sumGco2 = 0;
+  let sumCo2PerKcal = 0;
+  let co2KcalN = 0;
+  const emitByIng = {};
+  const perDishCo2 = [];
 
   for (const { row, comp, cost } of items) {
     if (row.kind === 'drink') drinkN++; else foodN++;
@@ -233,8 +239,29 @@ function analyze(rows, costMap) {
     else if (miss === 0) costFull++;
     else if (miss < nIng) costPartial++;
     else costNone++;
+
+    const data = row.data || {};
+    const climate = computeRecipeClimate({ ingredients: data.ingredients || [], servings: data.servings || 1 });
+    sumGco2 += climate.perServingGCo2e;
+    const kcalP = comp.perServing.kcal || 0;
+    if (kcalP >= 40) {
+      sumCo2PerKcal += climate.perServingGCo2e / kcalP;
+      co2KcalN++;
+    }
+    perDishCo2.push({ name: row.name || '—', g: climate.perServingGCo2e });
+    for (const i of (data.ingredients || [])) {
+      const grams = toGrams(i.amount, i.unit, i.name);
+      if (!grams) continue;
+      const ingGco2 = (grams / 1000) * emissionIntensityKgCo2ePerKg(i.name) * 1000;
+      const nm = (i.name || '').trim();
+      if (nm) emitByIng[nm] = (emitByIng[nm] || 0) + ingGco2;
+    }
   }
 
+  const avgGco2 = sumGco2 / n;
+  const co2Per1000Kcal = co2KcalN ? (sumCo2PerKcal / co2KcalN) * 1000 : 0;
+  const topEmitIngs = Object.entries(emitByIng).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const topCo2Dishes = [...perDishCo2].sort((a, b) => b.g - a.g).slice(0, 6);
   const avgKcal = sumKcal / n;
   const avgP = sumP / n, avgF = sumF / n, avgC = sumC / n;
   const kMacro = 4 * avgP + 4 * avgC + 9 * avgF;
@@ -257,6 +284,7 @@ function analyze(rows, costMap) {
   }
   if (avgKcal > 720) gaps.push(t('dash.gap_high_kcal'));
   if (avgKcal > 0 && avgKcal < 220 && n > 2) gaps.push(t('dash.gap_low_kcal'));
+  if (avgGco2 >= 2000) gaps.push(t('dash.gap_high_carbon'));
   for (const { key, pct } of allergenSorted) {
     if (pct >= 42) gaps.push(t('dash.gap_allergen_dense').replace('{a}', allergenLabel(key, lang)));
   }
@@ -265,6 +293,7 @@ function analyze(rows, costMap) {
     empty: false, n, foodN, drinkN, avgKcal, pctP, pctF, pctC,
     dietCounts, kcalBuckets, topIngs, allergenSorted, gaps,
     costFull, costPartial, costNone,
+    avgGco2, co2Per1000Kcal, co2KcalN, topEmitIngs, topCo2Dishes,
   };
 }
 
@@ -371,6 +400,26 @@ function renderDash(costMap) {
       </div>
 
       <div class="dash-card" style="grid-column:1/-1">
+        <h2 data-i18n="dash.carbon_title">Climate proxy (CO₂e)</h2>
+        <p class="text-muted" style="margin:-8px 0 var(--sp-3);font-size:var(--type-caption);line-height:1.5" data-i18n="dash.carbon_sub"></p>
+        <div class="dash-kpis" style="max-width:640px;margin-bottom:var(--sp-5)">
+          <div class="dash-kpi"><div class="num">${formatNumber(st.avgGco2, 0)}</div><div class="lbl" data-i18n="dash.kpi_avg_co2">g CO₂e / serving</div></div>
+          <div class="dash-kpi"><div class="num">${st.co2KcalN ? formatNumber(st.co2Per1000Kcal, 0) : '—'}</div><div class="lbl" data-i18n="dash.kpi_co2_kcal">g CO₂e / 1000 kcal</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--sp-5)">
+          <div>
+            <h3 data-i18n="dash.carbon_top_dishes">Highest CO₂e per serving</h3>
+            ${st.topCo2Dishes.length ? `<ul style="margin:0;padding-left:1.1rem;font-size:var(--type-caption);line-height:1.65">${st.topCo2Dishes.map(d => `<li><strong>${escapeHTML(d.name)}</strong> — ${formatNumber(d.g, 0)} g</li>`).join('')}</ul>` : `<p class="text-muted" data-i18n="dash.none">${escapeHTML(t('dash.none'))}</p>`}
+          </div>
+          <div>
+            <h3 data-i18n="dash.carbon_top_ing">Top emission ingredients</h3>
+            <p class="text-muted" style="margin:-4px 0 var(--sp-2);font-size:10px;letter-spacing:var(--track-caps);text-transform:uppercase" data-i18n="dash.carbon_ing_note">Cumulative g CO₂e, scoped recipes</p>
+            ${st.topEmitIngs.length ? `<ul style="margin:0;padding-left:1.1rem;font-size:var(--type-caption);line-height:1.65">${st.topEmitIngs.map(([name, g]) => `<li><strong>${escapeHTML(name)}</strong> — ${formatNumber(g, 0)} g</li>`).join('')}</ul>` : `<p class="text-muted" data-i18n="dash.none">${escapeHTML(t('dash.none'))}</p>`}
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card" style="grid-column:1/-1">
         <h2 data-i18n="dash.next_title">Next steps</h2>
         <div class="dash-links">
           <a class="btn btn-sm btn-primary" href="/app/studio/matrix.html" data-i18n="dash.link_matrix">Menu engineering</a>
@@ -404,6 +453,8 @@ function exportCsv(st) {
     `cost_fully_mapped,${st.costFull}`,
     `cost_partial,${st.costPartial}`,
     `cost_missing,${st.costNone}`,
+    `avg_g_co2e_per_serving,${st.avgGco2.toFixed(1)}`,
+    `avg_g_co2e_per_1000kcal,${st.co2KcalN ? st.co2Per1000Kcal.toFixed(1) : ''}`,
   ];
   const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');

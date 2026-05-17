@@ -35,14 +35,14 @@
 
   <p style="font-size:var(--type-caption);color:var(--on-surface-variant);margin:0">
     <span data-i18n="auth.have_account">Already have an account?</span>
-    <a href="/app/login.html" style="color:var(--primary);font-weight:600;margin-left:6px" data-i18n="auth.signin_link">Sign in →</a>
+    <a href="/app/login.html" id="authSigninLink" style="color:var(--primary);font-weight:600;margin-left:6px" data-i18n="auth.signin_link">Sign in →</a>
   </p>
 </form>
 </main>
 
 <script type="module">
 import { sendMagicLink } from '/src/auth.js';
-import { getSession } from '/src/supabase-client.js';
+import { getSessionAfterUrlAuth } from '/src/supabase-client.js';
 import { storeInviteToken, readStoredInviteToken } from '/src/workspaces.js';
 import { applyTranslations, t } from '/src/i18n.js';
 applyTranslations();
@@ -52,9 +52,21 @@ const inviteToken = (params.get('invite') || '').trim();
 const prefillEmail = (params.get('email') || '').trim();
 if (inviteToken) storeInviteToken(inviteToken);
 
+(() => {
+  const token = inviteToken || readStoredInviteToken() || '';
+  const qp = new URLSearchParams();
+  if (token) qp.set('invite', token);
+  if (prefillEmail) qp.set('email', prefillEmail);
+  const q = qp.toString();
+  const el = document.getElementById('authSigninLink');
+  if (el) el.href = '/app/login.html' + (q ? `?${q}` : '');
+})();
+
 (async () => {
-  const session = await getSession();
-  if (session) window.location.href = '/app/';
+  const session = await getSessionAfterUrlAuth();
+  if (!session) return;
+  const token = inviteToken || readStoredInviteToken() || '';
+  window.location.replace(token ? `/app/?invite=${encodeURIComponent(token)}` : '/app/');
 })();
 
 const form = document.getElementById('signupForm');
