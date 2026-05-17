@@ -317,6 +317,35 @@ export const NUTRIENT_DB = {
   'beyaz çikolata':    { P: 6.0,  F: 33.0, C: 59.0, Fi: 0,   allergens: ['milk'] },
 };
 
+// English dish-name hints for Auto-Name (sparse; unknown keys fall back to title-cased Turkish key)
+export const NUTRIENT_EN = {
+  'yumurta': 'Egg', 'tavuk yumurtası': 'Egg', 'süt': 'Milk', 'yarım yağlı süt': 'Semi-skimmed milk',
+  'yağsız süt': 'Skim milk', 'tereyağı': 'Butter', 'krema': 'Cream', 'yoğurt': 'Yogurt',
+  'süzme yoğurt': 'Strained yogurt', 'beyaz peynir': 'White cheese', 'kaşar peyniri': 'Kashkaval',
+  'parmesan': 'Parmesan', 'mozzarella': 'Mozzarella', 'tavuk göğsü': 'Chicken breast', 'tavuk but': 'Chicken thigh',
+  'dana eti': 'Beef', 'kıyma': 'Minced meat', 'kuzu eti': 'Lamb', 'hindi göğsü': 'Turkey breast',
+  'pastırma': 'Pastrami', 'sucuk': 'Sucuk', 'jambon': 'Ham', 'somon': 'Salmon', 'levrek': 'Sea bass',
+  'çipura': 'Sea bream', 'hamsi': 'Anchovy', 'ton balığı': 'Tuna', 'karides': 'Shrimp', 'kalamar': 'Squid',
+  'midye': 'Mussel', 'pirinç': 'Rice', 'bulgur': 'Bulgur', 'makarna': 'Pasta', 'ekmek': 'Bread',
+  'tam buğday ekmeği': 'Whole wheat bread', 'un': 'Flour', 'yulaf': 'Oats', 'mısır': 'Corn',
+  'mercimek': 'Lentils', 'nohut': 'Chickpeas', 'kuru fasulye': 'White beans', 'domates': 'Tomato',
+  'salatalık': 'Cucumber', 'soğan': 'Onion', 'sarımsak': 'Garlic', 'patates': 'Potato', 'havuç': 'Carrot',
+  'kabak': 'Zucchini', 'patlıcan': 'Aubergine', 'biber': 'Pepper', 'ıspanak': 'Spinach', 'marul': 'Lettuce',
+  'roka': 'Rocket', 'maydanoz': 'Parsley', 'mantar': 'Mushroom', 'fesleğen': 'Basil', 'elma': 'Apple',
+  'limon': 'Lemon', 'portakal': 'Orange', 'muz': 'Banana', 'çilek': 'Strawberry', 'zeytinyağı': 'Olive oil',
+  'ayçiçek yağı': 'Sunflower oil', 'tereyağı (eritilmiş)': 'Clarified butter', 'ceviz': 'Walnut',
+  'badem': 'Almond', 'fındık': 'Hazelnut', 'antep fıstığı': 'Pistachio', 'susam': 'Sesame', 'şeker': 'Sugar',
+  'bal': 'Honey', 'tuz': 'Salt', 'sirke': 'Vinegar', 'soya sosu': 'Soy sauce', 'su': 'Water',
+  'şarap (kırmızı)': 'Red wine', 'şarap (beyaz)': 'White wine', 'bira': 'Beer', 'vodka': 'Vodka', 'rakı': 'Raki',
+  'kefir': 'Kefir', 'ayran': 'Ayran', 'lor peyniri': 'Cottage cheese', 'çökelek': 'Curd cheese',
+  'ricotta': 'Ricotta', 'feta': 'Feta', 'labne': 'Labneh', 'dana antrikot': 'Beef ribeye',
+  'dana bonfile': 'Beef tenderloin', 'dana but': 'Beef shank', 'kuzu pirzola': 'Lamb chop',
+  'kuzu but': 'Lamb leg', 'tavuk kanat': 'Chicken wing', 'tavuk bonfile': 'Chicken fillet',
+  'döner': 'Doner', 'brokoli': 'Broccoli', 'karnabahar': 'Cauliflower', 'lahana': 'Cabbage',
+  'kırmızı lahana': 'Red cabbage', 'kuskus': 'Couscous', 'irmik': 'Semolina', 'avokado': 'Avocado',
+  'bıldırcın': 'Quail',
+};
+
 // Allergen catalog (14 EU categories + Türkiye additions)
 export const ALLERGEN_LABELS = {
   gluten:     { en: 'Gluten',         tr: 'Glüten' },
@@ -369,4 +398,73 @@ export function turkNorm(s) {
     .replace(/ı/g,'i').replace(/ç/g,'c').replace(/ğ/g,'g')
     .replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u')
     .replace(/[^a-z0-9 ]/g,'').trim();
+}
+
+/** Browse order for ingredient DB chips (reference rows only; custom uses "custom"). */
+export const ING_CATEGORY_ORDER = [
+  'dairy', 'meat', 'seafood', 'grains', 'legumes', 'vegetables', 'fruits', 'oils', 'nuts', 'condiments', 'beverages', 'bakery', 'other',
+];
+
+/**
+ * Reference category for UI filters (not persisted on NUTRIENT_DB rows).
+ * Uses turkNorm-style ascii-ish tokens on the original Turkish key.
+ */
+export function nutrientCategoryId(key, row) {
+  const n = turkNorm(key);
+  const e = Number(row?.ethanol) || 0;
+  if (e > 0) return 'beverages';
+
+  if (n === 'su' || n.includes('ayran')) return 'beverages';
+  if (n.includes('sarap') || n.includes('sampanya') || n.includes('prosecco') || n.includes('bira') || n.includes('votka')
+    || n.includes('raki') || n.includes('cin') || n.includes('viski') || n.includes('rom') || n.includes('tekila')
+    || n.includes('aperol') || n.includes('campari') || n.includes('vermut') || n.includes('kanyak') || n.includes('brandy')
+    || n.includes('limoncello')) return 'beverages';
+
+  if (n.includes('baklava') || n.includes('kunefe') || n.includes('sutlac') || n.includes('kazandibi') || n.includes('dondurma')
+    || n.includes('cikolata')) return 'bakery';
+
+  if (n.includes('mercimek') || n.includes('nohut') || n.includes('kuru fasulye')) return 'legumes';
+
+  if (n.includes('pirinc') || n.includes('bulgur') || n.includes('makarna') || n.includes('ekmek') || n === 'un'
+    || n.includes('yulaf') || n.includes('misir') || n.includes('kuskus') || n.includes('irmik') || n.includes('tarhana')
+    || n.includes('manti')) return 'grains';
+
+  if (n.includes('yumurta') || n.includes('peynir') || n.includes('yogurt') || n.includes('tereyag') || n.includes('krema')
+    || n.includes('ricotta') || n.includes('mozzarella') || n.includes('parmesan') || n.includes('cokelek') || n.includes('lor peyn')
+    || n.includes('feta') || n.includes('labne') || n.includes('mascarpone') || n.includes('gorgonzola') || n.includes('brie') || n.includes('camembert')
+    || n.includes('cheddar') || n.includes('kaymak') || n.includes('tulum') || n.includes('ezine') || n.includes('suzme')
+    || n.includes('kefir') || (n.includes('sut') && !n.includes('sutlac'))) return 'dairy';
+
+  if (n.includes('tavuk') || n.includes('dana') || n.includes('kuzu') || n.includes('hindi') || n.includes('jambon')
+    || n.includes('sucuk') || n.includes('pastirma') || n.includes('kiyma') || n.includes('doner') || n.includes('salam')
+    || n.includes('sosis') || n.includes('bacon') || n.includes('prosciutto') || n.includes('bildircin') || n.includes('ordek')
+    || n.includes('kavurma') || n.includes('antrikot') || n.includes('bonfile') || n.includes('pirzola')) return 'meat';
+
+  if (n.includes('somon') || n.includes('levrek') || n.includes('cipura') || n.includes('hamsi') || n.includes('ton bal')
+    || n.includes('karides') || n.includes('kalamar') || n.includes('midye') || n.includes('palamut') || n.includes('lufer')
+    || n.includes('kefal') || n.includes('cinekop') || n.includes('mezgit') || n.includes('barbun') || n.includes('uskumru')
+    || n.includes('sardalya') || n.includes('kalkan') || n.includes('morina') || n.includes('fume') || n.includes('ahtapot')
+    || n.includes('istiridye') || n.includes('havyar') || n.includes('balik')) return 'seafood';
+
+  if (n.includes('elma') || n.includes('limon') || n.includes('portakal') || n.includes('muz') || n.includes('cilek')
+    || n.includes('armut') || n.includes('kiraz') || n.includes('visne') || n.includes('kayisi') || n.includes('seftali')
+    || n.includes('uzum') || n.includes('incir') || n === 'nar' || n.includes('ananas') || n.includes('mango')
+    || n.includes('avokado') || n.includes('kavun') || n.includes('karpuz') || n.includes('hurma')
+    || n.includes('kuru uzum') || n.includes('kuru kayisi')) return 'fruits';
+
+  if (n.includes('domates') || n.includes('salatalik') || n.includes('sogan') || n.includes('sarimsak') || n.includes('patates')
+    || n.includes('havuc') || n.includes('kabak') || n.includes('patlican') || n.includes('biber') || n.includes('ispanak')
+    || n.includes('marul') || n.includes('roka') || n.includes('maydanoz') || n.includes('mantar') || n.includes('feslegen')
+    || n.includes('kereviz') || n.includes('brokoli') || n.includes('karnabahar') || n.includes('lahana') || n.includes('pirasa')
+    || n.includes('taze fasulye') || n.includes('bezelye') || n.includes('bamya') || n.includes('enginar') || n.includes('pancar')
+    || n.includes('rezene') || n.includes('turp') || n.includes('salgam') || n.includes('arpacik') || n.includes('dereotu')
+    || n.includes('nane') || n.includes('kisnis') || n.includes('kekik') || n.includes('taze sogan')) return 'vegetables';
+
+  if (n.includes('yag') || n.includes('zeytin')) return 'oils';
+
+  if (n.includes('ceviz') || n.includes('badem') || n.includes('findik') || n.includes('fistigi') || n.includes('susam')) return 'nuts';
+
+  if (n.includes('seker') || n.includes('bal') || n === 'tuz' || n.includes('sirke') || n.includes('soya')) return 'condiments';
+
+  return 'other';
 }

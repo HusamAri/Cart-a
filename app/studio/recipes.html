@@ -287,6 +287,57 @@
     border: 1px solid rgba(186,26,26,0.35);
   }
   .btn-error:hover { background: var(--error-container); color: var(--on-error-container); border-color: var(--error); }
+
+  .name-row-actions {
+    display: flex; gap: var(--sp-3); align-items: stretch; width: 100%;
+  }
+  .name-row-actions .input { flex: 1; min-width: 0; }
+  .name-row-actions .btn { flex-shrink: 0; align-self: stretch; }
+
+  .serving-pills {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--sp-3);
+  }
+  .serving-pills .serving-pill {
+    min-height: 36px; padding: 6px 14px; border-radius: var(--r-pill);
+    border: 1px solid var(--outline-variant);
+    background: rgba(255,255,255,0.92);
+    font-family: var(--font-sans); font-weight: 600; font-size: 12px;
+    letter-spacing: var(--track-caps); text-transform: uppercase;
+    cursor: pointer; color: var(--on-surface-variant);
+    transition: background var(--dur-2), color var(--dur-2), border-color var(--dur-2);
+  }
+  .serving-pills .serving-pill:hover { border-color: var(--primary); color: var(--primary); }
+  .serving-pills .serving-pill.is-active {
+    background: var(--primary); color: var(--on-primary); border-color: var(--primary);
+  }
+  .serving-pills .serving-pill:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+
+  .paste-panel {
+    margin-top: var(--sp-2);
+    padding: var(--sp-5);
+    background: rgba(7,22,13,0.04);
+    border-radius: var(--r-xl);
+    border: 1px solid var(--outline-variant);
+  }
+  .paste-toolbar {
+    display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; margin-top: var(--sp-4);
+  }
+  .paste-replace-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: var(--type-caption); cursor: pointer; user-select: none;
+  }
+  .paste-preview {
+    margin-top: var(--sp-4); font-size: var(--type-caption);
+    max-height: 200px; overflow: auto;
+    border: 1px solid var(--outline-variant); border-radius: var(--r-lg);
+    background: rgba(255,255,255,0.65);
+  }
+  .paste-preview table { width: 100%; border-collapse: collapse; }
+  .paste-preview th, .paste-preview td {
+    padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--outline-variant);
+  }
+  .paste-preview th { font-size: 10px; letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--on-surface-variant); }
+  .paste-warn { color: var(--error); margin-top: var(--sp-3); font-size: var(--type-caption); }
 </style>
 </head>
 <body>
@@ -296,7 +347,7 @@
 import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
-import { NUTRIENT_DB, ALLERGEN_LABELS, suggestNutrients } from '/src/nutrient-db.js';
+import { ALLERGEN_LABELS, suggestNutrients, lookupNutrient, NUTRIENT_EN } from '/src/nutrient-db.js';
 import { computeRecipe, formatNumber } from '/src/recipe-compute.js';
 import { getMyRole, applyRoleGates } from '/src/permissions.js';
 
@@ -444,6 +495,122 @@ function renderCard(r, cl) {
 main.querySelector('#newBtn').addEventListener('click', () => openEditor(null));
 main.querySelector('#searchInput').addEventListener('input', (e) => render(e.target.value));
 
+function readIngredients(wrap) {
+  return [...wrap.querySelectorAll('.ing-row')].map(row => ({
+    name:   row.querySelector('.ing-name').value.trim(),
+    amount: row.querySelector('.ing-amount').value,
+    unit:   row.querySelector('.ing-unit').value,
+  })).filter(i => i.name);
+}
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+const PASTE_UNITS = new Set(['g','kg','ml','l','mg','yk','tk','ck','sb','ad']);
+
+function normalizePasteUnit(u) {
+  const x = String(u || 'g').toLowerCase().trim();
+  if (x === 'gr' || x === 'gram' || x === 'grams') return 'g';
+  return x;
+}
+
+function normPasteAmount(s) {
+  return String(s ?? '').trim().replace(',', '.');
+}
+
+function isValidPasteRow(r) {
+  const a = parseFloat(normPasteAmount(r.amount));
+  const u = normalizePasteUnit(r.unit);
+  return !!(r.name && String(r.name).trim() && !isNaN(a) && a > 0 && PASTE_UNITS.has(u));
+}
+
+function parsePastedIngredients(text) {
+  const rows = [];
+  const warnings = [];
+  const lines = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+  for (const rawLine of lines) {
+    if (rawLine.startsWith('#') || rawLine.startsWith('//')) continue;
+    const line = rawLine.replace(/^[-*•]\s*/, '').trim();
+    if (!line) continue;
+
+    if (line.includes('\t')) {
+      const p = line.split('\t').map(x => x.trim()).filter(x => x.length);
+      if (p.length >= 3) {
+        rows.push({ amount: normPasteAmount(p[0]), unit: normalizePasteUnit(p[1]), name: p[2] });
+        continue;
+      }
+      if (p.length === 2 && /^\d/.test(p[0])) {
+        rows.push({ amount: normPasteAmount(p[0]), unit: 'g', name: p[1] });
+        continue;
+      }
+      warnings.push(rawLine);
+      continue;
+    }
+
+    let m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|mg|yk|tk|ck|sb|ad)\s+(.+)$/i);
+    if (m && m[3].trim()) {
+      rows.push({ amount: normPasteAmount(m[1]), unit: normalizePasteUnit(m[2]), name: m[3].trim() });
+      continue;
+    }
+    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|mg|yk|tk|ck|sb|ad)([^\s\d].*)$/i);
+    if (m && m[3].trim()) {
+      rows.push({ amount: normPasteAmount(m[1]), unit: normalizePasteUnit(m[2]), name: m[3].trim() });
+      continue;
+    }
+    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(?:adet|ad|x)\s+(.+)$/i);
+    if (m && m[2].trim()) {
+      rows.push({ amount: normPasteAmount(m[1]), unit: 'ad', name: m[2].trim() });
+      continue;
+    }
+    m = line.match(/^(\d+(?:[.,]\d+)?)\s+(.+)$/);
+    if (m) {
+      const rest = m[2].trim();
+      const head = rest.split(/\s+/)[0]?.toLowerCase();
+      if (head && PASTE_UNITS.has(normalizePasteUnit(head))) {
+        warnings.push(rawLine);
+        continue;
+      }
+      if (!rest) {
+        warnings.push(rawLine);
+        continue;
+      }
+      rows.push({ amount: normPasteAmount(m[1]), unit: 'g', name: rest });
+      continue;
+    }
+    warnings.push(rawLine);
+  }
+  return { rows, warnings };
+}
+
+function toTitleTrWords(str) {
+  return String(str || '').trim().split(/\s+/).filter(Boolean).map(word => {
+    const lower = word.toLocaleLowerCase('tr-TR');
+    return lower.charAt(0).toLocaleUpperCase('tr-TR') + lower.slice(1);
+  }).join(' ');
+}
+
+function englishTitleFromKey(key) {
+  return toTitleTrWords(String(key || '').replace(/\s*\([^)]*\)/g, '').trim());
+}
+
+function suggestRecipeNameFromForm(wrap) {
+  const ings = readIngredients(wrap);
+  if (!ings.length) return '';
+  const lang = getLang();
+  const take = ings.slice(0, 3);
+  const parts = take.map(i => {
+    const hit = lookupNutrient(i.name);
+    const key = hit?.key || i.name.trim();
+    if (lang === 'en') {
+      return NUTRIENT_EN[key] || englishTitleFromKey(key);
+    }
+    return toTitleTrWords(i.name.trim());
+  });
+  return parts.join(' · ');
+}
+
 // ============================================================
 // 4. Editor modal — open/close + state
 // ============================================================
@@ -500,9 +667,12 @@ function buildEditorEl({ recipe, data }) {
         <section class="modal__form">
           <div class="form-row">
             <label class="label" for="editName" data-i18n="recipes.col_name">Name</label>
-            <input class="input" id="editName" type="text" required value="${escapeHTML(recipe?.name || '')}" placeholder="${escapeHTML(t('recipes.name_placeholder'))}" data-require-disable="${editAction}">
+            <div class="name-row-actions">
+              <input class="input" id="editName" type="text" required value="${escapeHTML(recipe?.name || '')}" placeholder="${escapeHTML(t('recipes.name_placeholder'))}" data-require-disable="${editAction}">
+              <button type="button" class="btn btn-outline btn-sm" id="autoNameBtn" data-i18n="recipes.auto_name" data-require="${editAction}">Auto-name</button>
+            </div>
           </div>
-          <div style="display:grid;grid-template-columns:auto 1fr;gap:var(--sp-5);align-items:center" class="form-row">
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:var(--sp-5);align-items:start" class="form-row">
             <div>
               <span class="label" data-i18n="recipes.kind_food">Kind</span>
               <div class="seg" role="group" aria-label="Recipe kind">
@@ -513,6 +683,9 @@ function buildEditorEl({ recipe, data }) {
             <div>
               <label class="label" for="editServings" data-i18n="recipes.servings">Servings</label>
               <input class="input" id="editServings" type="number" min="1" max="999" value="${Number(data.servings) || 1}" style="max-width:140px" data-require-disable="${editAction}">
+              <div class="serving-pills" role="group" id="servingPills" aria-label="${escapeHTML(t('recipes.servings_quick'))}">
+                ${[1,2,4,6,8,10,12,16,20,24].map(n => `<button type="button" class="serving-pill" data-serv="${n}">${n}</button>`).join('')}
+              </div>
             </div>
           </div>
 
@@ -520,6 +693,19 @@ function buildEditorEl({ recipe, data }) {
             <span class="label" data-i18n="recipes.ingredients">Ingredients</span>
             <div class="ing-list" id="ingList"></div>
             <button type="button" class="btn btn-ghost btn-sm" id="addIngBtn" style="margin-top:var(--sp-3)" data-i18n="recipes.add_ing" data-require="${editAction}">＋ Add ingredient</button>
+          </div>
+
+          <div class="form-row paste-panel">
+            <span class="label" data-i18n="recipes.paste_title">Paste from text</span>
+            <p class="text-muted" style="font-size:var(--type-caption);margin:0 0 var(--sp-3)" data-i18n="recipes.paste_hint">One ingredient per line.</p>
+            <textarea id="pasteIngText" class="input" style="min-height:100px;font-family:ui-monospace,monospace;font-size:13px;resize:vertical" rows="5" data-require-disable="${editAction}"></textarea>
+            <div class="paste-toolbar">
+              <label class="paste-replace-label"><input type="checkbox" id="pasteReplace"> <span data-i18n="recipes.paste_replace">Replace rows</span></label>
+              <button type="button" class="btn btn-sm btn-outline" id="pastePreviewBtn" data-i18n="recipes.paste_preview" data-require="${editAction}">Preview</button>
+              <button type="button" class="btn btn-sm btn-primary" id="pasteApplyBtn" data-i18n="recipes.paste_apply" data-require="${editAction}">Apply</button>
+              <button type="button" class="btn btn-sm btn-ghost" id="pasteClipboardBtn" data-i18n="recipes.paste_clipboard" data-require="${editAction}">Clipboard</button>
+            </div>
+            <div id="pastePreview" class="paste-preview" hidden></div>
           </div>
         </section>
         <aside class="modal__preview" aria-live="polite">
@@ -581,6 +767,103 @@ function buildEditorEl({ recipe, data }) {
     ingList.appendChild(row);
     applyRoleGates(role, row);
     recompute();
+  });
+
+  const servInput = wrap.querySelector('#editServings');
+  function syncServingPills() {
+    const v = String(Math.max(1, parseInt(servInput.value, 10) || 1));
+    wrap.querySelectorAll('#servingPills .serving-pill').forEach(b => {
+      const on = b.getAttribute('data-serv') === v;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  wrap.querySelectorAll('#servingPills .serving-pill').forEach(b => {
+    b.addEventListener('click', () => {
+      servInput.value = b.getAttribute('data-serv');
+      syncServingPills();
+      wrap.querySelector('.modal__form').dispatchEvent(new Event('input', { bubbles: true }));
+      recompute();
+    });
+  });
+  servInput.addEventListener('input', syncServingPills);
+  syncServingPills();
+
+  wrap.querySelector('#autoNameBtn').addEventListener('click', () => {
+    const name = suggestRecipeNameFromForm(wrap);
+    if (!name) return;
+    wrap.querySelector('#editName').value = name;
+    wrap.querySelector('.modal__form').dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
+  const pasteTa = wrap.querySelector('#pasteIngText');
+  const pastePrev = wrap.querySelector('#pastePreview');
+
+  function runPastePreview() {
+    const { rows, warnings } = parsePastedIngredients(pasteTa.value);
+    const valid = rows.filter(isValidPasteRow);
+    if (!valid.length && !warnings.length) {
+      pastePrev.hidden = true;
+      pastePrev.innerHTML = '';
+      return;
+    }
+    pastePrev.hidden = false;
+    let html = '<table><thead><tr>';
+    html += `<th>${escapeHTML(t('recipes.col_amount'))}</th>`;
+    html += `<th>${escapeHTML(t('recipes.col_unit'))}</th>`;
+    html += `<th>${escapeHTML(t('recipes.col_name'))}</th></tr></thead><tbody>`;
+    for (const r of valid.slice(0, 40)) {
+      html += `<tr><td>${escapeHTML(normPasteAmount(r.amount))}</td><td>${escapeHTML(normalizePasteUnit(r.unit))}</td><td>${escapeHTML(r.name)}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    if (valid.length > 40) {
+      const n = valid.length - 40;
+      html += `<p class="text-muted" style="margin:8px 10px">${escapeHTML(t('recipes.paste_more').replace('{n}', String(n)))}</p>`;
+    }
+    pastePrev.innerHTML = html;
+    if (warnings.length) {
+      pastePrev.innerHTML += `<div class="paste-warn">${escapeHTML(t('recipes.paste_skipped'))}<ul style="margin:6px 0 0 18px">${warnings.slice(0, 8).map(w => `<li>${escapeHTML(w)}</li>`).join('')}</ul></div>`;
+    }
+    applyTranslations();
+  }
+
+  wrap.querySelector('#pastePreviewBtn').addEventListener('click', runPastePreview);
+  pasteTa.addEventListener('paste', () => { setTimeout(runPastePreview, 0); });
+
+  wrap.querySelector('#pasteApplyBtn').addEventListener('click', () => {
+    const { rows, warnings } = parsePastedIngredients(pasteTa.value);
+    const valid = rows.filter(isValidPasteRow);
+    if (!valid.length) {
+      alert(warnings.length ? t('recipes.paste_none_warn') : t('recipes.paste_none'));
+      return;
+    }
+    if (wrap.querySelector('#pasteReplace').checked) {
+      ingList.innerHTML = '';
+    }
+    for (const r of valid) {
+      const row = buildIngRow({
+        name: r.name.trim(),
+        amount: normPasteAmount(r.amount),
+        unit: normalizePasteUnit(r.unit),
+      }, editAction);
+      ingList.appendChild(row);
+      applyRoleGates(role, row);
+    }
+    pasteTa.value = '';
+    pastePrev.hidden = true;
+    pastePrev.innerHTML = '';
+    wrap.querySelector('.modal__form').dispatchEvent(new Event('input', { bubbles: true }));
+    recompute();
+  });
+
+  wrap.querySelector('#pasteClipboardBtn').addEventListener('click', async () => {
+    try {
+      const txt = await navigator.clipboard.readText();
+      pasteTa.value = txt;
+      runPastePreview();
+    } catch {
+      alert(t('recipes.paste_clipboard_denied'));
+    }
   });
 
   // Close handlers
@@ -765,19 +1048,7 @@ function buildIngRow(ing, editAction) {
   return row;
 }
 
-function readIngredients(wrap) {
-  return [...wrap.querySelectorAll('.ing-row')].map(row => ({
-    name:   row.querySelector('.ing-name').value.trim(),
-    amount: row.querySelector('.ing-amount').value,
-    unit:   row.querySelector('.ing-unit').value,
-  })).filter(i => i.name);
-}
-
-function escapeHTML(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// Visually hidden helper (for the search label)
+await loadRecipes();
 const vh = document.createElement('style');
 vh.textContent = '.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}';
 document.head.appendChild(vh);

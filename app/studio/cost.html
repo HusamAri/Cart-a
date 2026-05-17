@@ -191,7 +191,9 @@ import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { formatNumber } from '/src/recipe-compute.js';
 import { suggestNutrients } from '/src/nutrient-db.js';
-import { getMyRole, applyRoleGates } from '/src/permissions.js';
+import { getMyRole, applyRoleGates, requireCan } from '/src/permissions.js';
+import { parseSapCostFile } from '/src/sap-cost-import.js';
+import { downloadWorkbook } from '/src/xlsx-export.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -217,12 +219,22 @@ main.innerHTML = `
       <span class="material-symbols-outlined" aria-hidden="true" style="color:var(--outline);font-size:20px">search</span>
       <input id="searchInput" type="search" data-i18n-ph="cost.search_ph" autocomplete="off">
       <span class="divider" aria-hidden="true"></span>
+      <input type="file" id="sapImportFile" accept=".csv,.txt,.xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden>
+      <button type="button" class="btn btn-outline btn-sm" id="sapImportBtn" data-require="cost_create" title="">
+        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">upload_file</span>
+        <span data-i18n="cost.import_sap">SAP / Excel</span>
+      </button>
+      <button type="button" class="btn btn-ghost btn-sm" id="sapTemplateBtn" data-i18n-title="cost.import_template_hint">
+        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
+        <span data-i18n="cost.import_template">Template</span>
+      </button>
       <button class="btn btn-primary btn-sm" id="newBtn" data-require="cost_create">
         <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
         <span data-i18n="cost.new">New entry</span>
       </button>
     </div>
   </div>
+  <p id="costImportHelp" class="text-muted" style="max-width:1200px;margin:0 auto var(--sp-4);font-size:var(--type-caption);line-height:1.5;padding:0 var(--sp-2)" data-i18n="cost.import_help"></p>
   <div id="listOrEmpty"></div>
 `;
 applyTranslations();
@@ -324,6 +336,78 @@ function renderEmpty() {
 
 main.querySelector('#newBtn').addEventListener('click', () => openEditor(null));
 main.querySelector('#searchInput').addEventListener('input', (e) => render(e.target.value));
+
+function downloadSapCostTemplate() {
+  const today = new Date().toISOString().slice(0, 10);
+  downloadWorkbook('carta-sap-cost-template.xls', [{
+    name: 'SAP_COST',
+    rows: [
+      [
+        { v: 'ingredient_name', t: 'String' },
+        { v: 'sap_code', t: 'String' },
+        { v: 'moving_price', t: 'String' },
+        { v: 'price_unit_kg', t: 'String' },
+        { v: 'yield_pct', t: 'String' },
+        { v: 'as_of', t: 'String' },
+      ],
+      ['domates', 'MAT10001', '15', '1', '100', today],
+      ['zeytinyağı', 'MAT10002', '920', '1', '95', today],
+    ],
+  }]);
+}
+
+async function runSapImport(ev) {
+  if (!requireCan(role, 'cost_create', t('cost.import_denied'))) return;
+  const f = ev.target.files?.[0];
+  ev.target.value = '';
+  if (!f) return;
+  const { rows, errors, skipped } = await parseSapCostFile(f);
+  if (errors.length && !rows.length) {
+    const key = errors[0];
+    const msg = t(`cost.import_err_${key}`) || key;
+    alert(msg);
+    return;
+  }
+  if (!rows.length) {
+    alert(t('cost.import_err_no_rows'));
+    return;
+  }
+  const ok = confirm(t('cost.import_confirm').replace('{n}', String(rows.length)).replace('{s}', String(skipped)));
+  if (!ok) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const chunk = 80;
+  let done = 0;
+  let lastErr = null;
+  for (let i = 0; i < rows.length; i += chunk) {
+    const part = rows.slice(i, i + chunk).map(r => ({
+      workspace_id: wsId,
+      ingredient_name: r.ingredient_name,
+      per_100g: r.per_100g,
+      yield_pct: r.yield_pct,
+      uom: '100G',
+      source: 'SAP',
+      as_of: r.as_of || today,
+      sap_code: r.sap_code,
+      original_price: null,
+    }));
+    const { error } = await supabase.from('cost_db').upsert(part, { onConflict: 'workspace_id,ingredient_name' });
+    if (error) {
+      lastErr = error.message;
+      break;
+    }
+    done += part.length;
+  }
+  if (lastErr) {
+    alert(t('cost.import_partial').replace('{n}', String(done)).replace('{e}', lastErr));
+  } else {
+    alert(t('cost.import_done').replace('{n}', String(done)).replace('{s}', String(skipped)));
+  }
+  await loadEntries();
+}
+
+main.querySelector('#sapTemplateBtn').addEventListener('click', () => downloadSapCostTemplate());
+main.querySelector('#sapImportBtn').addEventListener('click', () => main.querySelector('#sapImportFile').click());
+main.querySelector('#sapImportFile').addEventListener('change', runSapImport);
 
 // ============================================================
 // Modal editor

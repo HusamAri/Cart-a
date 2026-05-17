@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Presets · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.40) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.20) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page {
+    padding: var(--sp-7) var(--margin-desktop) var(--sp-10);
+    flex: 1; overflow-y: auto;
+  }
+  @media (max-width: 900px) {
+    .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); }
+  }
+  .page-head {
+    max-width: 1100px; margin: 0 auto var(--sp-7);
+  }
+  .page-head .eyebrow { margin-bottom: var(--sp-3); }
+  .page-head h1 { margin: 0 0 var(--sp-3); }
+  .page-head .lead { margin: 0 0 var(--sp-5); max-width: 58ch; }
+  .pack-grid {
+    max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--sp-5);
+  }
+  .pack-card {
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+    padding: var(--glass-padding);
+    display: flex; flex-direction: column; gap: var(--sp-4);
+  }
+  .pack-card h2 {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 1.35rem; color: var(--primary); margin: 0;
+  }
+  .pack-card .deck {
+    display: flex; flex-direction: column; gap: var(--sp-2);
+    flex: 1;
+  }
+  .pack-card .deck .row {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: var(--type-caption);
+  }
+  .pack-card .deck .row strong { font-weight: 600; color: var(--on-surface); }
+  .pack-actions { margin-top: auto; padding-top: var(--sp-3); }
+  .foot-cta {
+    max-width: 1100px; margin: var(--sp-8) auto 0;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+import { supabase } from '/src/supabase-client.js';
+import { applyTranslations, t } from '/src/i18n.js';
+import { MENU_PRESET_PACKS } from '/src/menu-presets.js';
+import { computeRecipe } from '/src/recipe-compute.js';
+import { getMyRole, applyRoleGates, requireCan } from '/src/permissions.js';
+
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+
+const ctx = await mountStudioShell({ active: 'presets', main });
+if (!ctx) throw new Error('No session/workspace');
+const wsId = ctx.workspace.id;
+const role = await getMyRole(wsId);
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+main.innerHTML = `
+  <div class="page-head">
+    <span class="eyebrow eyebrow-accent" data-i18n="presets.eyebrow">Starter packs</span>
+    <h1 class="h1"><span data-i18n="presets.title">Menu</span> <em data-i18n="presets.title_em">presets</em></h1>
+    <p class="lead" data-i18n="presets.intro">Curated mini-menus for demos and new properties. Adds Codex-ready recipes to this workspace (skips duplicates by name and kind).</p>
+  </div>
+  <div class="pack-grid" id="packGrid"></div>
+  <div class="foot-cta">
+    <a class="btn btn-outline" href="/app/studio/recipes.html" data-i18n="presets.go_recipes">Open recipe library →</a>
+  </div>
+`;
+
+function kindLabel(kind) {
+  return kind === 'drink' ? t('recipes.kind_drink') : t('recipes.kind_food');
+}
+
+function renderCards() {
+  const grid = main.querySelector('#packGrid');
+  grid.innerHTML = MENU_PRESET_PACKS.map(pack => {
+    const title = t(`presets.pack.${pack.id}.title`);
+    const desc = t(`presets.pack.${pack.id}.desc`);
+    const rows = pack.recipes.map(r => {
+      const ingN = (r.data.ingredients || []).length;
+      return `<div class="row"><span class="chip ${r.kind === 'drink' ? 'chip-gold' : 'chip-mist'}" style="font-size:10px">${escapeHTML(kindLabel(r.kind))}</span><strong>${escapeHTML(r.name)}</strong><span class="text-muted">${ingN} · ${escapeHTML(t('recipes.ingredients'))}</span></div>`;
+    }).join('');
+    return `
+      <article class="pack-card" data-pack-id="${escapeHTML(pack.id)}">
+        <h2>${escapeHTML(title)}</h2>
+        <p class="text-muted" style="margin:0;font-size:var(--type-caption);line-height:1.5">${escapeHTML(desc)}</p>
+        <div class="deck">${rows}</div>
+        <div class="pack-actions">
+          <button type="button" class="btn btn-primary btn-block apply-pack" data-pack="${escapeHTML(pack.id)}" data-require="recipe_create">
+            <span data-i18n="presets.apply">Add pack to workspace</span>
+          </button>
+        </div>
+      </article>`;
+  }).join('');
+
+  grid.querySelectorAll('.apply-pack').forEach(btn => {
+    btn.addEventListener('click', () => applyPack(btn.getAttribute('data-pack')));
+  });
+  applyRoleGates(role, grid);
+}
+
+async function applyPack(packId) {
+  if (!requireCan(role, 'recipe_create', t('presets.denied'))) return;
+  const pack = MENU_PRESET_PACKS.find(p => p.id === packId);
+  if (!pack) return;
+
+  const { data: existing, error: exErr } = await supabase
+    .from('saved_dishes')
+    .select('name, kind')
+    .eq('workspace_id', wsId);
+  if (exErr) {
+    alert(exErr.message);
+    return;
+  }
+  const keys = new Set((existing || []).map(r => `${r.kind}|${String(r.name || '').trim().toLowerCase()}`));
+  let added = 0;
+  let skipped = 0;
+  const errMsg = [];
+  for (const r of pack.recipes) {
+    const name = String(r.name || '').trim();
+    const k = `${r.kind}|${name.toLowerCase()}`;
+    if (!name) continue;
+    if (keys.has(k)) {
+      skipped++;
+      continue;
+    }
+    const servings = Math.max(1, Number(r.data?.servings) || 1);
+    const ingredients = Array.isArray(r.data?.ingredients) ? r.data.ingredients : [];
+    const computed = computeRecipe({ ingredients, servings });
+    const data = { servings, ingredients, computed };
+    const { error } = await supabase
+      .from('saved_dishes')
+      .insert({ workspace_id: wsId, name, kind: r.kind, data });
+    if (error) {
+      errMsg.push(error.message);
+      continue;
+    }
+    keys.add(k);
+    added++;
+  }
+  let msg = t('presets.result').replace('{a}', String(added)).replace('{s}', String(skipped));
+  if (errMsg.length) msg += '\n' + errMsg.slice(0, 3).join('\n');
+  alert(msg);
+}
+
+applyTranslations();
+applyRoleGates(role, main);
+renderCards();
+
+document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+  setTimeout(() => { applyTranslations(); renderCards(); applyRoleGates(role, main); }, 0);
+});
+</script>
+</body>
+</html>

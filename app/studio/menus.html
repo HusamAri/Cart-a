@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My menus · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.40) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.20) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page {
+    padding: var(--sp-7) var(--margin-desktop) var(--sp-10);
+    flex: 1; overflow-y: auto;
+  }
+  @media (max-width: 900px) {
+    .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); }
+  }
+  .page-head { max-width: 1200px; margin: 0 auto var(--sp-6); }
+  .page-head .eyebrow { margin-bottom: var(--sp-3); }
+  .page-head h1 { margin: 0 0 var(--sp-3); }
+  .page-head .lead { margin: 0; max-width: 60ch; }
+
+  .menus-shell {
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: minmax(220px, 280px) 1fr; gap: var(--sp-6);
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .menus-shell { grid-template-columns: 1fr; }
+  }
+
+  .menus-side, .menus-editor, .menus-compare {
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+    padding: var(--glass-padding);
+  }
+  .menus-side h2, .menus-editor h2, .menus-compare h2 {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 1.2rem; color: var(--primary); margin: 0 0 var(--sp-4);
+  }
+  .cluster-row {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    text-align: left; padding: 10px 12px; margin-bottom: 8px;
+    border-radius: var(--r-lg); border: 1px solid rgba(7,22,13,0.08);
+    background: rgba(255,255,255,0.6); cursor: pointer;
+    font: inherit; color: inherit;
+  }
+  .cluster-row:hover { background: rgba(212,231,216,0.35); }
+  .cluster-row.active { outline: 2px solid var(--tertiary-container); background: rgba(212,231,216,0.45); }
+  .cluster-row .ico { font-size: 1.35rem; line-height: 1; }
+  .cluster-row .meta { flex: 1; min-width: 0; }
+  .cluster-row .meta strong { display: block; font-size: 14px; }
+  .cluster-row .meta span { font-size: 11px; opacity: 0.75; }
+
+  .form-grid { display: grid; gap: var(--sp-4); margin-bottom: var(--sp-5); }
+  .form-grid label { display: flex; flex-direction: column; gap: 6px; font-size: var(--type-caption); font-weight: 600; }
+  .form-grid input, .form-grid select { padding: 10px 12px; border-radius: var(--r-md); border: 1px solid rgba(7,22,13,0.12); font: inherit; }
+
+  .dish-picker {
+    border: 1px solid rgba(7,22,13,0.10); border-radius: var(--r-lg);
+    max-height: 280px; overflow: auto; padding: var(--sp-3);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .dish-picker label.chk {
+    display: flex; align-items: center; gap: 8px; font-weight: 400; cursor: pointer;
+    font-size: var(--type-caption); padding: 4px 0;
+  }
+  .dish-search { margin-bottom: var(--sp-3); }
+  .toolbar-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: var(--sp-4); }
+
+  .menus-stack { display: flex; flex-direction: column; gap: var(--sp-6); }
+
+  .compare-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: var(--sp-4); }
+  .compare-toolbar select { min-width: 160px; padding: 8px 10px; border-radius: var(--r-md); border: 1px solid rgba(7,22,13,0.12); }
+  .compare-cols {
+    display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4);
+  }
+  @media (max-width: 700px) { .compare-cols { grid-template-columns: 1fr; } }
+  .compare-col h3 { margin: 0 0 var(--sp-2); font-size: 14px; }
+  .compare-col table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .compare-col th, .compare-col td { text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(7,22,13,0.08); }
+  .compare-col th { background: rgba(7,22,13,0.04); }
+
+  .editor-placeholder { padding: var(--sp-6); text-align: center; color: var(--on-surface-variant); font-size: var(--type-caption); }
+
+  .print-only { display: none !important; }
+  @media print {
+    @page { margin: 12mm; }
+    body.studio-body aside.sidebar,
+    body.studio-body .studio-mobile-top,
+    body.studio-body .sidebar-backdrop,
+    main.studio-page .page-head,
+    main.studio-page .menus-shell,
+    main.studio-page .no-print,
+    main.studio-page .compare-toolbar,
+    main.studio-page .menus-compare > .toolbar-row {
+      display: none !important;
+    }
+    body.studio-body .studio-main {
+      width: 100% !important;
+    }
+    main.studio-page {
+      padding: 0 !important;
+    }
+    .print-only { display: block !important; }
+    .menus-compare {
+      box-shadow: none !important;
+      border: none !important;
+    }
+    .compare-cols { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+import { supabase } from '/src/supabase-client.js';
+import { applyTranslations, t } from '/src/i18n.js';
+import { computeRecipe } from '/src/recipe-compute.js';
+import { getMyRole, applyRoleGates, requireCan } from '/src/permissions.js';
+import { downloadWorkbook } from '/src/xlsx-export.js';
+
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+
+const ctx = await mountStudioShell({ active: 'menus', main });
+if (!ctx) throw new Error('No session/workspace');
+const wsId = ctx.workspace.id;
+const role = await getMyRole(wsId);
+
+let clusters = [];
+let dishes = [];
+let selectedId = null;
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function clusterDishIds(cl) {
+  const raw = cl?.dishes;
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const d of raw) {
+    if (typeof d === 'string') out.push(d);
+    else if (d && typeof d.id === 'string') out.push(d.id);
+  }
+  return out;
+}
+
+function dishByIdMap() {
+  const m = new Map();
+  for (const d of dishes) m.set(d.id, d);
+  return m;
+}
+
+function normRowKey(name, kind) {
+  const k = (String(kind || 'food').toLowerCase() === 'drink') ? 'drink' : 'food';
+  return `${k}|${String(name || '').trim().toLowerCase()}`;
+}
+
+function parseCSVLine(line) {
+  const out = [];
+  let cur = '';
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; continue; }
+    if (!inQ && c === ',') { out.push(cur.trim()); cur = ''; continue; }
+    cur += c;
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+function parseMenuCSV(text) {
+  const lines = text.trim().split(/\r?\n/).filter(l => l.trim().length);
+  if (!lines.length) return [];
+  const first = parseCSVLine(lines[0]);
+  const headerLike = first[0] && /^(name|dish|dish_name|ürün|urun|title|menu)$/i.test(first[0].replace(/^\ufeff/, ''));
+  const body = headerLike ? lines.slice(1) : lines;
+  return body.map(parseCSVLine).filter(r => r.some(c => c));
+}
+
+main.innerHTML = `
+  <div class="page-head">
+    <span class="eyebrow eyebrow-accent" data-i18n="menus.eyebrow">Menu grouping</span>
+    <h1 class="h1"><em data-i18n="menus.title_full">My menus</em></h1>
+    <p class="lead" data-i18n="menus.intro">Build menu clusters (breakfast, banquet, terrace) and attach saved recipes. Dashboard reads the same clusters. Import a dish list from CSV or compare two menus side by side.</p>
+  </div>
+
+  <div class="menus-stack">
+    <div class="menus-shell">
+      <aside class="menus-side">
+        <h2 data-i18n="menus.list_title">Menus in this workspace</h2>
+        <button type="button" class="btn btn-primary btn-block" id="btnNewMenu" data-require="menu_cluster_edit" style="margin-bottom:var(--sp-4)">
+          <span data-i18n="menus.new_menu">New menu</span>
+        </button>
+        <div id="clusterList"></div>
+      </aside>
+      <div class="menus-main">
+        <div class="menus-editor" id="editorPanel">
+          <div id="editorBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <section class="menus-compare">
+      <h2 data-i18n="menus.compare_title">Compare two menus</h2>
+      <div class="compare-toolbar">
+        <select id="cmpA" aria-label="Menu A"></select>
+        <span class="text-muted">vs</span>
+        <select id="cmpB" aria-label="Menu B"></select>
+        <button type="button" class="btn btn-outline btn-sm" id="cmpRun" data-i18n="menus.compare_run">Show</button>
+        <button type="button" class="btn btn-outline btn-sm no-print" id="cmpPrint" data-i18n="menus.compare_print">Print</button>
+      </div>
+      <div id="cmpOut" class="compare-cols"></div>
+      <div class="toolbar-row no-print" style="margin-top:var(--sp-5)">
+        <button type="button" class="btn btn-sm btn-outline" id="btnExportMenusJson"><span data-i18n="menus.export_json">Export all menus (JSON)</span></button>
+        <button type="button" class="btn btn-sm btn-outline" id="btnExportAllMenusXls"><span data-i18n="menus.export_all_xls">Export all menus (Excel)</span></button>
+        <span class="text-muted" style="font-size:11px;max-width:46ch" data-i18n="menus.export_json_hint">Backup menu names, tags, and linked dish IDs for this workspace.</span>
+      </div>
+    </section>
+  </div>
+`;
+
+async function load() {
+  const [cRes, dRes] = await Promise.all([
+    supabase.from('menu_clusters').select('*').eq('workspace_id', wsId).order('name'),
+    supabase.from('saved_dishes').select('id,name,kind,data').eq('workspace_id', wsId).order('name', { ascending: true }),
+  ]);
+  if (cRes.error) {
+    alert(cRes.error.message);
+    return;
+  }
+  if (dRes.error) {
+    alert(dRes.error.message);
+    return;
+  }
+  clusters = cRes.data || [];
+  dishes = dRes.data || [];
+  if (selectedId && !clusters.some(c => c.id === selectedId)) selectedId = null;
+  renderList();
+  renderEditor();
+  fillCompareSelects();
+  applyRoleGates(role, main);
+  applyTranslations();
+  runCompare();
+}
+
+function renderList() {
+  const host = main.querySelector('#clusterList');
+  if (!clusters.length) {
+    host.innerHTML = `<p class="text-muted" style="margin:0;font-size:var(--type-caption)" data-i18n="menus.list_empty">No menus yet. Create one to group recipes.</p>`;
+    applyTranslations();
+    return;
+  }
+  host.innerHTML = clusters.map(cl => {
+    const n = clusterDishIds(cl).length;
+    const sub = t('menus.list_count').replace('{n}', String(n));
+    return `<button type="button" class="cluster-row ${cl.id === selectedId ? 'active' : ''}" data-cid="${escapeHTML(cl.id)}">
+      <span class="ico">${escapeHTML(cl.icon || '🍽')}</span>
+      <span class="meta"><strong>${escapeHTML(cl.name)}</strong><span>${escapeHTML(sub)}</span></span>
+    </button>`;
+  }).join('');
+  host.querySelectorAll('[data-cid]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedId = btn.getAttribute('data-cid');
+      renderList();
+      renderEditor();
+    });
+  });
+}
+
+function kindLabel(kind) {
+  return kind === 'drink' ? t('recipes.kind_drink') : t('recipes.kind_food');
+}
+
+function renderEditor() {
+  const body = main.querySelector('#editorBody');
+  const cl = clusters.find(c => c.id === selectedId);
+  if (!cl) {
+    body.innerHTML = `<div class="editor-placeholder" data-i18n="menus.pick_menu">Select a menu on the left or create a new one.</div>`;
+    applyTranslations();
+    return;
+  }
+
+  const ids = new Set(clusterDishIds(cl));
+
+  body.innerHTML = `
+    <h2 data-i18n="menus.edit_title">Edit menu</h2>
+    <div class="form-grid">
+      <label><span data-i18n="menus.field_name">Name</span>
+        <input type="text" id="fName" value="${escapeHTML(cl.name)}" maxlength="120">
+      </label>
+      <label><span data-i18n="menus.field_type">Type</span>
+        <select id="fType">
+          ${['food','drinks','mixed'].map(v => `<option value="${v}" ${cl.type === v ? 'selected' : ''}>${escapeHTML(t('menus.type.' + v))}</option>`).join('')}
+        </select>
+      </label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">
+        <label><span data-i18n="menus.field_icon">Icon (emoji)</span>
+          <input type="text" id="fIcon" value="${escapeHTML(cl.icon || '🍽')}" maxlength="8">
+        </label>
+        <label><span data-i18n="menus.field_color">Color tag</span>
+          <select id="fColor">
+            ${[...new Set([cl.color || 'navy', 'navy', 'sage', 'gold', 'wine', 'forest'])].map(v => `<option value="${escapeHTML(v)}" ${(cl.color || 'navy') === v ? 'selected' : ''}>${escapeHTML(v)}</option>`).join('')}
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <label style="display:block;font-size:var(--type-caption);font-weight:600;margin-bottom:8px" data-i18n="menus.dishes_in_menu">Recipes in this menu</label>
+    <input type="search" class="dish-search" id="dishSearchQ" data-i18n-ph="menus.search_dishes">
+    <div class="dish-picker" id="dishPicker">
+      ${dishes.map(d => `
+        <label class="chk" data-q="${escapeHTML(`${String(d.name || '')} ${d.kind || ''}`.toLowerCase())}">
+          <input type="checkbox" value="${escapeHTML(d.id)}" ${ids.has(d.id) ? 'checked' : ''}>
+          <span class="chip ${d.kind === 'drink' ? 'chip-gold' : 'chip-mist'}" style="font-size:9px">${escapeHTML(kindLabel(d.kind))}</span>
+          ${escapeHTML(d.name)}
+        </label>
+      `).join('')}
+    </div>
+
+    <div class="toolbar-row">
+      <button type="button" class="btn btn-primary" id="btnSaveMenu" data-require="menu_cluster_edit"><span data-i18n="menus.save">Save menu</span></button>
+      <button type="button" class="btn btn-outline" id="btnExportCsv"><span data-i18n="menus.export_csv">Export dish list (CSV)</span></button>
+      <button type="button" class="btn btn-outline" id="btnExportXls"><span data-i18n="menus.export_xls">Export dish list (Excel)</span></button>
+      <button type="button" class="btn btn-outline" id="btnImportCsv" data-require="menu_cluster_edit"><span data-i18n="menus.import_csv">Import dish list (CSV)</span></button>
+      <input type="file" id="csvFile" accept=".csv,text/csv,text/plain" hidden>
+      <button type="button" class="btn btn-ghost" id="btnDelMenu" data-require="menu_cluster_delete" style="margin-left:auto"><span data-i18n="menus.delete">Delete menu</span></button>
+    </div>
+  `;
+
+  function filterDishPicker() {
+    const q = (body.querySelector('#dishSearchQ')?.value || '').trim().toLowerCase();
+    body.querySelectorAll('#dishPicker .chk').forEach(el => {
+      const hay = el.getAttribute('data-q') || '';
+      el.style.display = !q || hay.includes(q) ? '' : 'none';
+    });
+  }
+  body.querySelector('#dishSearchQ')?.addEventListener('input', filterDishPicker);
+
+  body.querySelector('#btnSaveMenu')?.addEventListener('click', saveSelected);
+  body.querySelector('#btnDelMenu')?.addEventListener('click', deleteSelected);
+  body.querySelector('#btnExportCsv')?.addEventListener('click', exportCsv);
+  body.querySelector('#btnExportXls')?.addEventListener('click', exportMenuXls);
+  body.querySelector('#btnImportCsv')?.addEventListener('click', () => body.querySelector('#csvFile')?.click());
+  body.querySelector('#csvFile')?.addEventListener('change', onCsvPicked);
+
+  applyRoleGates(role, body);
+  applyTranslations();
+  filterDishPicker();
+}
+
+async function saveSelected() {
+  if (!requireCan(role, 'menu_cluster_edit', t('menus.denied_edit'))) return;
+  const cl = clusters.find(c => c.id === selectedId);
+  if (!cl) return;
+  const name = (main.querySelector('#fName')?.value || '').trim();
+  if (!name) {
+    alert(t('menus.name_required'));
+    return;
+  }
+  const type = main.querySelector('#fType')?.value || 'mixed';
+  const icon = (main.querySelector('#fIcon')?.value || '🍽').trim().slice(0, 8);
+  const color = main.querySelector('#fColor')?.value || 'navy';
+  const checked = [...main.querySelectorAll('#dishPicker input[type=checkbox]:checked')].map(el => el.value);
+  const { error } = await supabase.from('menu_clusters').update({
+    name, type, icon, color, dishes: checked,
+  }).eq('id', cl.id).eq('workspace_id', wsId);
+  if (error) {
+    alert(error.message);
+    return;
+  }
+  await load();
+}
+
+async function deleteSelected() {
+  if (!requireCan(role, 'menu_cluster_delete', t('menus.denied_delete'))) return;
+  const cl = clusters.find(c => c.id === selectedId);
+  if (!cl) return;
+  if (!confirm(t('menus.delete_confirm').replace('{name}', cl.name))) return;
+  const { error } = await supabase.from('menu_clusters').delete().eq('id', cl.id).eq('workspace_id', wsId);
+  if (error) {
+    alert(error.message);
+    return;
+  }
+  selectedId = null;
+  await load();
+}
+
+function sheetNameSafe(name) {
+  return String(name || 'Menu').replace(/[\[\]\*\/\\\?\:]/g, '').trim().slice(0, 31) || 'Menu';
+}
+
+function dishRowsForCluster(cl) {
+  const dm = dishByIdMap();
+  const rows = [['dish_name', 'kind']];
+  for (const id of clusterDishIds(cl)) {
+    const d = dm.get(id);
+    if (d) rows.push([d.name, d.kind]);
+  }
+  return rows;
+}
+
+function exportCsv() {
+  const cl = clusters.find(c => c.id === selectedId);
+  if (!cl) return;
+  const rows = dishRowsForCluster(cl);
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `menu-${String(cl.name).replace(/[^\w\-]+/g, '_').slice(0, 40)}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 500);
+}
+
+function exportMenuXls() {
+  const cl = clusters.find(c => c.id === selectedId);
+  if (!cl) return;
+  const rows = dishRowsForCluster(cl);
+  const sn = sheetNameSafe(cl.name);
+  downloadWorkbook(`menu-${sn.replace(/\s+/g, '_')}.xls`, [{ name: sn, rows }]);
+}
+
+function exportAllMenusXls() {
+  if (!clusters.length) {
+    alert(t('menus.export_all_xls_empty'));
+    return;
+  }
+  const used = new Set();
+  const sheets = clusters.map((cl, idx) => {
+    const base = sheetNameSafe(cl.name) || `Menu ${idx + 1}`;
+    let name = base;
+    let n = 1;
+    while (used.has(name)) {
+      n++;
+      const suf = n === 2 ? ' 2' : ` ${n}`;
+      name = (base.slice(0, Math.max(1, 31 - suf.length)) + suf).trim() || `Menu ${idx + 1}`;
+    }
+    used.add(name);
+    return { name, rows: dishRowsForCluster(cl) };
+  });
+  downloadWorkbook('carta-all-menus.xls', sheets);
+}
+
+async function onCsvPicked(ev) {
+  if (!requireCan(role, 'menu_cluster_edit', t('menus.denied_edit'))) return;
+  const cl = clusters.find(c => c.id === selectedId);
+  const f = ev.target.files?.[0];
+  ev.target.value = '';
+  if (!f || !cl) return;
+  const text = await f.text();
+  const parsed = parseMenuCSV(text);
+  const keyToId = new Map(dishes.map(d => [normRowKey(d.name, d.kind), d.id]));
+  let matched = 0;
+  let missing = 0;
+  const next = new Set(clusterDishIds(cl));
+  for (const row of parsed) {
+    const name = (row[0] || '').replace(/^\ufeff/, '');
+    const kind = (row[1] || 'food').toLowerCase() === 'drink' ? 'drink' : 'food';
+    if (!name.trim()) continue;
+    const id = keyToId.get(normRowKey(name, kind));
+    if (id) {
+      next.add(id);
+      matched++;
+    } else missing++;
+  }
+  const { error } = await supabase.from('menu_clusters').update({ dishes: [...next] }).eq('id', cl.id).eq('workspace_id', wsId);
+  if (error) {
+    alert(error.message);
+    return;
+  }
+  alert(t('menus.import_result').replace('{m}', String(matched)).replace('{x}', String(missing)));
+  await load();
+  selectedId = cl.id;
+  renderList();
+  renderEditor();
+}
+
+async function createMenu() {
+  if (!requireCan(role, 'menu_cluster_edit', t('menus.denied_edit'))) return;
+  const { data, error } = await supabase.from('menu_clusters').insert({
+    workspace_id: wsId,
+    name: t('menus.new_menu_default'),
+    type: 'mixed',
+    color: 'navy',
+    icon: '🍽',
+    dishes: [],
+  }).select('id').single();
+  if (error) {
+    alert(error.message);
+    return;
+  }
+  selectedId = data.id;
+  await load();
+}
+
+function fillCompareSelects() {
+  const a = main.querySelector('#cmpA');
+  const b = main.querySelector('#cmpB');
+  const prevA = a?.value || '';
+  const prevB = b?.value || '';
+  const opts = `<option value="">${escapeHTML(t('menus.compare_pick'))}</option>` +
+    clusters.map(c => `<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join('');
+  a.innerHTML = opts;
+  b.innerHTML = opts;
+  if (prevA && [...a.options].some(o => o.value === prevA)) a.value = prevA;
+  if (prevB && [...b.options].some(o => o.value === prevB)) b.value = prevB;
+}
+
+function cmpRowsForCluster(cid) {
+  const cl = clusters.find(c => c.id === cid);
+  if (!cl) return [];
+  const dm = dishByIdMap();
+  return clusterDishIds(cl).map(id => {
+    const d = dm.get(id);
+    if (!d) return null;
+    const data = d.data || {};
+    const comp = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
+    return { name: d.name, kind: d.kind, kcal: Math.round(comp.perServing.kcal || 0) };
+  }).filter(Boolean);
+}
+
+function runCompare() {
+  const idA = main.querySelector('#cmpA')?.value || '';
+  const idB = main.querySelector('#cmpB')?.value || '';
+  const out = main.querySelector('#cmpOut');
+  if (!idA || !idB || idA === idB) {
+    out.innerHTML = `<p class="text-muted" style="margin:0;font-size:var(--type-caption)" data-i18n="menus.compare_hint">Pick two different menus.</p>`;
+    applyTranslations();
+    return;
+  }
+  const rowsA = cmpRowsForCluster(idA);
+  const rowsB = cmpRowsForCluster(idB);
+  const nameA = clusters.find(c => c.id === idA)?.name || 'A';
+  const nameB = clusters.find(c => c.id === idB)?.name || 'B';
+
+  function table(rows, title) {
+    const head = `<tr><th data-i18n="menus.cmp_dish">Dish</th><th data-i18n="menus.cmp_kind">Kind</th><th data-i18n="menus.cmp_kcal">kcal / serving</th></tr>`;
+    const body = rows.map(r => `<tr><td>${escapeHTML(r.name)}</td><td>${escapeHTML(kindLabel(r.kind))}</td><td>${r.kcal}</td></tr>`).join('');
+    return `<div class="compare-col"><h3>${escapeHTML(title)}</h3><table><thead>${head}</thead><tbody>${body || '<tr><td colspan="3" class="text-muted">—</td></tr>'}</tbody></table></div>`;
+  }
+  const sub = t('menus.cmp_print_sub').replace('{a}', nameA).replace('{b}', nameB);
+  out.innerHTML = `<p class="print-only cmp-print-title" style="margin:0 0 var(--sp-4);font-weight:600">${escapeHTML(sub)}</p>` +
+    table(rowsA, nameA) + table(rowsB, nameB);
+  applyTranslations();
+}
+
+function exportMenusJson() {
+  const payload = {
+    v: 1,
+    exported_at: new Date().toISOString(),
+    workspace_id: wsId,
+    menus: clusters.map(c => ({
+      name: c.name,
+      type: c.type,
+      color: c.color,
+      icon: c.icon,
+      dish_ids: clusterDishIds(c),
+    })),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'carta-menus-backup.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 500);
+}
+
+main.querySelector('#btnNewMenu').addEventListener('click', createMenu);
+main.querySelector('#cmpRun').addEventListener('click', runCompare);
+main.querySelector('#btnExportMenusJson').addEventListener('click', exportMenusJson);
+main.querySelector('#btnExportAllMenusXls').addEventListener('click', exportAllMenusXls);
+main.querySelector('#cmpPrint').addEventListener('click', () => window.print());
+
+applyTranslations();
+applyRoleGates(role, main);
+await load();
+
+document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+  setTimeout(() => {
+    applyTranslations();
+    renderList();
+    renderEditor();
+    fillCompareSelects();
+    runCompare();
+    applyRoleGates(role, main);
+  }, 0);
+});
+</script>
+</body>
+</html>
