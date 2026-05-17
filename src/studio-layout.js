@@ -43,7 +43,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   sidebar.innerHTML = `
     <div class="sidebar__head">
       <a href="/app/studio.html" class="logo" aria-label="Carta studio home">
-        <img src="/assets/carta-logo.png" alt="Carta" width="766" height="264">
+        <img src="/assets/carta-brand-vertical.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1536" height="1024" decoding="async">
       </a>
       <span class="role" id="sidebarWsName">${escapeHTML(ws.name)}</span>
       <button type="button" id="sidebarRailToggle" class="sidebar-rail-toggle" aria-pressed="false" aria-label="">
@@ -85,24 +85,28 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   mobileTop.className = 'studio-mobile-top';
   mobileTop.setAttribute('aria-label', 'Studio top bar');
   mobileTop.innerHTML = `
-    <button type="button" id="mobileMenuBtn"
-      class="btn btn-sm btn-ghost"
-      aria-label="Open navigation"
-      aria-controls="studioSidebar"
-      aria-expanded="false"
-      style="padding:8px 12px;min-height:44px;min-width:44px">
-      ${cartaIcon('menu', { size: 22 })}
-    </button>
-    <a href="/app/studio.html" class="site-logo" aria-label="Carta studio home" style="flex:1;justify-content:center;display:flex">
-      <img src="/assets/carta-logo.png" alt="Carta" width="766" height="264" style="height:26px">
+    <a href="/app/studio.html" class="site-logo studio-mobile-top__brand" aria-label="Carta studio home">
+      <img src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta" width="1024" height="1024">
     </a>
-    ${canSwitchProperty
-      ? `<a href="/app/" class="btn btn-sm btn-ghost" aria-label="Switch workspace" style="padding:8px 12px;min-height:44px;min-width:44px">
-        ${cartaIcon('swap_horiz', { size: 20 })}
-      </a>`
-      : `<button type="button" class="btn btn-sm btn-ghost" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}" style="padding:8px 12px;min-height:44px;min-width:44px">
-        ${cartaIcon('lock', { size: 20 })}
-      </button>`}
+    <span class="studio-mobile-top__spacer" aria-hidden="true"></span>
+    <span class="studio-mobile-top__rule" aria-hidden="true"></span>
+    <div class="studio-mobile-top__actions">
+      <button type="button" id="mobileMenuBtn"
+        class="btn btn-sm btn-ghost studio-mobile-top__menu"
+        aria-label="Open navigation"
+        aria-controls="studioSidebar"
+        aria-expanded="false"
+        style="padding:8px 12px;min-height:44px;min-width:44px">
+        ${cartaIcon('menu', { size: 22 })}
+      </button>
+      ${canSwitchProperty
+        ? `<a href="/app/" class="btn btn-sm btn-ghost studio-mobile-top__ws" aria-label="Switch workspace" style="padding:8px 12px;min-height:44px;min-width:44px">
+          ${cartaIcon('swap_horiz', { size: 20 })}
+        </a>`
+        : `<button type="button" class="btn btn-sm btn-ghost studio-mobile-top__ws" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}" style="padding:8px 12px;min-height:44px;min-width:44px">
+          ${cartaIcon('lock', { size: 20 })}
+        </button>`}
+    </div>
   `;
 
   // Backdrop for drawer

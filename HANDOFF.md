@@ -75,7 +75,15 @@ Repo root **is** the static site root. Vercel deploys the working tree as-is.
 │   └── tokens.css              Design tokens + shared components (modal, empty-state, data-table, etc.)
 │
 ├── assets/
-│   └── carta-logo.png
+│   ├── carta-brand-lockup-horizontal.png   # Primary lockup — marketing nav, footer, auth, studio mobile bar
+│   ├── carta-brand-vertical.png            # Studio sidebar wordmark + monogram
+│   ├── carta-brand-seal.png                # Oval monogram — hero accent; source for favicon / apple-touch
+│   ├── carta-brand-card.png                # Framed mark — landing closing section
+│   ├── carta-brand-guidelines-board.png    # Identity board — studio overview mast + designer reference
+│   ├── carta-brand-header-reference.png    # Header chrome mockup — studio overview mast + designer reference
+│   ├── carta-favicon.png                   # App icon (generated from seal)
+│   ├── carta-apple-touch-icon.png          # iOS homescreen (generated from seal)
+│   └── carta-logo.png                      # Legacy raster; prefer carta-brand-lockup-horizontal.png
 │
 └── supabase/                   Migration history (for reference; live migrations applied via MCP)
     ├── config.toml
@@ -83,6 +91,8 @@ Repo root **is** the static site root. Vercel deploys the working tree as-is.
     └── migrations/
         └── 20260514182927_initial_schema.sql
 ```
+
+**Brand rasters:** Exports often ship as **opaque black (#000) backdrops**, not transparency. Run **edge flood** (remove black connected to image edges only) before deploy so marks work on cream and forest surfaces. After replacing `carta-brand-seal.png`, run `python3 scripts/generate-brand-icons.py` (uniform scale only, no stretch; writes `carta-favicon.png` + `carta-apple-touch-icon.png`).
 
 ---
 
