@@ -60,7 +60,7 @@ create table if not exists public.menu_clusters (
   name text not null,
   type text default 'food' check (type in ('food','drinks','mixed')),
   color text default 'navy',
-  icon text default '🍽',
+  icon text default 'menu_fork_knife',
   dishes jsonb default '[]'::jsonb,
   created_at timestamptz default now()
 );
