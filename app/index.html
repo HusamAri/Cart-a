@@ -276,8 +276,9 @@ import { supabase, getSession } from '/src/supabase-client.js';
 import { signOut } from '/src/auth.js';
 import {
   listMyWorkspaces, listMyOrganizations, createWorkspace, createOrganization,
-  setActiveWorkspace, setActiveOrg,
+  setActiveWorkspace, setActiveOrg, getActiveWorkspaceId,
   listMembers, inviteMember, changeMemberRole, removeMember,
+  acceptWorkspaceInvite, storeInviteToken, readStoredInviteToken, consumeStoredInviteToken,
   deleteWorkspace, getWorkspaceArtifactCounts,
 } from '/src/workspaces.js';
 import { getMyRole, can, invalidateRoleCache } from '/src/permissions.js';
@@ -292,15 +293,60 @@ window.__cartaSignOut = signOut;
 const $ = id => document.getElementById(id);
 let orgs = [];
 let workspaces = [];
+const ADMIN_ORG_ROLES = new Set(['owner', 'admin']);
+
+function getInviteTokenFromUrl() {
+  const url = new URL(window.location.href);
+  return (url.searchParams.get('invite') || '').trim();
+}
+
+function removeInviteTokenFromUrl() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has('invite')) return;
+  url.searchParams.delete('invite');
+  const qs = url.searchParams.toString();
+  window.history.replaceState({}, '', url.pathname + (qs ? `?${qs}` : '') + url.hash);
+}
 
 async function boot() {
   await new Promise(r => setTimeout(r, 200));
+  const inviteFromUrl = getInviteTokenFromUrl();
+  if (inviteFromUrl) storeInviteToken(inviteFromUrl);
+
   const session = await getSession();
-  if (!session) { window.location.href = '/app/login.html'; return; }
+  if (!session) {
+    const inviteToken = readStoredInviteToken() || inviteFromUrl;
+    if (inviteToken) {
+      window.location.href = `/app/login.html?invite=${encodeURIComponent(inviteToken)}`;
+      return;
+    }
+    window.location.href = '/app/login.html';
+    return;
+  }
   $('userEmail').textContent = session.user.email;
+
+  let acceptedInviteWorkspaceId = null;
+  const pendingInviteToken = consumeStoredInviteToken();
+  if (pendingInviteToken) {
+    const inviteResult = await acceptWorkspaceInvite(pendingInviteToken);
+    if (inviteResult.ok) {
+      if (inviteResult.organization_id) setActiveOrg(inviteResult.organization_id);
+      if (inviteResult.workspace_id) setActiveWorkspace(inviteResult.workspace_id);
+      acceptedInviteWorkspaceId = inviteResult.workspace_id || null;
+      removeInviteTokenFromUrl();
+    } else {
+      // Keep app usable even if invite acceptance fails.
+      console.warn('acceptWorkspaceInvite failed:', inviteResult.error);
+    }
+  }
 
   [orgs, workspaces] = await Promise.all([listMyOrganizations(), listMyWorkspaces()]);
   $('screen-loading').hidden = true;
+
+  if (acceptedInviteWorkspaceId) {
+    window.location.href = '/app/studio.html';
+    return;
+  }
 
   // Auto-navigate: 1 org with exactly 1 workspace → go straight to studio
   if (orgs.length === 1 && workspaces.length === 1) {
@@ -332,9 +378,21 @@ function renderOrgGroups() {
   }
 
   const sections = [];
+  const renderedOrgIds = new Set();
   for (const org of orgs) {
     const ws = byOrg.get(org.id) || [];
     sections.push(renderOrgSection(org, ws, cl));
+    renderedOrgIds.add(org.id);
+  }
+  // Safety net: invited users can have workspace membership before org_members row exists.
+  // Render those organization buckets as well so workspace cards do not disappear.
+  for (const [orgId, ws] of byOrg.entries()) {
+    if (renderedOrgIds.has(orgId)) continue;
+    sections.push(renderOrgSection({
+      id: orgId,
+      name: ws[0]?.organization_name || t('ws.org_unknown') || 'Organization',
+      role: 'member',
+    }, ws, cl));
   }
   if (orphan.length) {
     sections.push(renderOrgSection({ name: '— Other —', role: 'unknown' }, orphan, cl));
@@ -344,12 +402,21 @@ function renderOrgGroups() {
 
   // Wire card clicks
   document.querySelectorAll('[data-ws-id]').forEach(el => {
-    el.addEventListener('click', (e) => {
+    el.addEventListener('click', async (e) => {
       // Ignore clicks on the manage button or its children
       if (e.target.closest('[data-manage]')) return;
       e.preventDefault();
       const ws = workspaces.find(w => w.id === el.getAttribute('data-ws-id'));
       if (!ws) return;
+
+      const role = await getMyRole(ws.id);
+      const activeWsId = getActiveWorkspaceId();
+      const isSwitchingWorkspace = !!activeWsId && activeWsId !== ws.id;
+      if (isSwitchingWorkspace && !can(role, 'property_switch')) {
+        alert(t('ws.property_switch_denied') || 'You are not allowed to switch properties.');
+        return;
+      }
+
       setActiveWorkspace(ws.id);
       if (ws.organization_id) setActiveOrg(ws.organization_id);
       window.location.href = '/app/studio.html';
@@ -419,6 +486,8 @@ function renderWsCard(w, cl) {
 // ============================================================
 function setupCreateFirstWorkspace() {
   const form = $('createForm');
+  if (form.dataset.boundCreateFirst === '1') return;
+  form.dataset.boundCreateFirst = '1';
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = $('wsName').value.trim();
@@ -437,12 +506,24 @@ function setupCreateFirstWorkspace() {
 
 function setupCreateMore() {
   const sel = $('wsOrg2');
+  const form = $('createForm2');
+  const createCard = form?.closest('.ws-create-card');
+  const manageableOrgs = orgs.filter(o => ADMIN_ORG_ROLES.has(o.role));
+
+  if (!form || !sel || !createCard) return;
+  if (!manageableOrgs.length) {
+    createCard.hidden = true;
+    return;
+  }
+
+  createCard.hidden = false;
   sel.innerHTML = `
-    ${orgs.map(o => `<option value="${escapeHTML(o.id)}">${escapeHTML(o.name)}</option>`).join('')}
+    ${manageableOrgs.map(o => `<option value="${escapeHTML(o.id)}">${escapeHTML(o.name)}</option>`).join('')}
     <option value="__new">＋ New organization…</option>
   `;
-  const form = $('createForm2');
-  form.addEventListener('submit', async (e) => {
+  if (form.dataset.boundCreateMore !== '1') {
+    form.dataset.boundCreateMore = '1';
+    form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = $('wsName2').value.trim();
     if (!name) return;
@@ -468,7 +549,8 @@ function setupCreateMore() {
     } else {
       $('createFlash2').innerHTML = `<div class="flash error">${escapeHTML(result.error)}</div>`;
     }
-  });
+    });
+  }
 }
 
 // ============================================================
@@ -600,10 +682,37 @@ async function openManageModal(ws) {
       inviteBtn.disabled = false;
       const flash = modal.querySelector('#inviteFlash');
       if (!result.ok) {
-        flash.innerHTML = `<div class="flash error">${escapeHTML(result.error === 'no_account' ? t('ws.invite_no_account') : (result.error || 'Error'))}</div>`;
+        let msg = result.error || 'Error';
+        if (msg === 'invite_link_flow_not_deployed') {
+          msg = t('ws.invite_migration_required') || 'Invite link flow is not deployed yet. Apply the latest Supabase migration first.';
+        }
+        flash.innerHTML = `<div class="flash error">${escapeHTML(msg)}</div>`;
         return;
       }
-      flash.innerHTML = `<div class="flash success">${escapeHTML(t('ws.invite_success'))} ${escapeHTML(email)}</div>`;
+      const inviteUrl = result.invite_url || '';
+      flash.innerHTML = `
+        <div class="flash success">${escapeHTML(t('ws.invite_success'))} ${escapeHTML(email)}</div>
+        ${inviteUrl ? `
+          <div style="margin-top:10px;padding:10px 12px;border:1px solid var(--outline-variant);border-radius:var(--r-lg);background:var(--surface-container-low)">
+            <label class="label" for="inviteLinkField" style="margin-bottom:6px">${escapeHTML(t('ws.invite_link') || 'Invite link')}</label>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
+              <input id="inviteLinkField" class="input" type="text" readonly value="${escapeHTML(inviteUrl)}">
+              <button type="button" class="btn btn-ghost btn-sm" id="copyInviteLinkBtn">${escapeHTML(t('ws.copy_link') || 'Copy')}</button>
+            </div>
+          </div>
+        ` : ''}
+      `;
+      const copyBtn = flash.querySelector('#copyInviteLinkBtn');
+      if (copyBtn && inviteUrl) {
+        copyBtn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(inviteUrl);
+            copyBtn.textContent = t('ws.copied') || 'Copied';
+          } catch (err) {
+            copyBtn.textContent = t('ws.copy_failed') || 'Copy failed';
+          }
+        });
+      }
       // Refresh members list
       const refreshed = await listMembers(ws.id);
       members.length = 0;

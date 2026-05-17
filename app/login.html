@@ -78,8 +78,15 @@
 <script type="module">
 import { sendMagicLink, signInWithPassword } from '/src/auth.js';
 import { getSession } from '/src/supabase-client.js';
+import { storeInviteToken, readStoredInviteToken } from '/src/workspaces.js';
 import { applyTranslations, t } from '/src/i18n.js';
 applyTranslations();
+
+const params = new URLSearchParams(window.location.search);
+const inviteToken = (params.get('invite') || '').trim();
+const prefillEmail = (params.get('email') || '').trim();
+if (inviteToken) storeInviteToken(inviteToken);
+const hasInviteToken = !!(inviteToken || readStoredInviteToken());
 
 (async () => {
   const session = await getSession();
@@ -93,6 +100,11 @@ const flash = document.getElementById('flash');
 const passwordRow = document.getElementById('passwordRow');
 const introCopy = document.getElementById('introCopy');
 const tabs = document.querySelectorAll('.mode-tabs [data-mode]');
+
+if (prefillEmail) document.getElementById('email').value = prefillEmail;
+if (hasInviteToken) {
+  flash.innerHTML = `<div class="flash success">${escapeHTML(t('ws.invite_link_opened') || 'Invitation detected. Continue with magic link or password.')}</div>`;
+}
 
 let mode = 'magic';
 
@@ -127,7 +139,7 @@ form.addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
     result = await signInWithPassword(email, password);
   } else {
-    result = await sendMagicLink(email, { allowSignup: false });
+    result = await sendMagicLink(email, { allowSignup: hasInviteToken ? true : false });
   }
 
   submitBtn.disabled = false;
@@ -144,6 +156,10 @@ form.addEventListener('submit', async (e) => {
     flash.innerHTML = `<div class="flash error">${result.error}</div>`;
   }
 });
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 </body>
 </html>

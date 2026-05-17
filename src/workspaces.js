@@ -3,6 +3,7 @@ import { supabase } from './supabase-client.js';
 
 const ACTIVE_WS_KEY = 'carta_active_workspace_id';
 const ACTIVE_ORG_KEY = 'carta_active_org_id';
+const INVITE_TOKEN_KEY = 'carta_invite_token';
 
 // ----- Organizations -----
 
@@ -41,20 +42,25 @@ export async function listMyWorkspaces(orgId = null) {
   // Returns workspaces I have direct membership in (workspace_members)
   const { data: directMembers, error: e1 } = await supabase
     .from('workspace_members')
-    .select('role, workspaces(id, name, slug, plan, currency, created_at, organization_id)')
+    .select('role, workspaces(id, name, slug, plan, currency, created_at, organization_id, organizations(name))')
     .order('joined_at', { ascending: false });
   if (e1) { console.error(e1); return []; }
-  let workspaces = (directMembers || []).map(r => ({ ...r.workspaces, role: r.role }));
+  let workspaces = (directMembers || [])
+    .map(r => normalizeWorkspaceRow(r.workspaces, r.role))
+    .filter(Boolean);
 
   // Also include workspaces from orgs I'm a member of (cross-facility via org_members)
   // RLS lets us SELECT workspaces if is_workspace_member is true (which now includes org membership)
   const { data: orgWorkspaces, error: e2 } = await supabase
     .from('workspaces')
-    .select('id, name, slug, plan, currency, created_at, organization_id');
+    .select('id, name, slug, plan, currency, created_at, organization_id, organizations(name)');
   if (!e2 && orgWorkspaces) {
     const known = new Set(workspaces.map(w => w.id));
     for (const w of orgWorkspaces) {
-      if (!known.has(w.id)) workspaces.push({ ...w, role: 'org_member' });
+      if (!known.has(w.id)) {
+        const normalized = normalizeWorkspaceRow(w, 'org_member');
+        if (normalized) workspaces.push(normalized);
+      }
     }
   }
   if (orgId) workspaces = workspaces.filter(w => w.organization_id === orgId);
@@ -164,13 +170,63 @@ export async function listMembers(wsId) {
 }
 
 export async function inviteMember(wsId, email, role = 'viewer') {
-  const { data, error } = await supabase.rpc('invite_member_by_email', {
+  const cleanEmail = (email || '').trim().toLowerCase();
+
+  // New flow: always produce an invite link so invited people do not need a pre-existing account.
+  const { data: inviteData, error: inviteError } = await supabase.rpc('create_workspace_invite', {
     ws_id: wsId,
-    invitee_email: email,
+    invitee_email: cleanEmail,
     invitee_role: role,
+    invite_base_url: `${window.location.origin}/app/signup.html`,
   });
+  if (!inviteError && inviteData?.ok) return inviteData;
+
+  const msg = (inviteError?.message || '').toLowerCase();
+  const missingInviteRpc =
+    inviteError?.code === '42883'
+    || inviteError?.code === 'PGRST202'
+    || msg.includes('create_workspace_invite')
+    || msg.includes('function public.create_workspace_invite');
+  if (missingInviteRpc) {
+    return { ok: false, error: 'invite_link_flow_not_deployed' };
+  }
+  if (inviteError) return { ok: false, error: inviteError.message };
+  return inviteData || { ok: false, error: 'unknown' };
+}
+
+export async function acceptWorkspaceInvite(inviteToken) {
+  const token = (inviteToken || '').trim();
+  if (!token) return { ok: false, error: 'missing_invite_token' };
+  const { data, error } = await supabase.rpc('accept_workspace_invite', { invite_token: token });
   if (error) return { ok: false, error: error.message };
   return data || { ok: false, error: 'unknown' };
+}
+
+export function storeInviteToken(token) {
+  const clean = (token || '').trim();
+  if (!clean) return;
+  try { localStorage.setItem(INVITE_TOKEN_KEY, clean); } catch (e) {}
+}
+
+export function readStoredInviteToken() {
+  try { return localStorage.getItem(INVITE_TOKEN_KEY); } catch (e) { return null; }
+}
+
+export function consumeStoredInviteToken() {
+  let token = null;
+  try {
+    token = localStorage.getItem(INVITE_TOKEN_KEY);
+    localStorage.removeItem(INVITE_TOKEN_KEY);
+  } catch (e) {}
+  return token;
+}
+
+function normalizeWorkspaceRow(workspace, role = null) {
+  if (!workspace) return null;
+  const orgRel = Array.isArray(workspace.organizations) ? workspace.organizations[0] : workspace.organizations;
+  const organizationName = orgRel?.name || workspace.organization_name || null;
+  const { organizations, ...rest } = workspace;
+  return { ...rest, organization_name: organizationName, role };
 }
 
 export async function changeMemberRole(wsId, userId, role) {
