@@ -86,6 +86,7 @@
     text-decoration: none; color: inherit;
     padding: var(--sp-2) 0;
   }
+  .ws-card { cursor: pointer; }
   .ws-card:hover { background: rgb(var(--sage-mist-rgb) / 0.45); box-shadow: var(--shadow-3); transform: translateY(-2px); }
   .ws-card:focus-within { outline: 2px solid var(--primary); outline-offset: 3px; }
   .ws-card__name {
@@ -431,13 +432,15 @@ function renderOrgGroups() {
 
   $('orgList').innerHTML = sections.join('');
 
-  // Wire card clicks
-  document.querySelectorAll('[data-ws-id]').forEach(el => {
+  // Wire card clicks (entire card, not only the left link — rail/arrow was dead space before)
+  document.querySelectorAll('.ws-card[data-ws-id]').forEach(el => {
     el.addEventListener('click', async (e) => {
+      if (e.target.closest('button')) return;
       if (e.target.closest('[data-manage]')) return;
       if (e.target.closest('[data-copy-ws]')) return;
       e.preventDefault();
-      const ws = workspaces.find(w => w.id === el.getAttribute('data-ws-id'));
+      const wsId = el.getAttribute('data-ws-id');
+      const ws = workspaces.find(w => w.id === wsId);
       if (!ws) return;
 
       const role = await getMyRole(ws.id);
@@ -511,8 +514,8 @@ function renderWsCard(w, cl) {
   const dateStr = w.created_at ? new Date(w.created_at).toLocaleDateString(cl==='tr'?'tr-TR':'en-GB') : '';
   const roleLabel = w.role ? (t('ws.role_' + w.role) || w.role.toUpperCase()) : '';
   return `
-    <article class="ws-card">
-      <a href="/app/studio.html" data-ws-id="${escapeHTML(w.id)}" class="ws-card__link">
+    <article class="ws-card" data-ws-id="${escapeHTML(w.id)}">
+      <a href="/app/studio.html" class="ws-card__link">
         <div>
           <h3 class="ws-card__name">${escapeHTML(w.name)}</h3>
           <div class="ws-card__meta">
