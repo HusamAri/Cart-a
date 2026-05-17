@@ -139,7 +139,11 @@ form.addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
     result = await signInWithPassword(email, password);
   } else {
-    result = await sendMagicLink(email, { allowSignup: hasInviteToken ? true : false });
+    const tokenForRedirect = inviteToken || readStoredInviteToken() || '';
+    result = await sendMagicLink(email, {
+      allowSignup: hasInviteToken ? true : false,
+      inviteToken: tokenForRedirect,
+    });
   }
 
   submitBtn.disabled = false;

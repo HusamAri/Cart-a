@@ -278,7 +278,7 @@ import {
   listMyWorkspaces, listMyOrganizations, createWorkspace, createOrganization,
   setActiveWorkspace, setActiveOrg, getActiveWorkspaceId,
   listMembers, inviteMember, changeMemberRole, removeMember,
-  acceptWorkspaceInvite, storeInviteToken, readStoredInviteToken, consumeStoredInviteToken,
+  acceptWorkspaceInvite, storeInviteToken, readStoredInviteToken,
   deleteWorkspace, getWorkspaceArtifactCounts,
 } from '/src/workspaces.js';
 import { getMyRole, can, invalidateRoleCache } from '/src/permissions.js';
@@ -309,10 +309,10 @@ function removeInviteTokenFromUrl() {
 }
 
 async function boot() {
-  await new Promise(r => setTimeout(r, 200));
   const inviteFromUrl = getInviteTokenFromUrl();
   if (inviteFromUrl) storeInviteToken(inviteFromUrl);
 
+  await new Promise(r => setTimeout(r, 200));
   const session = await getSession();
   if (!session) {
     const inviteToken = readStoredInviteToken() || inviteFromUrl;
@@ -326,16 +326,24 @@ async function boot() {
   $('userEmail').textContent = session.user.email;
 
   let acceptedInviteWorkspaceId = null;
-  const pendingInviteToken = consumeStoredInviteToken();
+  const pendingInviteToken = readStoredInviteToken();
   if (pendingInviteToken) {
     const inviteResult = await acceptWorkspaceInvite(pendingInviteToken);
     if (inviteResult.ok) {
+      try { localStorage.removeItem('carta_invite_token'); } catch (e) {}
       if (inviteResult.organization_id) setActiveOrg(inviteResult.organization_id);
       if (inviteResult.workspace_id) setActiveWorkspace(inviteResult.workspace_id);
       acceptedInviteWorkspaceId = inviteResult.workspace_id || null;
       removeInviteTokenFromUrl();
     } else {
-      // Keep app usable even if invite acceptance fails.
+      const why = inviteResult.error || '';
+      const stale =
+        why === 'invite_not_found_or_expired'
+        || (typeof why === 'string' && /not_found|expired/i.test(why));
+      if (stale) {
+        try { localStorage.removeItem('carta_invite_token'); } catch (e) {}
+        removeInviteTokenFromUrl();
+      }
       console.warn('acceptWorkspaceInvite failed:', inviteResult.error);
     }
   }

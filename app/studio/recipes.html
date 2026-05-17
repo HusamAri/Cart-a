@@ -217,18 +217,18 @@
   .ing-row .rm-btn:hover { background: var(--error-container); color: var(--on-error-container); }
   .ing-row .rm-btn:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
 
-  /* Autocomplete dropdown */
+  /* Autocomplete — fixed to viewport in JS so modal overflow does not clip it */
   .ac-dropdown {
-    position: absolute;
-    top: calc(100% + 4px); left: 0; right: calc(40px + 110px + 100px + 24px);
+    position: fixed;
+    left: 0; top: 0;
+    min-width: 120px;
     background: var(--surface-container-lowest);
     border: var(--glass-border);
     border-radius: var(--r-lg);
     box-shadow: var(--shadow-2);
     max-height: 200px; overflow-y: auto;
-    z-index: 5;
+    z-index: 10050;
   }
-  @media (max-width: 600px) { .ac-dropdown { right: 0; } }
   .ac-item {
     padding: 10px 14px;
     cursor: pointer;
@@ -703,9 +703,17 @@ function buildIngRow(ing, editAction) {
       </button>
     </div>
   `;
-  // Wire autocomplete
+  // Wire autocomplete (fixed layer: avoids .modal__form overflow clipping)
   const nameInput = row.querySelector('.ing-name');
   let dropdown;
+  let acOnScrollOrResize;
+  function syncACPosition() {
+    if (!dropdown) return;
+    const r = nameInput.getBoundingClientRect();
+    dropdown.style.left = `${Math.max(8, r.left)}px`;
+    dropdown.style.top = `${r.bottom + 4}px`;
+    dropdown.style.width = `${Math.min(r.width, window.innerWidth - 16)}px`;
+  }
   nameInput.addEventListener('input', () => {
     const q = nameInput.value.trim();
     if (!q) { closeAC(); return; }
@@ -735,9 +743,18 @@ function buildIngRow(ing, editAction) {
         });
       });
     }
-    row.querySelector('.col-name').appendChild(dropdown);
+    document.body.appendChild(dropdown);
+    syncACPosition();
+    acOnScrollOrResize = () => { closeAC(); };
+    window.addEventListener('scroll', acOnScrollOrResize, true);
+    window.addEventListener('resize', acOnScrollOrResize);
   }
   function closeAC() {
+    if (acOnScrollOrResize) {
+      window.removeEventListener('scroll', acOnScrollOrResize, true);
+      window.removeEventListener('resize', acOnScrollOrResize);
+      acOnScrollOrResize = null;
+    }
     if (dropdown) { dropdown.remove(); dropdown = null; }
   }
   // Remove

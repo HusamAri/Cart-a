@@ -422,10 +422,18 @@ function buildEditorEl(entry) {
     </div>
   `;
 
-  // Autocomplete on name (only for new entries)
+  // Autocomplete on name (only for new entries) — fixed + body so modal overflow does not clip
   if (!isEdit) {
     const nameInput = wrap.querySelector('#editName');
     let dropdown;
+    let acOnScrollOrResize;
+    function positionDropdown() {
+      if (!dropdown) return;
+      const r = nameInput.getBoundingClientRect();
+      dropdown.style.left = `${Math.max(8, r.left)}px`;
+      dropdown.style.top = `${r.bottom + 4}px`;
+      dropdown.style.width = `${Math.min(r.width, window.innerWidth - 16)}px`;
+    }
     nameInput.addEventListener('input', () => {
       const q = nameInput.value.trim();
       if (!q) { closeAC(); return; }
@@ -433,21 +441,32 @@ function buildEditorEl(entry) {
       closeAC();
       if (!suggestions.length) return;
       dropdown = document.createElement('div');
-      dropdown.style.cssText = 'position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface-container-lowest);border:var(--glass-border);border-radius:var(--r-lg);box-shadow:var(--shadow-2);max-height:200px;overflow-y:auto;z-index:5';
+      dropdown.style.cssText = 'position:fixed;z-index:10050;background:var(--surface-container-lowest);border:var(--glass-border);border-radius:var(--r-lg);box-shadow:var(--shadow-2);max-height:200px;overflow-y:auto';
       dropdown.innerHTML = suggestions.map(s => `<div style="padding:10px 14px;cursor:pointer;font-size:var(--type-caption)" role="option" data-name="${escapeHTML(s)}">${escapeHTML(s)}</div>`).join('');
       dropdown.querySelectorAll('[data-name]').forEach(item => {
-        item.addEventListener('mouseenter', () => item.style.background = 'var(--surface-container)');
-        item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+        item.addEventListener('mouseenter', () => { item.style.background = 'var(--surface-container)'; });
+        item.addEventListener('mouseleave', () => { item.style.background = 'transparent'; });
         item.addEventListener('mousedown', (ev) => {
           ev.preventDefault();
           nameInput.value = item.getAttribute('data-name');
           closeAC();
         });
       });
-      nameInput.parentElement.appendChild(dropdown);
+      document.body.appendChild(dropdown);
+      positionDropdown();
+      acOnScrollOrResize = () => { closeAC(); };
+      window.addEventListener('scroll', acOnScrollOrResize, true);
+      window.addEventListener('resize', acOnScrollOrResize);
     });
     nameInput.addEventListener('blur', () => setTimeout(closeAC, 150));
-    function closeAC() { if (dropdown) { dropdown.remove(); dropdown = null; } }
+    function closeAC() {
+      if (acOnScrollOrResize) {
+        window.removeEventListener('scroll', acOnScrollOrResize, true);
+        window.removeEventListener('resize', acOnScrollOrResize);
+        acOnScrollOrResize = null;
+      }
+      if (dropdown) { dropdown.remove(); dropdown = null; }
+    }
   }
 
   // Compute "effective per gram" hint

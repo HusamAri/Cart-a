@@ -43,7 +43,7 @@
 <script type="module">
 import { sendMagicLink } from '/src/auth.js';
 import { getSession } from '/src/supabase-client.js';
-import { storeInviteToken } from '/src/workspaces.js';
+import { storeInviteToken, readStoredInviteToken } from '/src/workspaces.js';
 import { applyTranslations, t } from '/src/i18n.js';
 applyTranslations();
 
@@ -74,7 +74,8 @@ form.addEventListener('submit', async (e) => {
   submitLabel.innerHTML = '<span class="spinner"></span> ' + t('auth.sending');
   flash.innerHTML = '';
 
-  const result = await sendMagicLink(email, { allowSignup: true });
+  const tokenForRedirect = inviteToken || readStoredInviteToken() || '';
+  const result = await sendMagicLink(email, { allowSignup: true, inviteToken: tokenForRedirect });
 
   submitBtn.disabled = false;
   submitLabel.textContent = t('auth.send_link');
