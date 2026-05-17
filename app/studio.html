@@ -57,13 +57,16 @@
     display: flex; flex-direction: column; gap: var(--sp-4);
     min-height: 220px;
     text-decoration: none; color: inherit;
-    transition: transform var(--dur-2) var(--ease-linear-out),
-                background var(--dur-2),
-                box-shadow var(--dur-2);
+    transition:
+      transform 0.48s var(--ease),
+      background 0.48s var(--ease),
+      box-shadow 0.48s var(--ease),
+      border-color 0.35s var(--ease);
   }
   .module-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
     box-shadow: var(--shadow-3);
+    border-color: rgba(7,22,13,0.14);
   }
   .module-card:focus-visible {
     outline: 2px solid var(--tertiary-container);
@@ -95,8 +98,8 @@
   }
   .module-card__desc {
     font-family: var(--font-sans); font-size: var(--type-caption);
-    line-height: 1.5;
-    opacity: 0.85;
+    line-height: 1.62;
+    opacity: 0.88;
     margin: 0;
   }
   .module-card__cta {
@@ -106,7 +109,7 @@
     font-size: var(--type-label-sm);
     letter-spacing: var(--track-caps); text-transform: uppercase;
   }
-  .module-card__cta .arrow { transition: transform var(--dur-2); }
+  .module-card__cta .arrow { transition: transform 0.45s var(--ease); }
   .module-card:hover .module-card__cta .arrow { transform: translateX(6px); }
   .module-card__cta-coming {
     margin-top: auto;
@@ -245,6 +248,16 @@ main.innerHTML = `
       <span class="module-card__num">06 — Surface</span>
       <h2 class="module-card__name" data-i18n="studio.m_surface">The output</h2>
       <p class="module-card__desc" data-i18n="studio.d_surface">Bilingual EN/TR. Excel import, PDF/PNG export.</p>
+      <span class="module-card__cta">
+        <span data-i18n="studio.open">Open</span> <span class="arrow">→</span>
+      </span>
+    </a>
+
+    <a class="module-card" href="/app/studio/capabilities.html">
+      <span class="module-card__icon"><span class="material-symbols-outlined">table_chart</span></span>
+      <span class="module-card__num" data-i18n="cap.eyebrow">Agents</span>
+      <h2 class="module-card__name" data-i18n="studio.m_capabilities">Capability map</h2>
+      <p class="module-card__desc" data-i18n="studio.d_capabilities">UI actions vs planned agent tools. Export JSON for MCP and parity reviews.</p>
       <span class="module-card__cta">
         <span data-i18n="studio.open">Open</span> <span class="arrow">→</span>
       </span>

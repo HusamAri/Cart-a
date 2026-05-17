@@ -1,5 +1,6 @@
 // Carta — Recipe compute (Atwater, unit conversion, allergens, diet tags)
 import { NUTRIENT_DB, lookupNutrient, turkNorm } from './nutrient-db.js';
+import { emissionIntensityKgCo2ePerKg } from './carbon-factors.js';
 
 // ---- Atwater general factors (TGK Ek-10 §3.3) -----------------
 // Energy = 4·P + 4·C + 9·F + 2·Fi + 7·ethanol  (kcal per gram)
@@ -94,6 +95,25 @@ export function computeRecipe(recipe) {
     perServing,
     allergens: [...allergens].sort(),
     dietTags: deriveDietTags(ings, [...allergens]),
+  };
+}
+
+/** GHG proxy: kg CO2e for full recipe and per serving (literature-tier factors, not a full LCA). */
+export function computeRecipeClimate(recipe) {
+  const ings = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+  const servings = Math.max(1, Number(recipe.servings) || 1);
+  let totalKgCo2e = 0;
+  for (const i of ings) {
+    const grams = toGrams(i.amount, i.unit, i.name);
+    if (!grams) continue;
+    const intensity = emissionIntensityKgCo2ePerKg(i.name);
+    totalKgCo2e += (grams / 1000) * intensity;
+  }
+  const perServing = totalKgCo2e / servings;
+  return {
+    totalKgCo2e,
+    perServingKgCo2e: perServing,
+    perServingGCo2e: perServing * 1000,
   };
 }
 

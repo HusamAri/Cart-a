@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capability map · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.40) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.18) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page { padding: var(--sp-7) var(--margin-desktop) var(--sp-10); flex: 1; overflow-y: auto; }
+  @media (max-width: 900px) { .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); } }
+
+  .page-head { max-width: 1200px; margin: 0 auto var(--sp-6); }
+  .page-head .eyebrow { margin-bottom: var(--sp-3); }
+  .page-head h1 { margin: 0 0 var(--sp-3); }
+  .page-head .lead { margin: 0; max-width: 72ch; }
+
+  .cap-toolbar {
+    max-width: 1200px; margin: 0 auto var(--sp-5);
+    display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: flex-end;
+  }
+  .cap-toolbar label {
+    display: block; font-size: 10px; font-weight: 600; letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant); margin-bottom: 4px;
+  }
+  .cap-toolbar select { min-width: 220px; padding: 10px 14px; border-radius: var(--r-lg); border: var(--glass-border); background: rgba(255,255,255,0.9); font-family: var(--font-sans); }
+  .cap-toolbar .grow { flex: 1; min-width: 120px; }
+
+  .cap-card {
+    max-width: 1200px; margin: 0 auto var(--sp-6);
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+    overflow: auto;
+  }
+  .cap-card table { width: 100%; border-collapse: collapse; min-width: 960px; }
+  .cap-card thead th {
+    text-align: left; font-size: 11px; letter-spacing: var(--track-caps); text-transform: uppercase;
+    color: var(--on-surface-variant); padding: 14px var(--sp-4);
+    border-bottom: 1px solid var(--outline-variant); background: var(--surface-container-low);
+    font-weight: 600; white-space: nowrap;
+  }
+  .cap-card tbody td {
+    padding: 12px var(--sp-4); border-bottom: 1px solid var(--outline-variant);
+    font-size: var(--type-caption); vertical-align: top;
+  }
+  .cap-card tbody tr:last-child td { border-bottom: 0; }
+  .cap-card code {
+    font-family: ui-monospace, monospace; font-size: 11px;
+    background: rgba(7,22,13,0.06); padding: 2px 6px; border-radius: var(--r-pill);
+  }
+  .cap-status {
+    display: inline-block; padding: 4px 10px; border-radius: var(--r-pill);
+    font-size: 10px; font-weight: 700; letter-spacing: var(--track-caps); text-transform: uppercase;
+  }
+  .cap-status--missing { background: rgba(183, 28, 28, 0.12); color: #8c1d18; }
+  .cap-status--partial { background: rgba(191, 144, 0, 0.18); color: #6b5300; }
+  .cap-status--na { background: rgba(7, 22, 13, 0.08); color: var(--on-surface-variant); }
+
+  .cap-foot { max-width: 1200px; margin: 0 auto; font-size: var(--type-caption); color: var(--on-surface-variant); max-width: 72ch; }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+import {
+  CAPABILITY_ROWS,
+  CAPABILITY_MODULES,
+  buildCapabilityMapExport,
+  getModuleById,
+} from '/src/capability-map.js';
+import { applyTranslations, t } from '/src/i18n.js';
+
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+
+const ctx = await mountStudioShell({ active: 'capabilities', main });
+if (!ctx) throw new Error('No session/workspace');
+
+main.innerHTML = `
+  <div class="page-head">
+    <span class="eyebrow eyebrow-accent" data-i18n="cap.eyebrow">Agents</span>
+    <h1 class="h1"><em data-i18n="cap.title">Capability</em> <span data-i18n="cap.title_em">map</span></h1>
+    <p class="lead" data-i18n="cap.intro">UI actions mapped to planned agent primitives. Carta today is browser + Supabase; tools are not live yet. Use JSON for MCP prompts or parity reviews.</p>
+  </div>
+
+  <div class="cap-toolbar">
+    <div>
+      <label for="capModFilter" data-i18n="cap.filter_module">Module</label>
+      <select id="capModFilter" aria-label="Filter by module"></select>
+    </div>
+    <div class="grow"></div>
+    <button type="button" class="btn btn-accent btn-sm" id="capDlJson" data-i18n="cap.download_json">Download JSON</button>
+  </div>
+
+  <div class="cap-card">
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="cap.col_module">Module</th>
+          <th data-i18n="cap.col_action">UI action</th>
+          <th data-i18n="cap.col_location">Location</th>
+          <th data-i18n="cap.col_permission">Permission</th>
+          <th data-i18n="cap.col_tool">Suggested tools</th>
+          <th data-i18n="cap.col_prompt">Prompt hint</th>
+          <th data-i18n="cap.col_status">Status</th>
+        </tr>
+      </thead>
+      <tbody id="capTbody"></tbody>
+    </table>
+  </div>
+
+  <p class="cap-foot" data-i18n="cap.footer">When you add UI actions, update /src/capability-map.js in the same change set.</p>
+`;
+
+const modSelect = main.querySelector('#capModFilter');
+CAPABILITY_MODULES.forEach(m => {
+  const opt = document.createElement('option');
+  opt.value = m.id;
+  opt.setAttribute('data-cap-mod', m.id);
+  opt.textContent = m.id;
+  modSelect.appendChild(opt);
+});
+const allOpt = document.createElement('option');
+allOpt.value = '';
+allOpt.setAttribute('data-i18n', 'cap.all_modules');
+allOpt.textContent = 'All modules';
+modSelect.insertBefore(allOpt, modSelect.firstChild);
+modSelect.value = '';
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function syncModuleOptionLabels() {
+  modSelect.querySelectorAll('option[data-cap-mod]').forEach(opt => {
+    const id = opt.getAttribute('data-cap-mod');
+    opt.textContent = t(`cap.mod.${id}`) || id;
+  });
+}
+
+function statusClass(st) {
+  if (st === 'partial') return 'cap-status--partial';
+  if (st === 'na') return 'cap-status--na';
+  return 'cap-status--missing';
+}
+
+function renderRows() {
+  const f = modSelect.value;
+  const rows = f ? CAPABILITY_ROWS.filter(r => r.moduleId === f) : CAPABILITY_ROWS;
+  const tb = main.querySelector('#capTbody');
+  tb.innerHTML = rows.map(r => {
+    const mod = getModuleById(r.moduleId);
+    const modLabel = t(`cap.mod.${r.moduleId}`) || r.moduleId;
+    const note = r.notes ? `<br><span class="text-muted" style="font-size:11px">${escapeHTML(r.notes)}</span>` : '';
+    return `<tr>
+      <td><strong>${escapeHTML(modLabel)}</strong><br><span class="text-muted" style="font-size:11px">${escapeHTML(mod.path)}</span></td>
+      <td>${escapeHTML(r.uiAction)}</td>
+      <td>${escapeHTML(r.location)}</td>
+      <td>${r.permission ? `<code>${escapeHTML(r.permission)}</code>` : '—'}</td>
+      <td><code style="white-space:pre-wrap">${escapeHTML(r.tool)}</code></td>
+      <td>${escapeHTML(r.promptHint)}${note}</td>
+      <td><span class="cap-status ${statusClass(r.status)}">${escapeHTML(t(`cap.status_${r.status}`))}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+applyTranslations();
+syncModuleOptionLabels();
+renderRows();
+
+modSelect.addEventListener('change', renderRows);
+
+main.querySelector('#capDlJson').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(buildCapabilityMapExport(), null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `carta-capability-map-v${buildCapabilityMapExport().version}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+  setTimeout(() => {
+    applyTranslations();
+    syncModuleOptionLabels();
+    renderRows();
+  }, 0);
+});
+</script>
+</body>
+</html>

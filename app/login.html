@@ -70,14 +70,14 @@
 
   <p style="font-size:var(--type-caption);color:var(--on-surface-variant);margin:0">
     <span data-i18n="auth.no_account">Don't have an account?</span>
-    <a href="/app/signup.html" style="color:var(--primary);font-weight:600;margin-left:6px" data-i18n="auth.signup_link">Begin →</a>
+    <a href="/app/signup.html" id="authSignupLink" style="color:var(--primary);font-weight:600;margin-left:6px" data-i18n="auth.signup_link">Begin →</a>
   </p>
 </form>
 </main>
 
 <script type="module">
 import { sendMagicLink, signInWithPassword } from '/src/auth.js';
-import { getSession } from '/src/supabase-client.js';
+import { getSessionAfterUrlAuth } from '/src/supabase-client.js';
 import { storeInviteToken, readStoredInviteToken } from '/src/workspaces.js';
 import { applyTranslations, t } from '/src/i18n.js';
 applyTranslations();
@@ -88,9 +88,21 @@ const prefillEmail = (params.get('email') || '').trim();
 if (inviteToken) storeInviteToken(inviteToken);
 const hasInviteToken = !!(inviteToken || readStoredInviteToken());
 
+(() => {
+  const token = inviteToken || readStoredInviteToken() || '';
+  const qp = new URLSearchParams();
+  if (token) qp.set('invite', token);
+  if (prefillEmail) qp.set('email', prefillEmail);
+  const q = qp.toString();
+  const el = document.getElementById('authSignupLink');
+  if (el) el.href = '/app/signup.html' + (q ? `?${q}` : '');
+})();
+
 (async () => {
-  const session = await getSession();
-  if (session) window.location.href = '/app/';
+  const session = await getSessionAfterUrlAuth();
+  if (!session) return;
+  const token = inviteToken || readStoredInviteToken() || '';
+  window.location.replace(token ? `/app/?invite=${encodeURIComponent(token)}` : '/app/');
 })();
 
 const form = document.getElementById('loginForm');
@@ -151,7 +163,8 @@ form.addEventListener('submit', async (e) => {
 
   if (result.ok) {
     if (mode === 'password') {
-      window.location.href = '/app/';
+      const tok = inviteToken || readStoredInviteToken() || '';
+      window.location.replace(tok ? `/app/?invite=${encodeURIComponent(tok)}` : '/app/');
     } else {
       form.querySelectorAll('input, button').forEach(el => el.disabled = true);
       flash.innerHTML = `<div class="flash success">${t('auth.check_inbox')} <strong>${result.email}</strong>.</div>`;
@@ -165,5 +178,6 @@ function escapeHTML(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
+<script type="module" src="/src/page-motion.js"></script>
 </body>
 </html>

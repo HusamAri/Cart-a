@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activity log · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.40) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.18) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page { padding: var(--sp-7) var(--margin-desktop) var(--sp-10); flex: 1; overflow-y: auto; }
+  @media (max-width: 900px) { .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); } }
+  .page-head { max-width: 1080px; margin: 0 auto var(--sp-7); }
+  .page-head .eyebrow { margin-bottom: var(--sp-3); }
+  .page-head h1 { margin: 0 0 var(--sp-3); }
+  .page-head .lead { margin: 0; max-width: 62ch; }
+
+  .audit-toolbar {
+    max-width: 1080px; margin: 0 auto var(--sp-5);
+    display: flex; flex-wrap: wrap; gap: var(--sp-4); align-items: flex-end;
+  }
+  .audit-toolbar label { display: block; font-size: 10px; font-weight: 600; letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--on-surface-variant); margin-bottom: 4px; }
+  .audit-toolbar select { min-width: 200px; padding: 10px 14px; border-radius: var(--r-lg); border: var(--glass-border); background: rgba(255,255,255,0.9); font-family: var(--font-sans); }
+
+  .audit-card {
+    max-width: 1080px; margin: 0 auto;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+    overflow: hidden;
+  }
+  .audit-card table { width: 100%; border-collapse: collapse; }
+  .audit-card thead th {
+    text-align: left;
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: 11px; letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant);
+    padding: 14px var(--sp-4);
+    border-bottom: 1px solid var(--outline-variant);
+    background: var(--surface-container-low);
+  }
+  .audit-card tbody td {
+    padding: 12px var(--sp-4);
+    border-bottom: 1px solid var(--outline-variant);
+    font-family: var(--font-sans);
+    font-size: var(--type-caption);
+    vertical-align: top;
+  }
+  .audit-card tbody tr:last-child td { border-bottom: 0; }
+  .col-when { font-family: var(--font-display); font-style: italic; color: var(--primary); white-space: nowrap; }
+  .col-type code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    background: rgba(7,22,13,0.06);
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+  }
+  .col-count { font-variant-numeric: tabular-nums; text-align: right; }
+  .col-actor { font-family: ui-monospace, monospace; font-size: 11px; color: var(--on-surface-variant); }
+
+  .audit-empty {
+    max-width: 520px; margin: var(--sp-10) auto;
+    text-align: center;
+    padding: var(--sp-8);
+    background: rgba(255,255,255,0.8);
+    border-radius: var(--r-2xl);
+    border: var(--glass-border);
+  }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+import { supabase } from '/src/supabase-client.js';
+import { applyTranslations, t, getLang } from '/src/i18n.js';
+
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+
+const ctx = await mountStudioShell({ active: 'audit', main });
+if (!ctx) throw new Error('No session/workspace');
+const ws = ctx.workspace;
+const wsId = ws.id;
+
+let allRows = [];
+let typeFilter = '';
+
+main.innerHTML = `
+  <div class="page-head">
+    <span class="eyebrow eyebrow-accent" data-i18n="activity.eyebrow">Compliance</span>
+    <h1 class="h1"><em data-i18n="activity.title">Activity</em> <span data-i18n="activity.title_em">log</span></h1>
+    <p class="lead" data-i18n="activity.intro">Workspace-scoped audit entries (type, note, quantity). Rows appear when upstream features write to the audit log.</p>
+  </div>
+
+  <div class="audit-toolbar">
+    <div>
+      <label for="auditTypeFilter" data-i18n="activity.filter_type">Event type</label>
+      <select id="auditTypeFilter"></select>
+    </div>
+    <button type="button" class="btn btn-accent btn-sm" id="auditRefresh" data-i18n="activity.refresh">Refresh</button>
+  </div>
+
+  <div id="auditRoot"></div>
+`;
+
+applyTranslations();
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function formatWhen(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    const loc = getLang() === 'tr' ? 'tr-TR' : undefined;
+    return d.toLocaleString(loc, { dateStyle: 'medium', timeStyle: 'short' });
+  } catch {
+    return String(iso);
+  }
+}
+
+function shortActor(uid) {
+  if (!uid) return '—';
+  const s = String(uid);
+  return s.length > 12 ? `${s.slice(0, 8)}…` : s;
+}
+
+function fillTypeFilter(types) {
+  const sel = main.querySelector('#auditTypeFilter');
+  const preserve = typeFilter;
+  sel.innerHTML =
+    `<option value="">${escapeHTML(t('activity.filter_all'))}</option>` +
+    types.map(ty => `<option value="${escapeHTML(ty)}">${escapeHTML(ty)}</option>`).join('');
+  if (preserve && types.includes(preserve)) sel.value = preserve;
+  else sel.value = '';
+}
+
+function render() {
+  const root = main.querySelector('#auditRoot');
+  const rows = typeFilter ? allRows.filter(r => r.type === typeFilter) : allRows;
+
+  if (!allRows.length) {
+    root.innerHTML = `
+      <div class="audit-empty">
+        <p class="lead" data-i18n="activity.empty">No audit events yet for this workspace.</p>
+      </div>`;
+    applyTranslations();
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="audit-card">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="activity.col_when">When</th>
+            <th data-i18n="activity.col_type">Type</th>
+            <th data-i18n="activity.col_note">Note</th>
+            <th class="col-count" data-i18n="activity.col_count">Count</th>
+            <th data-i18n="activity.col_actor">Actor</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr>
+              <td class="col-when">${escapeHTML(formatWhen(r.created_at))}</td>
+              <td class="col-type"><code>${escapeHTML(r.type || '')}</code></td>
+              <td>${r.note ? escapeHTML(r.note) : '<span class="text-muted">—</span>'}</td>
+              <td class="col-count">${r.count != null ? escapeHTML(String(r.count)) : '—'}</td>
+              <td class="col-actor">${escapeHTML(shortActor(r.user_id))}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-muted" style="max-width:1080px;margin:var(--sp-4) auto 0;font-size:var(--type-caption);text-align:center" data-i18n="activity.footer_hint">Newest first. Up to 500 rows loaded.</p>
+  `;
+  applyTranslations();
+}
+
+async function load() {
+  const root = main.querySelector('#auditRoot');
+  root.innerHTML = `<p class="text-muted" style="text-align:center">${escapeHTML(t('activity.loading'))}</p>`;
+  const { data, error } = await supabase
+    .from('audit_log')
+    .select('*')
+    .eq('workspace_id', wsId)
+    .order('created_at', { ascending: false })
+    .limit(500);
+  if (error) {
+    root.innerHTML = `<p class="flash error" style="max-width:640px;margin:0 auto">${escapeHTML(error.message)}</p>`;
+    return;
+  }
+  allRows = data || [];
+  const types = [...new Set(allRows.map(r => r.type).filter(Boolean))].sort();
+  fillTypeFilter(types);
+  render();
+}
+
+main.querySelector('#auditTypeFilter').addEventListener('change', (e) => {
+  typeFilter = (e.target.value || '').trim();
+  render();
+});
+main.querySelector('#auditRefresh').addEventListener('click', () => load());
+
+await load();
+
+document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+  setTimeout(() => {
+    const types = [...new Set(allRows.map(r => r.type).filter(Boolean))].sort();
+    fillTypeFilter(types);
+    render();
+    applyTranslations();
+  }, 0);
+});
+</script>
+</body>
+</html>
