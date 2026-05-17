@@ -225,6 +225,7 @@ import {
   computeDishCost, suggestedPrice, foodCostPct, marginCurrency,
   buildCostMap, formatNumber, formatMoney
 } from '/src/recipe-compute.js';
+import { getMyRole, applyRoleGates } from '/src/permissions.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -235,6 +236,7 @@ if (!ctx) throw new Error('No session/workspace');
 const ws = ctx.workspace;
 const wsId = ws.id;
 const currency = ws.currency || '₺';
+const role = await getMyRole(wsId);
 
 // Workspace defaults
 let targetGp = Number(ws.target_gp) || 70;
@@ -260,18 +262,18 @@ main.innerHTML = `
     <span class="label-sm" data-i18n="pricing.settings" style="text-transform:uppercase;letter-spacing:var(--track-caps);font-size:12px">Workspace settings</span>
     <div class="pair">
       <label for="cfgGp" class="label-sm" style="font-size:12px" data-i18n="pricing.target_gp">Target GP %</label>
-      <input id="cfgGp" type="number" min="0" max="99" step="0.5" value="${targetGp}">
+      <input id="cfgGp" type="number" min="0" max="99" step="0.5" value="${targetGp}" data-require-disable="workspace_update">
     </div>
     <div class="pair">
       <label for="cfgVat" class="label-sm" style="font-size:12px" data-i18n="pricing.vat">VAT %</label>
-      <input id="cfgVat" type="number" min="0" max="50" step="0.5" value="${vatPct}">
+      <input id="cfgVat" type="number" min="0" max="50" step="0.5" value="${vatPct}" data-require-disable="workspace_update">
     </div>
     <div class="pair">
       <label for="cfgQ" class="label-sm" style="font-size:12px" data-i18n="pricing.q_factor">Q-factor %</label>
-      <input id="cfgQ" type="number" min="0" max="50" step="0.5" value="${qFactor}">
+      <input id="cfgQ" type="number" min="0" max="50" step="0.5" value="${qFactor}" data-require-disable="workspace_update">
     </div>
     <span class="filler"></span>
-    <button type="button" class="btn btn-sage btn-sm" id="saveCfg">
+    <button type="button" class="btn btn-sage btn-sm" id="saveCfg" data-require="workspace_update">
       <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">check</span>
       <span data-i18n="pricing.save_row">Save</span>
     </button>
@@ -294,6 +296,7 @@ main.innerHTML = `
 
 applyTranslations();
 const ph = main.querySelector('[data-i18n-ph]'); if (ph) ph.placeholder = t(ph.getAttribute('data-i18n-ph'));
+applyRoleGates(role, main);
 
 // Wire filter
 main.querySelectorAll('.seg [data-kind]').forEach(b => {
@@ -385,6 +388,7 @@ function render() {
     </div>
   `;
   applyTranslations();
+  applyRoleGates(role, container);
 
   // Wire per-row interactions — auto-save on blur with visual feedback
   container.querySelectorAll('[data-dish-id]').forEach(tr => {
@@ -468,14 +472,14 @@ function rowMarkup(d) {
       <td class="col-num">
         <div class="price-wrap">
           <span class="save-status" aria-live="polite" aria-atomic="true"></span>
-          <input type="number" min="0" step="0.01" value="${price || ''}" class="price-input" aria-label="Menu price">
+          <input type="number" min="0" step="0.01" value="${price || ''}" class="price-input" aria-label="Menu price" data-require-disable="pricing_edit">
         </div>
       </td>
       <td class="col-num fc-cell">${renderFcChip(fc)}</td>
       <td class="col-num hide-mobile margin-cell">${mg !== null ? formatMoney(mg, currency, 2) : '—'}</td>
       <td class="col-num hide-mobile">${formatMoney(sp, currency, 2)}</td>
       <td class="row-actions">
-        <button type="button" class="icon-btn apply-btn" aria-label="${escapeHTML(t('pricing.set_price_to_suggested'))}" title="${escapeHTML(t('pricing.set_price_to_suggested'))}">
+        <button type="button" class="icon-btn apply-btn" aria-label="${escapeHTML(t('pricing.set_price_to_suggested'))}" title="${escapeHTML(t('pricing.set_price_to_suggested'))}" data-require="pricing_edit">
           <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
         </button>
       </td>

@@ -310,6 +310,7 @@ main.className = 'studio-page';
 const ctx = await mountStudioShell({ active: 'recipes', main });
 if (!ctx) throw new Error('No session/workspace');
 const wsId = ctx.workspace.id;
+const role = await getMyRole(wsId);
 
 // ============================================================
 // 2. Build top + grid markup
@@ -329,7 +330,7 @@ main.innerHTML = `
       <label class="visually-hidden" for="searchInput" data-i18n="recipes.search_ph">Search recipes…</label>
       <input id="searchInput" type="search" placeholder="" data-i18n-ph="recipes.search_ph" autocomplete="off">
       <span class="divider" aria-hidden="true"></span>
-      <button class="btn btn-primary btn-sm" id="newBtn">
+      <button class="btn btn-primary btn-sm" id="newBtn" data-require="recipe_create">
         <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
         <span data-i18n="recipes.new">New recipe</span>
       </button>
@@ -343,6 +344,7 @@ applyTranslations();
 // Translate placeholder explicitly
 const placeholderEl = main.querySelector('[data-i18n-ph]');
 if (placeholderEl) placeholderEl.placeholder = t(placeholderEl.getAttribute('data-i18n-ph'));
+applyRoleGates(role, main);
 
 // ============================================================
 // 3. Load recipes from Supabase
@@ -377,6 +379,7 @@ function render(filter = '') {
   if (allRecipes.length === 0) {
     container.innerHTML = renderEmpty();
     main.querySelector('#emptyNewBtn').addEventListener('click', () => openEditor(null));
+    applyRoleGates(role, container);
     return;
   }
   if (items.length === 0) {
@@ -407,7 +410,7 @@ function renderEmpty() {
       <span class="eyebrow eyebrow-accent" data-i18n="recipes.empty_eyebrow">First recipe</span>
       <h2 class="h1" style="margin-top:var(--sp-3)"><em data-i18n="recipes.empty_title">Create your first recipe.</em></h2>
       <p class="lead" data-i18n="recipes.empty_intro">Add a dish or a drink. kcal, allergens, and diet tags compute as you go.</p>
-      <button class="btn btn-primary btn-lg" id="emptyNewBtn">
+      <button class="btn btn-primary btn-lg" id="emptyNewBtn" data-require="recipe_create">
         <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
         <span data-i18n="recipes.new">New recipe</span>
       </button>
@@ -453,6 +456,7 @@ function openEditor(recipe) {
 
   const editor = buildEditorEl({ recipe, data });
   document.body.appendChild(editor);
+  applyRoleGates(role, editor);
   // Trap focus + Escape
   const onKey = (e) => {
     if (e.key === 'Escape') closeEditor();
@@ -480,6 +484,9 @@ function buildEditorEl({ recipe, data }) {
   const isEdit = !!recipe;
   const titleKey = isEdit ? 'recipes.edit_title' : 'recipes.new_title';
   const kind = recipe?.kind || 'food';
+  // Single action gates every editable surface in this modal.
+  // Viewers/cost_controllers without recipe_update see a read-only view.
+  const editAction = isEdit ? 'recipe_update' : 'recipe_create';
 
   wrap.innerHTML = `
     <div class="modal">
@@ -493,26 +500,26 @@ function buildEditorEl({ recipe, data }) {
         <section class="modal__form">
           <div class="form-row">
             <label class="label" for="editName" data-i18n="recipes.col_name">Name</label>
-            <input class="input" id="editName" type="text" required value="${escapeHTML(recipe?.name || '')}" placeholder="${escapeHTML(t('recipes.name_placeholder'))}">
+            <input class="input" id="editName" type="text" required value="${escapeHTML(recipe?.name || '')}" placeholder="${escapeHTML(t('recipes.name_placeholder'))}" data-require-disable="${editAction}">
           </div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:var(--sp-5);align-items:center" class="form-row">
             <div>
               <span class="label" data-i18n="recipes.kind_food">Kind</span>
               <div class="seg" role="group" aria-label="Recipe kind">
-                <button type="button" data-kind="food"  aria-pressed="${kind==='food'}"  data-i18n="recipes.kind_food">Food</button>
-                <button type="button" data-kind="drink" aria-pressed="${kind==='drink'}" data-i18n="recipes.kind_drink">Drink</button>
+                <button type="button" data-kind="food"  aria-pressed="${kind==='food'}"  data-i18n="recipes.kind_food" data-require-disable="${editAction}">Food</button>
+                <button type="button" data-kind="drink" aria-pressed="${kind==='drink'}" data-i18n="recipes.kind_drink" data-require-disable="${editAction}">Drink</button>
               </div>
             </div>
             <div>
               <label class="label" for="editServings" data-i18n="recipes.servings">Servings</label>
-              <input class="input" id="editServings" type="number" min="1" max="999" value="${Number(data.servings) || 1}" style="max-width:140px">
+              <input class="input" id="editServings" type="number" min="1" max="999" value="${Number(data.servings) || 1}" style="max-width:140px" data-require-disable="${editAction}">
             </div>
           </div>
 
           <div class="form-row">
             <span class="label" data-i18n="recipes.ingredients">Ingredients</span>
             <div class="ing-list" id="ingList"></div>
-            <button type="button" class="btn btn-ghost btn-sm" id="addIngBtn" style="margin-top:var(--sp-3)" data-i18n="recipes.add_ing">＋ Add ingredient</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="addIngBtn" style="margin-top:var(--sp-3)" data-i18n="recipes.add_ing" data-require="${editAction}">＋ Add ingredient</button>
           </div>
         </section>
         <aside class="modal__preview" aria-live="polite">
@@ -542,12 +549,12 @@ function buildEditorEl({ recipe, data }) {
       </div>
       <footer class="modal__foot">
         <div style="display:flex;gap:8px">
-          ${isEdit ? `<button type="button" class="btn btn-sm btn-error" id="deleteBtn" data-i18n="recipes.delete">Delete</button>` : ''}
-          ${isEdit ? `<button type="button" class="btn btn-sm btn-ghost" id="duplicateBtn" data-i18n="recipes.duplicate">Duplicate</button>` : ''}
+          ${isEdit ? `<button type="button" class="btn btn-sm btn-error" id="deleteBtn" data-i18n="recipes.delete" data-require="recipe_delete">Delete</button>` : ''}
+          ${isEdit ? `<button type="button" class="btn btn-sm btn-ghost" id="duplicateBtn" data-i18n="recipes.duplicate" data-require="recipe_create">Duplicate</button>` : ''}
         </div>
         <div class="modal__foot__right">
           <button type="button" class="btn btn-ghost" id="cancelBtn" data-i18n="recipes.cancel">Cancel</button>
-          <button type="button" class="btn btn-primary" id="saveBtn">
+          <button type="button" class="btn btn-primary" id="saveBtn" data-require="${editAction}">
             <span data-i18n="recipes.save">Save</span> <span class="arrow">→</span>
           </button>
         </div>
@@ -557,7 +564,7 @@ function buildEditorEl({ recipe, data }) {
 
   // Populate ingredients
   const ingList = wrap.querySelector('#ingList');
-  data.ingredients.forEach(i => ingList.appendChild(buildIngRow(i)));
+  data.ingredients.forEach(i => ingList.appendChild(buildIngRow(i, editAction)));
 
   // Wire kind segmented
   let editorKind = kind;
@@ -570,7 +577,9 @@ function buildEditorEl({ recipe, data }) {
 
   // Add ingredient
   wrap.querySelector('#addIngBtn').addEventListener('click', () => {
-    ingList.appendChild(buildIngRow({ name:'', amount:'', unit:'g' }));
+    const row = buildIngRow({ name:'', amount:'', unit:'g' }, editAction);
+    ingList.appendChild(row);
+    applyRoleGates(role, row);
     recompute();
   });
 
@@ -673,23 +682,23 @@ function buildEditorEl({ recipe, data }) {
   return wrap;
 }
 
-function buildIngRow(ing) {
+function buildIngRow(ing, editAction) {
   const row = document.createElement('div');
   row.className = 'ing-row';
   row.innerHTML = `
     <div class="col-name" style="position:relative">
-      <input class="input ing-name" type="text" placeholder="${escapeHTML(t('recipes.col_name'))}" value="${escapeHTML(ing.name || '')}" autocomplete="off">
+      <input class="input ing-name" type="text" placeholder="${escapeHTML(t('recipes.col_name'))}" value="${escapeHTML(ing.name || '')}" autocomplete="off" data-require-disable="${editAction}">
     </div>
     <div class="col-amount">
-      <input class="input ing-amount" type="number" min="0" step="0.1" placeholder="${escapeHTML(t('recipes.col_amount'))}" value="${ing.amount ?? ''}">
+      <input class="input ing-amount" type="number" min="0" step="0.1" placeholder="${escapeHTML(t('recipes.col_amount'))}" value="${ing.amount ?? ''}" data-require-disable="${editAction}">
     </div>
     <div class="col-unit">
-      <select class="input ing-unit" aria-label="${escapeHTML(t('recipes.col_unit'))}">
+      <select class="input ing-unit" aria-label="${escapeHTML(t('recipes.col_unit'))}" data-require-disable="${editAction}">
         ${['g','kg','ml','l','yk','tk','ck','sb','ad'].map(u => `<option value="${u}" ${u===(ing.unit||'g')?'selected':''}>${u}</option>`).join('')}
       </select>
     </div>
     <div class="col-rm">
-      <button type="button" class="rm-btn" aria-label="Remove ingredient">
+      <button type="button" class="rm-btn" aria-label="Remove ingredient" data-require="${editAction}">
         <span class="material-symbols-outlined" aria-hidden="true">close</span>
       </button>
     </div>
