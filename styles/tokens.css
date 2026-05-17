@@ -204,7 +204,30 @@
   --topbar-h:     80px;
   --hair:         1px solid var(--outline-variant);
 
+  /* Monochrome brand rasters: crisp ink on light chrome; warm ivory on dark chrome. */
+  --carta-logo-mono-on-light: contrast(1.07);
+  --carta-logo-mono-on-dark:
+    brightness(0) invert(1) sepia(12%) saturate(0.5) hue-rotate(330deg) brightness(1.04);
+
   accent-color: var(--primary);
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --carta-logo-mono-on-dark: brightness(0) invert(1);
+    --carta-logo-mono-on-light: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .site-header .site-logo img,
+  .site-footer__mark,
+  .sidebar__head .logo img,
+  .app-bar .site-logo img,
+  .auth-screen .site-logo img,
+  .studio-mobile-top .site-logo img {
+    filter: none !important;
+  }
 }
 
 /* ============================================================
@@ -376,6 +399,20 @@ button { font-family: inherit; cursor: pointer; }
   z-index: 100; transition: top var(--dur-1);
 }
 .skip-link:focus { top: 16px; }
+
+/* Screen-reader-only headings (sections that are mostly visual still need a name). */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* ============================================================
    LAYOUT CONTAINERS
@@ -723,7 +760,11 @@ html[data-color-scheme="dark"] .site-header.scrolled {
 .site-header__actions .btn {
   white-space: nowrap;
 }
-.site-logo { display: inline-flex; align-items: center; line-height: 0; }
+.site-logo:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: var(--r-1);
+}
 
 /* Lockup file is a square PNG with large transparent top/bottom; crop via wide box + cover. */
 .site-logo img[src*='carta-brand-lockup-horizontal'],
@@ -786,13 +827,21 @@ body.carta-landing .site-header .site-logo img[src*='carta-brand-lockup-horizont
   }
 }
 
-/* Opaque black “canvas” exports are edge-flooded to alpha in assets. Dark UI: invert for contrast. */
+/* Monochrome lockups (black ink on alpha): light chrome sharpens edges; dark chrome uses warm ivory. */
+html[data-color-scheme="light"] .site-header .site-logo img[src*='carta-brand-lockup-horizontal'],
+html[data-color-scheme="light"] .app-bar .site-logo img[src*='carta-brand-lockup-horizontal'],
+html[data-color-scheme="light"] .auth-screen .site-logo img[src*='carta-brand-lockup-horizontal'],
+html[data-color-scheme="light"] .studio-mobile-top .site-logo img[src*='carta-brand-lockup-horizontal'],
+html[data-color-scheme="light"] .sidebar__head .logo img {
+  filter: var(--carta-logo-mono-on-light);
+}
+
 html[data-color-scheme="dark"] .site-header .site-logo img,
 html[data-color-scheme="dark"] .sidebar__head .logo img,
 html[data-color-scheme="dark"] .app-bar .site-logo img,
 html[data-color-scheme="dark"] .auth-screen .site-logo img,
 html[data-color-scheme="dark"] .studio-mobile-top .site-logo img {
-  filter: brightness(0) invert(1);
+  filter: var(--carta-logo-mono-on-dark);
   opacity: 1;
 }
 
@@ -802,7 +851,23 @@ html[data-color-scheme="dark"] .studio-mobile-top .site-logo img {
   width: auto;
   margin-bottom: var(--sp-4);
   opacity: 1;
-  filter: brightness(0) invert(1);
+  filter: var(--carta-logo-mono-on-dark);
+}
+
+/* Marketing landing: oval seal + closing band marks (mono ink). */
+html[data-color-scheme="light"] .hero__brand-seal {
+  filter: var(--carta-logo-mono-on-light);
+  opacity: 0.9;
+}
+
+html[data-color-scheme="dark"] .hero__brand-seal {
+  opacity: 1;
+  filter: var(--carta-logo-mono-on-dark);
+}
+
+body.carta-landing .closing__brand-mark img {
+  filter: var(--carta-logo-mono-on-dark);
+  opacity: 0.95;
 }
 
 .site-footer__badges {

@@ -86,7 +86,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   mobileTop.setAttribute('aria-label', 'Studio top bar');
   mobileTop.innerHTML = `
     <a href="/app/studio.html" class="site-logo studio-mobile-top__brand" aria-label="Carta studio home">
-      <img src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta" width="1024" height="1024">
+      <img src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024">
     </a>
     <span class="studio-mobile-top__spacer" aria-hidden="true"></span>
     <span class="studio-mobile-top__rule" aria-hidden="true"></span>

@@ -1,5 +1,5 @@
 // Carta — minimal i18n
-// Reads data-i18n / data-i18n-ph attributes from DOM and replaces text.
+// Reads data-i18n, data-i18n-ph, data-i18n-title, data-i18n-aria-label, data-i18n-alt from DOM.
 
 const STRINGS = {
   en: {
@@ -18,6 +18,8 @@ const STRINGS = {
     'hero.meta_codex': 'TGK Ek-10 / Ek-13 compliant',
     'hero.meta_law': 'KVKK · VUK · HACCP',
     'hero.meta_offline': 'Offline-capable',
+    'hero.figure_alt':
+      'Editorial still life: composed plate and glassware suggesting craft and mise en place for an F&B operations studio.',
     'hero.quote': 'We do not decorate. We construct. A kitchen\'s economics are not a back-office matter — they are part of the craft.',
     'hero.quote_cite': '— Carta principle 01',
     // index
@@ -60,6 +62,7 @@ const STRINGS = {
     'editorial.media_label': '— Method 02 —',
     'editorial.still': 'Still life',
     'editorial.strip_note': 'Ingredient truth, in focus.',
+    'editorial.strip_b_heading': 'Still life — studies',
     'editorial.cap_1': 'Pour · citrus, spirit, craft',
     'editorial.cap_2': 'Notebook · compliance clips',
     'editorial.cap_3': 'Marble · brass & ledger',
@@ -743,6 +746,8 @@ const STRINGS = {
     'hero.meta_codex': 'TGK Ek-10 / Ek-13 uyumlu',
     'hero.meta_law': 'KVKK · VUK · HACCP',
     'hero.meta_offline': 'İnternet olmasa da çalışır',
+    'hero.figure_alt':
+      'Natürmorta görseli: F&B operasyon stüdyosu için zanaat ve servis düzenini çağrıştıran tabak ve bardak kompozisyonu.',
     'hero.quote': 'Süslemeyiz; inşa ederiz. Mutfağın ekonomisi sadece arka ofisten ibaret değildir; ustanın işinin parçasıdır.',
     'hero.quote_cite': '— Carta, birinci ilke',
     // index
@@ -785,6 +790,7 @@ const STRINGS = {
     'editorial.media_label': '— Yaklaşım 02 —',
     'editorial.still': 'Natürmorta',
     'editorial.strip_note': 'Malzemeyi mercek altına alan kareler.',
+    'editorial.strip_b_heading': 'Natürmorta — devam eden seri',
     'editorial.cap_1': 'Döküm · narenciye ve damıtık',
     'editorial.cap_2': 'Defter · uygunluk notları',
     'editorial.cap_3': 'Mermer · pirinç ve defter',
@@ -1497,6 +1503,10 @@ export function applyTranslations() {
   });
   document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
     el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label')));
+  });
+  document.querySelectorAll('[data-i18n-alt]').forEach(el => {
+    const key = el.getAttribute('data-i18n-alt');
+    el.setAttribute('alt', t(key));
   });
   document.querySelectorAll('[data-lang-btn]').forEach(b => {
     b.classList.toggle('active', b.dataset.langBtn === lang);

@@ -135,11 +135,6 @@
     height: clamp(20px, 3.2vw, 28px);
     width: auto;
     flex-shrink: 0;
-    opacity: 0.88;
-  }
-  html[data-color-scheme="dark"] .hero__brand-seal {
-    opacity: 1;
-    filter: brightness(0) invert(1);
   }
   .hero .display { margin-bottom: var(--sp-6); }
   .hero__lead { margin-bottom: var(--sp-7); max-width: 58ch; }
@@ -568,8 +563,6 @@
     width: 100%;
     height: auto;
     margin: 0 auto;
-    opacity: 0.95;
-    filter: brightness(0) invert(1);
   }
   .closing .eyebrow { color: rgb(255 255 255 / 0.82); margin-bottom: var(--sp-5); }
   .closing .display {
@@ -729,7 +722,7 @@
     </div>
     <figure class="hero__figure">
       <div class="hero__photo-wrap">
-        <img class="is-brand-visual" src="/assets/carta-hero-plate.png" alt="" width="1024" height="824" decoding="async" fetchpriority="high">
+        <img class="is-brand-visual" src="/assets/carta-hero-plate.png" alt="Editorial still life: composed plate and glassware for an F&amp;B operations studio." data-i18n-alt="hero.figure_alt" width="1024" height="824" decoding="async" fetchpriority="high">
       </div>
       <img class="hero__carbon-deco" src="/assets/dashboard-carbon-accent.png" alt="" width="400" height="400" decoding="async" aria-hidden="true">
     </figure>
@@ -799,8 +792,9 @@
 </section>
 
 <!-- ============ EDITORIAL MOSAIC B (method → index) ============ -->
-<section class="editorial-strip" aria-hidden="true">
+<section class="editorial-strip" aria-labelledby="ed-mosaic-b">
   <div class="container">
+    <h2 id="ed-mosaic-b" class="visually-hidden" data-i18n="editorial.strip_b_heading">Still life — studies</h2>
     <div class="editorial-mosaic editorial-mosaic--feature">
       <figure class="editorial-frame">
         <img class="is-brand-visual" src="/assets/carta-editorial-wine.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
