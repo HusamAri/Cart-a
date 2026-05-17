@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<title>Engineering Matrix · Carta</title>
+<title>Carta</title>
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
@@ -219,7 +219,7 @@ main.innerHTML = `
     <details>
       <summary data-i18n="matrix.paste_sales_summary">Bulk paste sold counts (Excel)</summary>
       <p class="text-muted" style="font-size:12px;margin:10px 0;line-height:1.55" data-i18n="matrix.paste_sales_hint">Copy two columns from Excel: dish name, then sold quantity. Tab-separated. A header row is OK.</p>
-      <textarea id="pasteSalesTa" class="input" rows="5" style="font-family:ui-monospace,monospace;font-size:12px;width:100%;resize:vertical;margin-top:4px" data-require-disable="sales_edit" aria-label="TSV"></textarea>
+      <textarea id="pasteSalesTa" class="input" rows="5" style="font-family:ui-monospace,monospace;font-size:12px;width:100%;resize:vertical;margin-top:4px" data-require-disable="sales_edit" data-i18n-aria-label="matrix.paste_tsv_aria" aria-label=""></textarea>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center">
         <button type="button" class="btn btn-sm btn-primary" id="pasteSalesApply" data-require="sales_edit" data-i18n="matrix.paste_apply">Apply to table</button>
         <button type="button" class="btn btn-sm btn-outline" id="pasteSalesClip" data-require="sales_edit" data-i18n="matrix.paste_clipboard">Read clipboard</button>
@@ -237,6 +237,11 @@ main.innerHTML = `
 `;
 applyTranslations();
 applyRoleGates(role, main);
+
+function syncDocTitle() {
+  document.title = `${t('matrix.doc_title')} · Carta`;
+}
+syncDocTitle();
 
 // ============================================================
 // Load dishes + cost_db + sales_data
@@ -313,6 +318,83 @@ function classify(cmList, popList) {
   return { cmMean, popThreshold };
 }
 
+/**
+ * Recompute matrix rows from dishes, salesMap, costMap (same rules as render).
+ * @returns {Array<object>}
+ */
+function buildRows() {
+  const rows = dishes.map(d => {
+    const data = d.data || {};
+    const ings = data.ingredients || [];
+    const servings = data.servings || 1;
+    const cost = computeDishCost({ ingredients: ings, servings }, costMap, qFactor);
+    const sales = salesMap[d.name] || { sold: 0, price: data.menu_price || 0 };
+    const price = Number(sales.price ?? data.menu_price) || 0;
+    const cm = price > 0 ? marginCurrency(cost.perServing, price, vatPct) : null;
+    return { d, name: d.name, sold: Number(sales.sold) || 0, price, cost: cost.perServing, cm };
+  });
+
+  const totalSold = rows.reduce((a, r) => a + r.sold, 0);
+  const popList = rows.map(r => totalSold > 0 ? r.sold / totalSold : 0);
+  const cmList = rows.map(r => r.cm).filter(x => x !== null);
+  const { cmMean, popThreshold } = classify(cmList, popList);
+
+  rows.forEach((r, i) => {
+    r.pop = popList[i];
+    r.scored = r.cm !== null && r.cost > 0;
+    if (!r.scored) { r.quadrant = null; return; }
+    const highCM = r.cm >= cmMean;
+    const highPop = r.pop >= popThreshold;
+    if (highCM && highPop) r.quadrant = 'star';
+    else if (!highCM && highPop) r.quadrant = 'plowhorse';
+    else if (highCM && !highPop) r.quadrant = 'puzzle';
+    else r.quadrant = 'dog';
+  });
+  return rows;
+}
+
+function statsStripHTML(counts) {
+  const cell = (i18nKey, n) =>
+    `<div class="stat"><p class="key" data-i18n="${i18nKey}">${escapeHTML(t(i18nKey))}</p><p class="val">${n}</p></div>`;
+  return (
+    cell('matrix.q_star', counts.star) +
+    cell('matrix.q_plowhorse', counts.plowhorse) +
+    cell('matrix.q_puzzle', counts.puzzle) +
+    cell('matrix.q_dog', counts.dog)
+  );
+}
+
+/** Update stats, quadrants, and computed table cells without rebuilding sold inputs (keeps focus while typing). */
+function patchMatrixUI(rows) {
+  const counts = { star: 0, plowhorse: 0, puzzle: 0, dog: 0, na: 0 };
+  rows.forEach(r => counts[r.quadrant || 'na']++);
+  main.querySelector('#stats').innerHTML = statsStripHTML(counts);
+
+  const byQuad = { star: [], plowhorse: [], puzzle: [], dog: [] };
+  rows.forEach(r => { if (r.quadrant) byQuad[r.quadrant].push(r); });
+  main.querySelector('#quadrants').innerHTML = `
+    ${quadCard('star', byQuad.star)}
+    ${quadCard('puzzle', byQuad.puzzle)}
+    ${quadCard('plowhorse', byQuad.plowhorse)}
+    ${quadCard('dog', byQuad.dog)}
+  `;
+
+  rows.forEach(r => {
+    const tr = main.querySelector(`tbody tr[data-dish-id="${CSS.escape(r.d.id)}"]`);
+    if (!tr) return;
+    const cmEl = tr.querySelector('.js-matrix-cm');
+    const popEl = tr.querySelector('.js-matrix-pop');
+    const quadEl = tr.querySelector('.js-matrix-quad');
+    if (cmEl) cmEl.textContent = r.cm !== null ? formatMoney(r.cm, currency, 2) : t('matrix.cell_empty');
+    if (popEl) popEl.textContent = `${formatNumber(r.pop * 100, 1)}%`;
+    if (quadEl) quadEl.innerHTML = quadChip(r.quadrant);
+  });
+
+  applyTranslations();
+  applyRoleGates(role, main);
+  syncDocTitle();
+}
+
 function render() {
   if (dishes.length === 0) {
     main.querySelector('#listOrEmpty').innerHTML = `
@@ -327,51 +409,18 @@ function render() {
     if (pp0) pp0.hidden = true;
     applyTranslations();
     applyRoleGates(role, main);
+    syncDocTitle();
     return;
   }
 
-  // Compute per-dish numbers
-  const rows = dishes.map(d => {
-    const data = d.data || {};
-    const ings = data.ingredients || [];
-    const servings = data.servings || 1;
-    const cost = computeDishCost({ ingredients: ings, servings }, costMap, qFactor);
-    const sales = salesMap[d.name] || { sold: 0, price: data.menu_price || 0 };
-    const price = Number(sales.price ?? data.menu_price) || 0;
-    const cm = price > 0 ? marginCurrency(cost.perServing, price, vatPct) : null;
-    return { d, name: d.name, sold: Number(sales.sold) || 0, price, cost: cost.perServing, cm };
-  });
+  const rows = buildRows();
 
-  const totalSold = rows.reduce((a, r) => a + r.sold, 0);
-  const popList = rows.map(r => totalSold > 0 ? r.sold / totalSold : 0);
-  const cmList  = rows.map(r => r.cm).filter(x => x !== null);
-  const { cmMean, popThreshold } = classify(cmList, popList);
-
-  // Tag quadrants
-  rows.forEach((r, i) => {
-    r.pop = popList[i];
-    r.scored = r.cm !== null && r.cost > 0;
-    if (!r.scored) { r.quadrant = null; return; }
-    const highCM = r.cm >= cmMean;
-    const highPop = r.pop >= popThreshold;
-    if (highCM && highPop)   r.quadrant = 'star';
-    else if (!highCM && highPop) r.quadrant = 'plowhorse';
-    else if (highCM && !highPop) r.quadrant = 'puzzle';
-    else                          r.quadrant = 'dog';
-  });
-
-  // Stats strip
-  const counts = { star:0, plowhorse:0, puzzle:0, dog:0, na:0 };
+  // Stats strip + quadrants (full rebuild on first paint)
+  const counts = { star: 0, plowhorse: 0, puzzle: 0, dog: 0, na: 0 };
   rows.forEach(r => counts[r.quadrant || 'na']++);
-  main.querySelector('#stats').innerHTML = `
-    <div class="stat"><p class="key">Star</p><p class="val">${counts.star}</p></div>
-    <div class="stat"><p class="key">Plowhorse</p><p class="val">${counts.plowhorse}</p></div>
-    <div class="stat"><p class="key">Puzzle</p><p class="val">${counts.puzzle}</p></div>
-    <div class="stat"><p class="key">Dog</p><p class="val">${counts.dog}</p></div>
-  `;
+  main.querySelector('#stats').innerHTML = statsStripHTML(counts);
 
-  // Quadrants
-  const byQuad = { star:[], plowhorse:[], puzzle:[], dog:[] };
+  const byQuad = { star: [], plowhorse: [], puzzle: [], dog: [] };
   rows.forEach(r => { if (r.quadrant) byQuad[r.quadrant].push(r); });
   main.querySelector('#quadrants').innerHTML = `
     ${quadCard('star', byQuad.star)}
@@ -383,7 +432,7 @@ function render() {
   // Sales table
   main.querySelector('#listOrEmpty').innerHTML = `
     <div class="sales-card">
-      <table aria-label="Sales and margin per dish">
+      <table data-i18n-aria-label="matrix.table_aria" aria-label="">
         <thead>
           <tr>
             <th data-i18n="matrix.col_dish">Dish</th>
@@ -398,11 +447,11 @@ function render() {
           ${rows.map(r => `
             <tr data-dish-id="${escapeHTML(r.d.id)}">
               <td class="col-name">${escapeHTML(r.name)}</td>
-              <td class="col-num hide-mobile">${r.price > 0 ? formatMoney(r.price, currency, 2) : '—'}</td>
+              <td class="col-num hide-mobile">${r.price > 0 ? formatMoney(r.price, currency, 2) : escapeHTML(t('matrix.cell_empty'))}</td>
               <td class="col-num"><input type="number" min="0" step="1" value="${r.sold || ''}" class="sold-input" data-dish="${escapeHTML(r.name)}" aria-label="${escapeHTML(t('matrix.col_sold'))}" data-require-disable="sales_edit"></td>
-              <td class="col-num hide-mobile">${r.cm !== null ? formatMoney(r.cm, currency, 2) : '—'}</td>
-              <td class="col-num hide-mobile">${formatNumber(r.pop * 100, 1)}%</td>
-              <td class="col-num">${quadChip(r.quadrant)}</td>
+              <td class="col-num hide-mobile js-matrix-cm">${r.cm !== null ? formatMoney(r.cm, currency, 2) : escapeHTML(t('matrix.cell_empty'))}</td>
+              <td class="col-num hide-mobile js-matrix-pop">${formatNumber(r.pop * 100, 1)}%</td>
+              <td class="col-num js-matrix-quad">${quadChip(r.quadrant)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -410,18 +459,18 @@ function render() {
     </div>
   `;
 
-  // Wire inputs to recompute table on change
+  // Wire inputs: update model + patch derived UI only (full render() would replace inputs and break multi-digit typing)
   main.querySelectorAll('.sold-input').forEach(inp => {
     inp.addEventListener('input', () => {
       const name = inp.getAttribute('data-dish');
       salesMap[name] = salesMap[name] || { workspace_id: wsId, dish_name: name, sold: 0, price: 0, period: null };
-      salesMap[name].sold = parseInt(inp.value) || 0;
-      // Use dish menu_price if no override in sales row
+      const v = parseInt(String(inp.value).replace(/[^\d]/g, ''), 10);
+      salesMap[name].sold = Number.isFinite(v) ? v : 0;
       const dish = dishes.find(x => x.name === name);
       if (dish && (!salesMap[name].price || salesMap[name].price === 0)) {
         salesMap[name].price = Number(dish.data?.menu_price) || 0;
       }
-      render(); // re-classify all
+      patchMatrixUI(buildRows());
     });
   });
 
@@ -429,6 +478,7 @@ function render() {
   const pp1 = main.querySelector('#pastePanel');
   if (pp1) pp1.hidden = false;
   applyRoleGates(role, main);
+  syncDocTitle();
 }
 
 function quadCard(key, items) {
@@ -443,15 +493,18 @@ function quadCard(key, items) {
       <p class="quad__desc" data-i18n="${descKey}">${t(descKey)}</p>
       <div class="quad__items">
         ${items.map(r => `<span class="dish-pill" title="${escapeHTML(formatNumber(r.sold,0))} ${escapeHTML(t('matrix.unit_sold'))} · ${escapeHTML(formatNumber((r.cm||0),2))} ${escapeHTML(currency)} ${escapeHTML(t('matrix.unit_contribution'))}">${escapeHTML(r.name)}</span>`).join('')}
-        ${items.length === 0 ? `<span class="text-muted" style="font-size:13px;font-style:italic;opacity:0.7">—</span>` : ''}
+        ${items.length === 0 ? `<span class="text-muted" style="font-size:13px;font-style:italic;opacity:0.7" data-i18n="matrix.cell_empty">${escapeHTML(t('matrix.cell_empty'))}</span>` : ''}
       </div>
     </section>
   `;
 }
 
 function quadChip(q) {
-  if (!q) return `<span class="q-chip q-chip-na">—</span>`;
-  return `<span class="q-chip q-chip-${q}">${escapeHTML(t('matrix.q_' + q))}</span>`;
+  if (!q) {
+    return `<span class="q-chip q-chip-na" data-i18n="matrix.quadrant_none">${escapeHTML(t('matrix.quadrant_none'))}</span>`;
+  }
+  const key = `matrix.q_${q}`;
+  return `<span class="q-chip q-chip-${q}" data-i18n="${key}">${escapeHTML(t(key))}</span>`;
 }
 
 // Save all sales rows
@@ -494,6 +547,14 @@ main.querySelector('#saveAllBtn').addEventListener('click', async () => {
 function escapeHTML(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+  setTimeout(() => {
+    if (dishes.length) patchMatrixUI(buildRows());
+    else render();
+    syncDocTitle();
+  }, 0);
+});
 
 await loadAll();
 </script>

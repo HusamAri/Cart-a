@@ -671,6 +671,11 @@ const STRINGS = {
     'matrix.paste_done': 'Updated {n} rows.',
     'matrix.paste_miss': '{n} names did not match a recipe.',
     'matrix.paste_clip_denied': 'Clipboard access was denied. Paste manually.',
+    'matrix.table_aria': 'Sales and contribution margin per dish',
+    'matrix.paste_tsv_aria': 'Paste tab-separated dish names and sold counts',
+    'matrix.doc_title': 'Engineering matrix',
+    'matrix.quadrant_none': 'None',
+    'matrix.cell_empty': '—',
     // Variance audit
     'variance.title': 'Variance',
     'variance.title_em': 'audit',
@@ -1385,6 +1390,11 @@ const STRINGS = {
     'matrix.paste_done': '{n} satır güncellendi.',
     'matrix.paste_miss': '{n} satır kayıtlı reçeteyle eşleşmedi.',
     'matrix.paste_clip_denied': 'Pano erişimine izin verilmedi. Metni alana elle yapıştırın.',
+    'matrix.table_aria': 'Ürün bazında satış ve katkı marjı',
+    'matrix.paste_tsv_aria': 'Sekmeyle ayrılmış ürün adı ve satış adedini yapıştırın',
+    'matrix.doc_title': 'Menü mühendisliği',
+    'matrix.quadrant_none': 'Yok',
+    'matrix.cell_empty': '—',
     // Sapma analizi
     'variance.title': 'Sapma',
     'variance.title_em': 'analizi',
