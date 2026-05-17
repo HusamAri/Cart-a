@@ -389,7 +389,7 @@ function openDiff(snapId) {
         </button>
       </header>
       <div class="diff-summary">
-        <div class="diff-stat"><b>${counts.changed}</b> ${anomalies ? `<span class="anomaly-chip" style="margin-left:6px">${anomalies} ${escapeHTML(t('variance.anomaly'))}</span>` : ''} ${escapeHTML(t('variance.unchanged') === 'unchanged' ? 'changed' : 'değişen')}</div>
+        <div class="diff-stat"><b>${counts.changed}</b> ${anomalies ? `<span class="anomaly-chip" style="margin-left:6px">${anomalies} ${escapeHTML(t('variance.anomaly'))}</span>` : ''} ${escapeHTML(t('variance.changed_items'))}</div>
         <div class="diff-stat diff-stat--add"><b>${counts.added}</b> ${escapeHTML(t('variance.added'))}</div>
         <div class="diff-stat diff-stat--rem"><b>${counts.removed}</b> ${escapeHTML(t('variance.removed'))}</div>
       </div>

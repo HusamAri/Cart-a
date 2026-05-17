@@ -123,6 +123,33 @@
   /* Module-card is .disabled when "coming soon" — give a different cursor */
   .module-card.disabled { cursor: default; }
   .module-card.disabled:hover { transform: none; box-shadow: var(--shadow-2); }
+
+  .studio-mast {
+    max-width: 1120px;
+    margin: 0 auto var(--sp-8);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-4);
+    align-items: start;
+  }
+  @media (max-width: 700px) {
+    .studio-mast { grid-template-columns: 1fr; }
+  }
+  .studio-mast__cell {
+    margin: 0;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(7, 22, 13, 0.08);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-2);
+  }
+  .studio-mast__cell img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 16 / 11;
+    object-fit: cover;
+    border-radius: var(--r-lg);
+  }
 </style>
 </head>
 <body>
@@ -140,10 +167,29 @@ main.innerHTML = `
   <div class="page-header">
     <span class="eyebrow eyebrow-accent" data-i18n="studio.section">Studio</span>
     <h1 class="h1"><em data-i18n="studio.welcome">Welcome to your studio.</em></h1>
-    <p class="lead" data-i18n="studio.welcome_intro">Six instruments. One workspace. Start anywhere.</p>
+    <p class="lead" data-i18n="studio.welcome_intro">Menu intelligence plus six instruments. Start with the dashboard or dive into a module.</p>
+  </div>
+
+  <div class="studio-mast" aria-hidden="true">
+    <figure class="studio-mast__cell">
+      <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&amp;fit=crop&amp;w=800&amp;h=550&amp;q=82" alt="" width="800" height="550" loading="lazy" decoding="async">
+    </figure>
+    <figure class="studio-mast__cell">
+      <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&amp;fit=crop&amp;w=800&amp;h=550&amp;q=82" alt="" width="800" height="550" loading="lazy" decoding="async">
+    </figure>
   </div>
 
   <div class="bento">
+    <a class="module-card module-card--ink" href="/app/studio/dashboard.html">
+      <span class="module-card__icon"><span class="material-symbols-outlined">query_stats</span></span>
+      <span class="module-card__num" data-i18n="studio.card_num_dash">Menu overview</span>
+      <h2 class="module-card__name" data-i18n="studio.m_dashboard">The dashboard</h2>
+      <p class="module-card__desc" data-i18n="studio.d_dashboard">KPIs, macro mix, diet coverage, allergens, cost completeness — scoped to the whole menu or a cluster.</p>
+      <span class="module-card__cta">
+        <span data-i18n="studio.open">Open</span> <span class="arrow">→</span>
+      </span>
+    </a>
+
     <a class="module-card" href="/app/studio/recipes.html">
       <span class="module-card__icon"><span class="material-symbols-outlined">temp_preferences_eco</span></span>
       <span class="module-card__num">01 — Recipe</span>
