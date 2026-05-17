@@ -34,6 +34,39 @@
     margin-top: var(--sp-9);
     display: flex; gap: var(--sp-3); flex-wrap: wrap;
   }
+  .hero .container.hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    gap: clamp(var(--sp-7), 4vw, var(--sp-11));
+    align-items: center;
+    max-width: 1200px;
+  }
+  .hero__inner { max-width: none; }
+  .hero__figure {
+    margin: 0;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(7, 22, 13, 0.08);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-2);
+    aspect-ratio: 4 / 3;
+  }
+  .hero__figure img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: var(--r-lg);
+  }
+  @media (max-width: 900px) {
+    .hero .container.hero__grid { grid-template-columns: 1fr; }
+    .hero__figure {
+      order: -1;
+      max-width: 420px;
+      margin: 0 auto;
+      width: 100%;
+    }
+  }
 
   /* ===== MANIFESTO ===== */
   .manifesto { padding: var(--sp-11) 0; }
@@ -85,8 +118,8 @@
   .chapter__inner {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--sp-9);
-    align-items: center;
+    gap: clamp(var(--sp-7), 3vw, var(--sp-10));
+    align-items: start;
   }
   .chapter.reverse .chapter__inner > *:first-child { order: 2; }
   @media (max-width: 900px) {
@@ -105,37 +138,112 @@
   .chapter__lead { margin: 0 0 var(--sp-5); }
   .chapter__detail { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
 
-  .chapter__visual {
-    aspect-ratio: 4 / 3;
-    border-radius: var(--r-2xl);
-    position: relative; overflow: hidden;
-    box-shadow: var(--shadow-2);
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-    border: var(--glass-border);
+  /* Editorial rail: framed photo tile + separate mark card (not stacked as bg) */
+  .chapter__rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    justify-self: end;
+    width: 100%;
+    max-width: 400px;
   }
-  .chapter__visual--sage { background: rgba(212,231,216,0.85); }
-  .chapter__visual--mist { background: rgba(223,228,221,0.85); }
-  .chapter__visual--gold { background: rgba(255,224,136,0.55); }
-  .chapter__visual--ink  { background: var(--primary); color: var(--on-primary); }
-  .chapter__visual-label {
-    position: absolute; bottom: var(--sp-4); left: var(--sp-4);
-    font-family: var(--font-sans); font-weight: 600;
-    font-size: var(--type-label-sm);
-    letter-spacing: var(--track-caps); text-transform: uppercase;
-    opacity: 0.7;
+  .chapter.reverse .chapter__rail { justify-self: start; }
+  @media (max-width: 900px) {
+    .chapter__rail { max-width: none; justify-self: stretch; }
   }
-  .chapter__visual-glyph {
+  .chapter__tile {
+    margin: 0;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(7, 22, 13, 0.08);
+    border-radius: var(--r-xl);
+    box-shadow: 0 1px 0 rgba(7, 22, 13, 0.04);
+  }
+  .chapter__tile img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--r-lg);
+  }
+  .chapter__mark {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    padding: var(--sp-5) var(--sp-5);
+    border-radius: var(--r-xl);
+    border: 1px solid rgba(7, 22, 13, 0.08);
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+  }
+  .chapter__mark--sage { background: rgba(212, 231, 216, 0.55); }
+  .chapter__mark--mist { background: rgba(223, 228, 221, 0.55); }
+  .chapter__mark--gold { background: rgba(255, 224, 136, 0.35); }
+  .chapter__mark--ink {
+    background: var(--primary);
+    color: var(--on-primary);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .chapter__mark-glyph {
     font-family: var(--font-display);
-    font-weight: 300; font-style: italic;
-    font-size: clamp(3rem, 8vw, 6rem);
-    opacity: 0.85; text-align: center;
-    padding: 0 var(--sp-5); line-height: 1;
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1;
     color: var(--primary);
   }
-  .chapter__visual--ink .chapter__visual-glyph { color: var(--on-primary); opacity: 0.95; }
+  .chapter__mark--ink .chapter__mark-glyph { color: var(--on-primary); opacity: 0.95; }
+  .chapter__mark-label {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: var(--track-caps);
+    text-transform: uppercase;
+    opacity: 0.55;
+    text-align: center;
+  }
+  .chapter__mark--ink .chapter__mark-label { opacity: 0.8; }
+
+  /* Between chapters: one quiet framed image */
+  .chapter-interlude {
+    padding: var(--sp-6) 0 var(--sp-8);
+  }
+  .chapter-interlude__frame {
+    margin: 0 auto;
+    max-width: min(560px, 92vw);
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(7, 22, 13, 0.08);
+    border-radius: var(--r-xl);
+  }
+  .chapter-interlude__pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-4);
+    max-width: 720px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (max-width: 640px) {
+    .chapter-interlude__pair { grid-template-columns: 1fr; max-width: 400px; }
+  }
+  .chapter-interlude__cell {
+    margin: 0;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(7, 22, 13, 0.08);
+    border-radius: var(--r-xl);
+  }
+  .chapter-interlude__cell img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: var(--r-lg);
+  }
 
   /* ===== PLANS ===== */
   .plans { padding: var(--sp-11) 0; }
@@ -343,7 +451,7 @@
 
 <!-- ============ HERO ============ -->
 <section class="hero">
-  <div class="container">
+  <div class="container hero__grid">
     <div class="hero__inner">
       <div class="hero__eyebrow-row">
         <span class="accent-rule"></span>
@@ -366,6 +474,9 @@
         <span class="chip" data-i18n="hero.meta_offline">Offline-capable</span>
       </div>
     </div>
+    <figure class="hero__figure">
+      <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&amp;fit=crop&amp;w=960&amp;h=720&amp;q=82" alt="" width="960" height="720" decoding="async" fetchpriority="high">
+    </figure>
   </div>
 </section>
 
@@ -466,18 +577,36 @@
           <span class="chip" data-i18n="ch.01_detail3">Vegan · Halal · GF tags</span>
         </div>
       </div>
-      <div class="chapter__visual chapter__visual--sage" aria-hidden="true">
-        <span class="chapter__visual-glyph">℞</span>
-        <span class="chapter__visual-label">recipe builder</span>
+      <div class="chapter__rail">
+        <figure class="chapter__tile">
+          <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+        </figure>
+        <div class="chapter__mark chapter__mark--sage" aria-hidden="true">
+          <span class="chapter__mark-glyph">℞</span>
+          <span class="chapter__mark-label">recipe builder</span>
+        </div>
       </div>
+    </div>
+  </section>
+
+  <section class="chapter-interlude" aria-hidden="true">
+    <div class="container">
+      <figure class="chapter-interlude__frame">
+        <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&amp;fit=crop&amp;w=1120&amp;h=630&amp;q=82" alt="" width="1120" height="630" loading="lazy" decoding="async">
+      </figure>
     </div>
   </section>
 
   <section class="chapter reverse" aria-labelledby="ch02-h">
     <div class="container chapter__inner">
-      <div class="chapter__visual chapter__visual--gold" aria-hidden="true">
-        <span class="chapter__visual-glyph">₺</span>
-        <span class="chapter__visual-label">cost ledger</span>
+      <div class="chapter__rail">
+        <figure class="chapter__tile">
+          <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+        </figure>
+        <div class="chapter__mark chapter__mark--gold" aria-hidden="true">
+          <span class="chapter__mark-glyph">₺</span>
+          <span class="chapter__mark-label">cost ledger</span>
+        </div>
       </div>
       <div class="chapter__copy">
         <span class="chapter__num" data-i18n="index.02_num">02 — Cost</span>
@@ -504,28 +633,26 @@
           <span class="chip" data-i18n="ch.03_detail3">Bulk apply</span>
         </div>
       </div>
-      <div class="chapter__visual chapter__visual--ink" aria-hidden="true">
-        <span class="chapter__visual-glyph">%</span>
-        <span class="chapter__visual-label">pricing workspace</span>
+      <div class="chapter__rail">
+        <figure class="chapter__tile">
+          <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+        </figure>
+        <div class="chapter__mark chapter__mark--ink" aria-hidden="true">
+          <span class="chapter__mark-glyph">%</span>
+          <span class="chapter__mark-label">pricing workspace</span>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ============ EDITORIAL MOSAIC C (pricing → engineering) ============ -->
-  <section class="editorial-strip" aria-hidden="true">
+  <section class="chapter-interlude" aria-hidden="true">
     <div class="container">
-      <div class="editorial-mosaic editorial-mosaic--wide">
-        <figure class="editorial-frame">
-          <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&amp;fit=crop&amp;w=700&amp;h=500&amp;q=82" alt="" width="700" height="500" loading="lazy" decoding="async">
-          <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_7">The pass · calm focus</i></figcaption>
+      <div class="chapter-interlude__pair">
+        <figure class="chapter-interlude__cell">
+          <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&amp;fit=crop&amp;w=640&amp;h=800&amp;q=82" alt="" width="640" height="800" loading="lazy" decoding="async">
         </figure>
-        <figure class="editorial-frame">
-          <img src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&amp;fit=crop&amp;w=700&amp;h=500&amp;q=82" alt="" width="700" height="500" loading="lazy" decoding="async">
-          <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_8">Steam · skillet detail</i></figcaption>
-        </figure>
-        <figure class="editorial-frame">
-          <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&amp;fit=crop&amp;w=700&amp;h=500&amp;q=82" alt="" width="700" height="500" loading="lazy" decoding="async">
-          <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_9">Plating · first sketch</i></figcaption>
+        <figure class="chapter-interlude__cell">
+          <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&amp;fit=crop&amp;w=640&amp;h=800&amp;q=82" alt="" width="640" height="800" loading="lazy" decoding="async">
         </figure>
       </div>
     </div>
@@ -533,9 +660,14 @@
 
   <section class="chapter reverse" aria-labelledby="ch04-h">
     <div class="container chapter__inner">
-      <div class="chapter__visual chapter__visual--mist" aria-hidden="true">
-        <span class="chapter__visual-glyph">★◐♟○</span>
-        <span class="chapter__visual-label">engineering matrix</span>
+      <div class="chapter__rail">
+        <figure class="chapter__tile">
+          <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+        </figure>
+        <div class="chapter__mark chapter__mark--mist" aria-hidden="true">
+          <span class="chapter__mark-glyph">★◐♟○</span>
+          <span class="chapter__mark-label">engineering matrix</span>
+        </div>
       </div>
       <div class="chapter__copy">
         <span class="chapter__num" data-i18n="index.04_num">04 — Engineering</span>
@@ -562,18 +694,36 @@
           <span class="chip-mist chip" data-i18n="ch.05_detail3">Audit log</span>
         </div>
       </div>
-      <div class="chapter__visual chapter__visual--sage" aria-hidden="true">
-        <span class="chapter__visual-glyph">Δ</span>
-        <span class="chapter__visual-label">variance report</span>
+      <div class="chapter__rail">
+        <figure class="chapter__tile">
+          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+        </figure>
+        <div class="chapter__mark chapter__mark--sage" aria-hidden="true">
+          <span class="chapter__mark-glyph">Δ</span>
+          <span class="chapter__mark-label">variance report</span>
+        </div>
       </div>
+    </div>
+  </section>
+
+  <section class="chapter-interlude" aria-hidden="true">
+    <div class="container">
+      <figure class="chapter-interlude__frame">
+        <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&amp;fit=crop&amp;w=1120&amp;h=630&amp;q=82" alt="" width="1120" height="630" loading="lazy" decoding="async">
+      </figure>
     </div>
   </section>
 
   <section class="chapter reverse" aria-labelledby="ch06-h">
     <div class="container chapter__inner">
-      <div class="chapter__visual chapter__visual--gold" aria-hidden="true">
-        <span class="chapter__visual-glyph">EN / TR</span>
-        <span class="chapter__visual-label">surface</span>
+      <div class="chapter__rail">
+        <figure class="chapter__tile">
+          <img src="https://images.unsplash.com/photo-1543286386-713bdd548da4?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+        </figure>
+        <div class="chapter__mark chapter__mark--gold" aria-hidden="true">
+          <span class="chapter__mark-glyph">EN / TR</span>
+          <span class="chapter__mark-label">surface</span>
+        </div>
       </div>
       <div class="chapter__copy">
         <span class="chapter__num" data-i18n="index.06_num">06 — Surface</span>
