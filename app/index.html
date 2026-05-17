@@ -283,6 +283,7 @@ import {
 } from '/src/workspaces.js';
 import { getMyRole, can, invalidateRoleCache } from '/src/permissions.js';
 import { applyTranslations, t, setLang, getLang } from '/src/i18n.js';
+import { cartaIcon } from '/src/carta-icon.js';
 applyTranslations();
 
 function setLangBtn() { document.getElementById('langSwitch').textContent = getLang()==='en' ? 'TR' : 'EN'; }
@@ -481,7 +482,7 @@ function renderWsCard(w, cl) {
         </div>
       </a>
       <button type="button" class="icon-btn" data-manage="${escapeHTML(w.id)}" aria-label="${escapeHTML(t('ws.manage'))}" title="${escapeHTML(t('ws.manage'))}">
-        <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+        ${cartaIcon('tune', { size: 22 })}
       </button>
       <span class="ws-card__arrow" aria-hidden="true">→</span>
     </article>
@@ -584,7 +585,7 @@ async function openManageModal(ws) {
           <h2 class="h2" id="manageTitle"><em>${escapeHTML(ws.name)}</em></h2>
         </div>
         <button class="modal__close" aria-label="${escapeHTML(t('ws.close'))}" id="closeBtn">
-          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          ${cartaIcon('close', { size: 24 })}
         </button>
       </header>
       <div class="modal__body">
@@ -787,7 +788,7 @@ function renderMemberRow(m, ws, isAdmin) {
         : `<select data-change-role="${escapeHTML(m.user_id)}">
             ${['viewer','chef','food_engineer','manager','cost_controller','admin'].map(r => `<option value="${r}" ${r===m.role?'selected':''}>${escapeHTML(t('ws.role_'+r) || r)}</option>`).join('')}
           </select>`}
-      ${(isAdmin && !isOwner) ? `<button type="button" class="icon-btn" data-remove="${escapeHTML(m.user_id)}" aria-label="${escapeHTML(t('ws.remove_member'))}" title="${escapeHTML(t('ws.remove_member'))}"><span class="material-symbols-outlined" aria-hidden="true">person_remove</span></button>` : '<span></span>'}
+      ${(isAdmin && !isOwner) ? `<button type="button" class="icon-btn" data-remove="${escapeHTML(m.user_id)}" aria-label="${escapeHTML(t('ws.remove_member'))}" title="${escapeHTML(t('ws.remove_member'))}">${cartaIcon('person_remove', { size: 22 })}</button>` : '<span></span>'}
     </div>
   `;
 }

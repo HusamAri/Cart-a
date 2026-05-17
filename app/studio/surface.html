@@ -7,12 +7,6 @@
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
-  body {
-    background:
-      radial-gradient(50% 40% at 80% 10%, rgba(255,224,136,0.28) 0%, transparent 65%),
-      radial-gradient(40% 40% at 10% 90%, rgba(212,231,216,0.35) 0%, transparent 65%),
-      var(--surface);
-  }
   .studio-page { padding: var(--sp-7) var(--margin-desktop) var(--sp-10); flex: 1; overflow-y: auto; }
   @media (max-width: 900px) { .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); } }
   .page-head { max-width: 1200px; margin: 0 auto var(--sp-8); }
@@ -45,7 +39,10 @@
     border-radius: var(--r-lg);
     align-self: flex-start;
   }
-  .export-card__icon .material-symbols-outlined { font-size: 28px; }
+  .export-card__icon .carta-icon {
+    width: 28px; height: 28px;
+    display: block;
+  }
   .export-card h3 {
     font-family: var(--font-display); font-style: italic; font-weight: 400;
     font-size: 1.5rem; color: var(--primary);
@@ -73,6 +70,7 @@
 
 <script type="module">
 import { mountStudioShell } from '/src/studio-layout.js';
+import { cartaIcon } from '/src/carta-icon.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { downloadWorkbook } from '/src/xlsx-export.js';
@@ -120,52 +118,52 @@ main.innerHTML = `
 
   <div class="exports">
     <article class="export-card">
-      <span class="export-card__icon"><span class="material-symbols-outlined">restaurant_menu</span></span>
+      <span class="export-card__icon">${cartaIcon('restaurant_menu', { size: 28 })}</span>
       <h3 data-i18n="surface.recipes_title">Recipes</h3>
       <p data-i18n="surface.recipes_desc">Every dish with kcal, macros, allergens, diet tags, current menu price.</p>
       <div class="export-card__row">
         <span class="export-card__count">${dishes.length} <span data-i18n="recipes.title">items</span></span>
         <button type="button" class="btn btn-primary btn-sm" id="expRecipes" data-require="export" ${dishes.length===0?'disabled':''}>
-          <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
+          ${cartaIcon('download', { size: 18 })}
           <span data-i18n="surface.export_xls">Export Excel</span>
         </button>
       </div>
     </article>
 
     <article class="export-card">
-      <span class="export-card__icon"><span class="material-symbols-outlined">account_balance_wallet</span></span>
+      <span class="export-card__icon">${cartaIcon('account_balance_wallet', { size: 28 })}</span>
       <h3 data-i18n="surface.cost_title">Cost ledger</h3>
       <p data-i18n="surface.cost_desc">Full ingredient cost ledger with yield % and effective per-gram cost.</p>
       <div class="export-card__row">
         <span class="export-card__count">${costRows.length} <span data-i18n="cost.col_ingredient">items</span></span>
         <button type="button" class="btn btn-primary btn-sm" id="expCost" data-require="export" ${costRows.length===0?'disabled':''}>
-          <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
+          ${cartaIcon('download', { size: 18 })}
           <span data-i18n="surface.export_xls">Export Excel</span>
         </button>
       </div>
     </article>
 
     <article class="export-card">
-      <span class="export-card__icon"><span class="material-symbols-outlined">sell</span></span>
+      <span class="export-card__icon">${cartaIcon('sell', { size: 28 })}</span>
       <h3 data-i18n="surface.pricing_title">Pricing analysis</h3>
       <p data-i18n="surface.pricing_desc">Cost, suggested price, FC %, margin — recipe by recipe.</p>
       <div class="export-card__row">
         <span class="export-card__count">${dishes.length} <span data-i18n="pricing.col_dish">items</span></span>
         <button type="button" class="btn btn-primary btn-sm" id="expPricing" data-require="export" ${dishes.length===0?'disabled':''}>
-          <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
+          ${cartaIcon('download', { size: 18 })}
           <span data-i18n="surface.export_xls">Export Excel</span>
         </button>
       </div>
     </article>
 
     <article class="export-card">
-      <span class="export-card__icon"><span class="material-symbols-outlined">grid_view</span></span>
+      <span class="export-card__icon">${cartaIcon('grid_view', { size: 28 })}</span>
       <h3 data-i18n="surface.matrix_title">Engineering matrix</h3>
       <p data-i18n="surface.matrix_desc">Smith-Kasavana classification: dish, sold, contribution, quadrant.</p>
       <div class="export-card__row">
         <span class="export-card__count">${sales.length} <span data-i18n="matrix.col_dish">items</span></span>
         <button type="button" class="btn btn-primary btn-sm" id="expMatrix" data-require="export" ${sales.length===0?'disabled':''}>
-          <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
+          ${cartaIcon('download', { size: 18 })}
           <span data-i18n="surface.export_xls">Export Excel</span>
         </button>
       </div>

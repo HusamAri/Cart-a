@@ -5,7 +5,6 @@
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 :root {
   /* ---- Surface tones --------------------------- */
@@ -697,11 +696,17 @@ html.motion-reduce .sidebar__link:hover { transform: none; }
 }
 .sidebar__link:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
 .sidebar__icon {
-  font-family: 'Material Symbols Outlined';
-  font-size: 22px; line-height: 1;
-  font-variation-settings: 'FILL' 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
 }
-.sidebar__link.active .sidebar__icon { font-variation-settings: 'FILL' 1; }
+.sidebar__icon .carta-icon {
+  width: 22px;
+  height: 22px;
+}
 .sidebar__foot {
   margin-top: auto;
   padding: 0 var(--glass-padding);
@@ -736,6 +741,26 @@ html.motion-reduce .sidebar__link:hover { transform: none; }
 /* Body scroll lock while drawer open */
 body.drawer-open { overflow: hidden; }
 
+/* Studio shell (mountStudioShell) — one shared backdrop, calmer than per-page gradients */
+body.studio-body {
+  background-color: var(--surface);
+  background-image:
+    radial-gradient(52% 48% at 92% -6%, rgba(212, 231, 216, 0.32) 0%, transparent 58%),
+    radial-gradient(46% 44% at -8% 104%, rgba(255, 224, 136, 0.14) 0%, transparent 56%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-attachment: fixed;
+}
+@media (max-width: 900px) {
+  body.studio-body { background-attachment: scroll; }
+}
+@media print {
+  body.studio-body {
+    background: #fff !important;
+    background-image: none !important;
+  }
+}
+
 /* ============================================================
    STUDIO TOP BAR (mobile only)
    ============================================================ */
@@ -753,18 +778,17 @@ body.drawer-open { overflow: hidden; }
 @media (max-width: 900px) { .studio-mobile-top { display: flex; } }
 
 /* ============================================================
-   MATERIAL SYMBOLS (rendered as text)
+   CARTA ICONS (SVG sprite — stroke, currentColor)
    ============================================================ */
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
-  font-weight: 400; font-style: normal;
-  font-size: 24px; line-height: 1;
-  letter-spacing: normal; text-transform: none;
-  display: inline-block; white-space: nowrap;
-  word-wrap: normal; direction: ltr;
-  -webkit-font-feature-settings: 'liga';
-  -webkit-font-smoothing: antialiased;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+.carta-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  color: inherit;
+  fill: none;
+}
+.carta-icon use {
+  pointer-events: none;
 }
 
 /* ============================================================

@@ -7,12 +7,6 @@
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
-  body {
-    background:
-      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.40) 0%, transparent 65%),
-      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.20) 0%, transparent 65%),
-      var(--surface);
-  }
   .studio-page {
     padding: var(--sp-7) var(--margin-desktop) var(--sp-10);
     flex: 1; overflow-y: auto;
@@ -148,6 +142,7 @@ import {
 import { atwaterKcal, formatNumber } from '/src/recipe-compute.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { downloadWorkbook } from '/src/xlsx-export.js';
+import { cartaIcon } from '/src/carta-icon.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -213,7 +208,7 @@ main.innerHTML = `
     </div>
     <div class="page-head__actions">
       <button type="button" class="btn btn-primary btn-sm" id="exportAuditBtn">
-        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
+        ${cartaIcon('download', { size: 18 })}
         <span data-i18n="ingdb.export_audit">Audit Excel</span>
       </button>
     </div>
@@ -221,7 +216,7 @@ main.innerHTML = `
 
   <div class="toolbar">
     <div class="search-row">
-      <span class="material-symbols-outlined" aria-hidden="true" style="color:var(--outline)">search</span>
+      ${cartaIcon('search', { size: 20, style: 'color:var(--outline)' })}
       <label class="visually-hidden" for="ingSearch" data-i18n="ingdb.search_ph">Search…</label>
       <input id="ingSearch" type="search" autocomplete="off" data-i18n-ph="ingdb.search_ph">
     </div>

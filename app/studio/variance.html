@@ -7,12 +7,6 @@
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
-  body {
-    background:
-      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.40) 0%, transparent 65%),
-      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.18) 0%, transparent 65%),
-      var(--surface);
-  }
   .studio-page { padding: var(--sp-7) var(--margin-desktop) var(--sp-10); flex: 1; overflow-y: auto; }
   @media (max-width: 900px) { .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); } }
 
@@ -181,6 +175,7 @@ import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { formatNumber, formatMoney } from '/src/recipe-compute.js';
 import { getMyRole, applyRoleGates } from '/src/permissions.js';
+import { cartaIcon } from '/src/carta-icon.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -204,7 +199,7 @@ main.innerHTML = `
       <p class="lead" data-i18n="variance.intro">Snapshot your cost ledger. Compare. See what moved.</p>
     </div>
     <button type="button" class="btn btn-primary" id="captureBtn" data-require="snapshot_capture">
-      <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">photo_camera</span>
+      ${cartaIcon('photo_camera', { size: 18 })}
       <span data-i18n="variance.capture_now">Capture snapshot</span>
     </button>
   </div>
@@ -249,7 +244,7 @@ function render() {
         <h2 class="h1" style="margin-top:var(--sp-4)"><em data-i18n="variance.no_costs">Your cost ledger is empty.</em></h2>
         <p class="lead" style="margin:var(--sp-4) auto var(--sp-6)" data-i18n="variance.no_costs">Add ingredients first to compare against.</p>
         <a class="btn btn-primary btn-lg" href="/app/studio/cost.html">
-          <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
+          ${cartaIcon('add', { size: 18 })}
           <span data-i18n="cost.new">New entry</span>
         </a>
       </div>
@@ -385,7 +380,7 @@ function openDiff(snapId) {
           <p style="margin:4px 0 0;color:var(--on-surface-variant);font-size:12px">${new Date(snap.created_at).toLocaleString(getLang()==='tr'?'tr-TR':'en-GB', {dateStyle:'medium',timeStyle:'short'})}</p>
         </div>
         <button class="modal__close" aria-label="Close" id="diffClose">
-          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          ${cartaIcon('close', { size: 24 })}
         </button>
       </header>
       <div class="diff-summary">
