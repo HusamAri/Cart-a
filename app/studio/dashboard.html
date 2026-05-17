@@ -95,6 +95,7 @@ import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { computeRecipe, computeDishCost, buildCostMap, formatNumber, computeRecipeClimate, toGrams } from '/src/recipe-compute.js';
 import { emissionIntensityKgCo2ePerKg } from '/src/carbon-factors.js';
 import { ALLERGEN_LABELS } from '/src/nutrient-db.js';
+import { getMyRole, applyRoleGates } from '/src/permissions.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -105,6 +106,7 @@ if (!ctx) throw new Error('No session/workspace');
 const ws = ctx.workspace;
 const wsId = ws.id;
 const qFactor = Number(ws.q_factor) || 3;
+const role = await getMyRole(wsId);
 
 let allDishes = [];
 let clusters = [];
@@ -125,8 +127,8 @@ main.innerHTML = `
     </div>
     <div class="dash-actions">
       <button type="button" class="btn btn-accent btn-sm" id="dashRefresh" data-i18n="dash.refresh">Refresh</button>
-      <button type="button" class="btn btn-outline btn-sm" id="dashCsv" data-i18n="dash.export_csv">Export CSV</button>
-      <button type="button" class="btn btn-outline btn-sm" id="dashPrint" data-i18n="dash.print">Print</button>
+      <button type="button" class="btn btn-outline btn-sm" id="dashCsv" data-require="export" data-i18n="dash.export_csv">Export CSV</button>
+      <button type="button" class="btn btn-outline btn-sm" id="dashPrint" data-require="export" data-i18n="dash.print">Print</button>
     </div>
   </div>
 
@@ -134,8 +136,7 @@ main.innerHTML = `
 `;
 
 applyTranslations();
-
-async function load() {
+applyRoleGates(role, main);
   const [dRes, cRes, clRes] = await Promise.all([
     supabase.from('saved_dishes').select('*').eq('workspace_id', wsId).order('updated_at', { ascending: false }),
     supabase.from('cost_db').select('*').eq('workspace_id', wsId),
@@ -304,6 +305,7 @@ function renderDash(costMap) {
   if (clusterFilter !== '__all__' && rows.length === 0 && allDishes.length > 0) {
     root.innerHTML = `<div class="dash-card dash-empty"><p data-i18n="dash.cluster_empty">${escapeHTML(t('dash.cluster_empty'))}</p></div>`;
     applyTranslations();
+    applyRoleGates(role, main);
     return;
   }
 
@@ -316,6 +318,7 @@ function renderDash(costMap) {
         <a class="btn btn-primary" href="/app/studio/recipes.html" data-i18n="dash.empty_cta">Open recipes</a>
       </div>`;
     applyTranslations();
+    applyRoleGates(role, main);
     return;
   }
 
@@ -430,6 +433,7 @@ function renderDash(costMap) {
     </div>
   `;
   applyTranslations();
+  applyRoleGates(role, main);
 }
 
 function escapeHTML(s) {
@@ -476,7 +480,7 @@ main.querySelector('#dashPrint').addEventListener('click', () => window.print())
 await load();
 
 document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
-  setTimeout(() => renderDash(lastCostMap), 0);
+  setTimeout(() => { renderDash(lastCostMap); applyRoleGates(role, main); }, 0);
 });
 </script>
 </body>

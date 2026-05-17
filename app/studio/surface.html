@@ -81,6 +81,7 @@ import {
   buildCostMap, formatNumber
 } from '/src/recipe-compute.js';
 import { ALLERGEN_LABELS } from '/src/nutrient-db.js';
+import { getMyRole, applyRoleGates } from '/src/permissions.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -94,6 +95,7 @@ const currency = ws.currency || '₺';
 const targetGp = Number(ws.target_gp) || 70;
 const vatPct   = Number(ws.vat_rate) || 10;
 const qFactor  = Number(ws.q_factor) || 3;
+const role = await getMyRole(wsId);
 
 // Load everything in parallel
 const [dishesRes, costRes, salesRes] = await Promise.all([
@@ -123,7 +125,7 @@ main.innerHTML = `
       <p data-i18n="surface.recipes_desc">Every dish with kcal, macros, allergens, diet tags, current menu price.</p>
       <div class="export-card__row">
         <span class="export-card__count">${dishes.length} <span data-i18n="recipes.title">items</span></span>
-        <button type="button" class="btn btn-primary btn-sm" id="expRecipes" ${dishes.length===0?'disabled':''}>
+        <button type="button" class="btn btn-primary btn-sm" id="expRecipes" data-require="export" ${dishes.length===0?'disabled':''}>
           <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
           <span data-i18n="surface.export_xls">Export Excel</span>
         </button>
@@ -136,7 +138,7 @@ main.innerHTML = `
       <p data-i18n="surface.cost_desc">Full ingredient cost ledger with yield % and effective per-gram cost.</p>
       <div class="export-card__row">
         <span class="export-card__count">${costRows.length} <span data-i18n="cost.col_ingredient">items</span></span>
-        <button type="button" class="btn btn-primary btn-sm" id="expCost" ${costRows.length===0?'disabled':''}>
+        <button type="button" class="btn btn-primary btn-sm" id="expCost" data-require="export" ${costRows.length===0?'disabled':''}>
           <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
           <span data-i18n="surface.export_xls">Export Excel</span>
         </button>
@@ -149,7 +151,7 @@ main.innerHTML = `
       <p data-i18n="surface.pricing_desc">Cost, suggested price, FC %, margin — recipe by recipe.</p>
       <div class="export-card__row">
         <span class="export-card__count">${dishes.length} <span data-i18n="pricing.col_dish">items</span></span>
-        <button type="button" class="btn btn-primary btn-sm" id="expPricing" ${dishes.length===0?'disabled':''}>
+        <button type="button" class="btn btn-primary btn-sm" id="expPricing" data-require="export" ${dishes.length===0?'disabled':''}>
           <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
           <span data-i18n="surface.export_xls">Export Excel</span>
         </button>
@@ -162,7 +164,7 @@ main.innerHTML = `
       <p data-i18n="surface.matrix_desc">Smith-Kasavana classification: dish, sold, contribution, quadrant.</p>
       <div class="export-card__row">
         <span class="export-card__count">${sales.length} <span data-i18n="matrix.col_dish">items</span></span>
-        <button type="button" class="btn btn-primary btn-sm" id="expMatrix" ${sales.length===0?'disabled':''}>
+        <button type="button" class="btn btn-primary btn-sm" id="expMatrix" data-require="export" ${sales.length===0?'disabled':''}>
           <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
           <span data-i18n="surface.export_xls">Export Excel</span>
         </button>
@@ -173,6 +175,7 @@ main.innerHTML = `
   <p class="format-note" data-i18n="surface.format_note">Format: SpreadsheetML 2003 (.xls) — opens in Excel and Google Sheets.</p>
 `;
 applyTranslations();
+applyRoleGates(role, main);
 
 const today = new Date().toISOString().slice(0,10);
 const wsSlug = (ws.name || 'workspace').toLowerCase().replace(/[^a-z0-9]+/g,'-');

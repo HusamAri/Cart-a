@@ -118,6 +118,23 @@
     color: var(--on-surface);
     vertical-align: middle;
   }
+  .paste-panel {
+    max-width: 1280px; margin: 0 auto var(--sp-4);
+    padding: var(--sp-4) var(--sp-5);
+    background: rgba(255,255,255,0.82);
+    border: var(--glass-border);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-1);
+  }
+  .paste-panel summary {
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: var(--type-caption);
+    letter-spacing: var(--track-caps);
+    text-transform: uppercase;
+    color: var(--on-surface-variant);
+  }
   .sales-card tbody tr:last-child td { border-bottom: 0; }
   .col-name { font-family: var(--font-display); font-style: italic; color: var(--primary); font-size: 1.05rem; }
   .col-num  { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
@@ -178,6 +195,7 @@ import {
   computeDishCost, marginCurrency, buildCostMap, formatNumber, formatMoney
 } from '/src/recipe-compute.js';
 import { getMyRole, applyRoleGates } from '/src/permissions.js';
+import { turkNorm } from '/src/nutrient-db.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -207,6 +225,20 @@ main.innerHTML = `
   <div class="matrix" id="quadrants"></div>
 
   <div id="listOrEmpty"></div>
+
+  <div class="paste-panel" id="pastePanel" hidden>
+    <details>
+      <summary data-i18n="matrix.paste_sales_summary">Bulk paste sold counts (Excel)</summary>
+      <p class="text-muted" style="font-size:12px;margin:10px 0;line-height:1.55" data-i18n="matrix.paste_sales_hint">Copy two columns from Excel: dish name, then sold quantity. Tab-separated. A header row is OK.</p>
+      <textarea id="pasteSalesTa" class="input" rows="5" style="font-family:ui-monospace,monospace;font-size:12px;width:100%;resize:vertical;margin-top:4px" data-require-disable="sales_edit" aria-label="TSV"></textarea>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center">
+        <button type="button" class="btn btn-sm btn-primary" id="pasteSalesApply" data-require="sales_edit" data-i18n="matrix.paste_apply">Apply to table</button>
+        <button type="button" class="btn btn-sm btn-outline" id="pasteSalesClip" data-require="sales_edit" data-i18n="matrix.paste_clipboard">Read clipboard</button>
+        <span id="pasteSalesFlash" style="font-size:12px;color:var(--on-surface-variant)"></span>
+      </div>
+    </details>
+  </div>
+
   <div class="save-row">
     <span class="help-text" data-i18n="matrix.help_threshold">Pavesic 70% rule: popularity threshold = 0.70 / N</span>
     <button type="button" class="btn btn-primary" id="saveAllBtn" data-require="sales_edit">
@@ -223,6 +255,53 @@ applyRoleGates(role, main);
 let dishes = [];
 let salesMap = {}; // dish_name → { sold, price }
 let costMap  = {};
+
+function resolveDishName(raw) {
+  const t = String(raw || '').trim();
+  if (!t) return null;
+  const tn = turkNorm(t);
+  for (const d of dishes) {
+    if (turkNorm(d.name) === tn) return d.name;
+  }
+  const tl = t.toLocaleLowerCase('tr-TR');
+  for (const d of dishes) {
+    if (String(d.name || '').trim().toLocaleLowerCase('tr-TR') === tl) return d.name;
+  }
+  return null;
+}
+
+function applySalesPasteFromText(text) {
+  const lines = String(text || '').trim().split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return { matched: 0, unmatched: [] };
+  let i0 = 0;
+  const head = lines[0].toLowerCase();
+  const looksHeader = /(yemek|ürün|urun|dish|recipe|name|ad|product)/i.test(head)
+    && /(sold|sat|adet|qty|miktar|quantity|pcs)/i.test(head);
+  if (looksHeader) i0 = 1;
+  const miss = [];
+  let matched = 0;
+  for (let i = i0; i < lines.length; i++) {
+    const cells = lines[i].split(/\t/).map(c => c.trim());
+    if (cells.length < 2) continue;
+    const rawName = cells[0];
+    const numCell = cells[cells.length - 1];
+    const sold = parseInt(String(numCell).replace(/[^0-9]/g, ''), 10);
+    if (!Number.isFinite(sold)) continue;
+    const canon = resolveDishName(rawName);
+    if (!canon) {
+      miss.push(rawName);
+      continue;
+    }
+    salesMap[canon] = salesMap[canon] || { workspace_id: wsId, dish_name: canon, sold: 0, price: 0, period: null };
+    salesMap[canon].sold = sold;
+    const dish = dishes.find(x => x.name === canon);
+    if (dish && (!salesMap[canon].price || salesMap[canon].price === 0)) {
+      salesMap[canon].price = Number(dish.data?.menu_price) || 0;
+    }
+    matched++;
+  }
+  return { matched, unmatched: miss };
+}
 
 async function loadAll() {
   const [dishesRes, costRes, salesRes] = await Promise.all([
@@ -255,7 +334,10 @@ function render() {
     `;
     main.querySelector('#quadrants').innerHTML = '';
     main.querySelector('#stats').innerHTML = '';
+    const pp0 = main.querySelector('#pastePanel');
+    if (pp0) pp0.hidden = true;
     applyTranslations();
+    applyRoleGates(role, main);
     return;
   }
 
@@ -355,6 +437,8 @@ function render() {
   });
 
   applyTranslations();
+  const pp1 = main.querySelector('#pastePanel');
+  if (pp1) pp1.hidden = false;
   applyRoleGates(role, main);
 }
 
@@ -382,6 +466,24 @@ function quadChip(q) {
 }
 
 // Save all sales rows
+main.querySelector('#pasteSalesApply').addEventListener('click', () => {
+  const ta = main.querySelector('#pasteSalesTa');
+  const flash = main.querySelector('#pasteSalesFlash');
+  const { matched, unmatched } = applySalesPasteFromText(ta.value);
+  flash.textContent = t('matrix.paste_done').replace('{n}', String(matched))
+    + (unmatched.length ? ' ' + t('matrix.paste_miss').replace('{n}', String(unmatched.length)) : '');
+  render();
+});
+main.querySelector('#pasteSalesClip').addEventListener('click', async () => {
+  const flash = main.querySelector('#pasteSalesFlash');
+  try {
+    main.querySelector('#pasteSalesTa').value = await navigator.clipboard.readText();
+    flash.textContent = '';
+  } catch (e) {
+    flash.textContent = t('matrix.paste_clip_denied');
+  }
+});
+
 main.querySelector('#saveAllBtn').addEventListener('click', async () => {
   const rows = Object.values(salesMap).map(s => ({
     workspace_id: wsId,

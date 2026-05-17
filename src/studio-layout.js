@@ -1,4 +1,5 @@
 // Carta — Studio layout (shared sidebar nav + top bar)
+import './page-motion.js';
 import { getSession } from './supabase-client.js';
 import { signOut } from './auth.js';
 import { getActiveWorkspace } from './workspaces.js';
@@ -15,6 +16,8 @@ const MODULES = [
   { key: 'pricing',   href: '/app/studio/pricing.html',   icon: 'sell',                 i18n: 'studio.m_pricing',  fallback: 'Pricing' },
   { key: 'matrix',    href: '/app/studio/matrix.html',    icon: 'grid_view',            i18n: 'studio.m_matrix',   fallback: 'Engineering' },
   { key: 'variance',  href: '/app/studio/variance.html',  icon: 'analytics',            i18n: 'studio.m_audit',    fallback: 'Variance' },
+  { key: 'audit',     href: '/app/studio/audit.html',      icon: 'history',              i18n: 'studio.m_activity',  fallback: 'Activity log' },
+  { key: 'capabilities', href: '/app/studio/capabilities.html', icon: 'table_chart', i18n: 'studio.m_capabilities', fallback: 'Capability map' },
   { key: 'surface',   href: '/app/studio/surface.html',   icon: 'ios_share',            i18n: 'studio.m_surface',  fallback: 'Surface' },
 ];
 
@@ -112,6 +115,9 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   if (main) {
     // Move provided main element into wrap
     mainWrap.appendChild(main);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => main.classList.add('content-reveal'));
+    });
   }
   document.body.appendChild(mainWrap);
 

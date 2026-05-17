@@ -178,7 +178,11 @@
    ============================================================ */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-html { font-size: var(--type-base); scroll-behavior: smooth; }
+html {
+  font-size: var(--type-base);
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--topbar-h) + 16px);
+}
 body {
   font-family: var(--font-sans);
   color: var(--on-surface);
@@ -288,7 +292,7 @@ button { font-family: inherit; cursor: pointer; }
   font-size: var(--type-lead);
   font-weight: 400;
   color: var(--on-surface-variant);
-  line-height: 1.65;
+  line-height: 1.72;
   max-width: var(--max-w-prose);
   margin: 0;
 }
@@ -666,9 +670,17 @@ main { padding-top: var(--topbar-h); }
   font-size: var(--type-body);
   color: var(--on-surface-variant);
   position: relative;
-  transition: background var(--dur-2), color var(--dur-2);
+  transition:
+    background 380ms var(--ease),
+    color 380ms var(--ease),
+    transform 380ms var(--ease);
 }
-.sidebar__link:hover { background: rgba(223,228,221,0.30); color: var(--primary); }
+.sidebar__link:hover {
+  background: rgba(223,228,221,0.30);
+  color: var(--primary);
+  transform: translateX(2px);
+}
+html.motion-reduce .sidebar__link:hover { transform: none; }
 .sidebar__link[aria-current="page"],
 .sidebar__link.active {
   background: rgba(223,228,221,0.10);
@@ -912,5 +924,77 @@ body.drawer-open { overflow: hidden; }
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   VIEW TRANSITIONS (MPA cross-document, Chrome 126+)
+   ============================================================ */
+@view-transition {
+  navigation: auto;
+}
+
+@keyframes carta-vt-fade-out {
+  from { opacity: 1; filter: blur(0); }
+  to { opacity: 0.88; filter: blur(2px); }
+}
+
+@keyframes carta-vt-fade-in {
+  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+::view-transition-old(root) {
+  animation: carta-vt-fade-out 0.32s var(--ease) both;
+}
+
+::view-transition-new(root) {
+  animation: carta-vt-fade-in 0.48s var(--ease) both;
+}
+
+html.motion-reduce ::view-transition-old(root),
+html.motion-reduce ::view-transition-new(root) {
+  animation: none !important;
+}
+
+/* Studio: main column entrance after shell mounts */
+@keyframes carta-content-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+.studio-main main.content-reveal {
+  animation: carta-content-in 0.62s var(--ease) both;
+}
+
+/* Marketing hero: staggered editorial reveal */
+@media (prefers-reduced-motion: no-preference) {
+  html.carta-ui-ready .hero .hero__eyebrow-row {
+    animation: carta-content-in 0.55s var(--ease) both;
+    animation-delay: 45ms;
+  }
+  html.carta-ui-ready .hero .display {
+    animation: carta-content-in 0.62s var(--ease) both;
+    animation-delay: 100ms;
+  }
+  html.carta-ui-ready .hero .hero__lead {
+    animation: carta-content-in 0.62s var(--ease) both;
+    animation-delay: 165ms;
+  }
+  html.carta-ui-ready .hero .hero__cta {
+    animation: carta-content-in 0.62s var(--ease) both;
+    animation-delay: 220ms;
+  }
+  html.carta-ui-ready .hero .hero__compliance {
+    animation: carta-content-in 0.62s var(--ease) both;
+    animation-delay: 275ms;
+  }
+  html.carta-ui-ready .hero .hero__figure {
+    animation: carta-content-in 0.72s var(--ease) both;
+    animation-delay: 130ms;
+  }
+  html.carta-ui-ready .auth-card {
+    animation: carta-content-in 0.55s var(--ease) both;
+    animation-delay: 80ms;
   }
 }
