@@ -43,7 +43,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   sidebar.innerHTML = `
     <div class="sidebar__head">
       <a href="/app/studio.html" class="logo" aria-label="Carta studio home">
-        <img src="/assets/carta-logo.png" alt="Carta">
+        <img src="/assets/carta-logo.png" alt="Carta" width="766" height="264">
       </a>
       <span class="role" id="sidebarWsName">${escapeHTML(ws.name)}</span>
       <button type="button" id="sidebarRailToggle" class="sidebar-rail-toggle" aria-pressed="false" aria-label="">
@@ -94,7 +94,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
       ${cartaIcon('menu', { size: 22 })}
     </button>
     <a href="/app/studio.html" class="site-logo" aria-label="Carta studio home" style="flex:1;justify-content:center;display:flex">
-      <img src="/assets/carta-logo.png" alt="Carta" style="height:26px">
+      <img src="/assets/carta-logo.png" alt="Carta" width="766" height="264" style="height:26px">
     </a>
     ${canSwitchProperty
       ? `<a href="/app/" class="btn btn-sm btn-ghost" aria-label="Switch workspace" style="padding:8px 12px;min-height:44px;min-width:44px">
