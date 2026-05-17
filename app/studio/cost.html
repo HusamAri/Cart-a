@@ -7,12 +7,6 @@
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
-  body {
-    background:
-      radial-gradient(50% 40% at 80% 10%, rgba(255,224,136,0.30) 0%, transparent 65%),
-      radial-gradient(40% 40% at 10% 90%, rgba(212,231,216,0.35) 0%, transparent 65%),
-      var(--surface);
-  }
   .studio-page {
     padding: var(--sp-7) var(--margin-desktop) var(--sp-10);
     flex: 1; overflow-y: auto;
@@ -112,7 +106,7 @@
   /* MODAL — borrowed from recipes */
   .modal-backdrop {
     position: fixed; inset: 0;
-    background: rgba(7,22,13,0.55);
+    background: rgb(var(--ink-rgb) / 0.55);
     backdrop-filter: blur(16px) saturate(120%);
     -webkit-backdrop-filter: blur(16px) saturate(120%);
     display: flex; align-items: center; justify-content: center;
@@ -194,6 +188,7 @@ import { suggestNutrients } from '/src/nutrient-db.js';
 import { getMyRole, applyRoleGates, requireCan } from '/src/permissions.js';
 import { parseSapCostFile } from '/src/sap-cost-import.js';
 import { downloadWorkbook } from '/src/xlsx-export.js';
+import { cartaIcon } from '/src/carta-icon.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -216,20 +211,20 @@ main.innerHTML = `
       <p class="lead" data-i18n="cost.intro">Per-ingredient cost. Yield-aware. SAP-compatible.</p>
     </div>
     <div class="page-head__actions">
-      <span class="material-symbols-outlined" aria-hidden="true" style="color:var(--outline);font-size:20px">search</span>
+      ${cartaIcon('search', { size: 20, style: 'color:var(--outline)' })}
       <input id="searchInput" type="search" data-i18n-ph="cost.search_ph" autocomplete="off">
       <span class="divider" aria-hidden="true"></span>
       <input type="file" id="sapImportFile" accept=".csv,.txt,.xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden>
       <button type="button" class="btn btn-outline btn-sm" id="sapImportBtn" data-require="cost_create" title="">
-        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">upload_file</span>
+        ${cartaIcon('upload_file', { size: 18 })}
         <span data-i18n="cost.import_sap">SAP / Excel</span>
       </button>
       <button type="button" class="btn btn-ghost btn-sm" id="sapTemplateBtn" data-i18n-title="cost.import_template_hint">
-        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">download</span>
+        ${cartaIcon('download', { size: 18 })}
         <span data-i18n="cost.import_template">Template</span>
       </button>
       <button class="btn btn-primary btn-sm" id="newBtn" data-require="cost_create">
-        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
+        ${cartaIcon('add', { size: 18 })}
         <span data-i18n="cost.new">New entry</span>
       </button>
     </div>
@@ -327,7 +322,7 @@ function renderEmpty() {
       <h2 class="h1" style="margin-top:var(--sp-3)"><em data-i18n="cost.empty_title">Start your cost ledger.</em></h2>
       <p class="lead" data-i18n="cost.empty_intro">Add ingredients with their per-100g price and yield %.</p>
       <button class="btn btn-primary btn-lg" id="emptyNewBtn" data-require="cost_create">
-        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
+        ${cartaIcon('add', { size: 18 })}
         <span data-i18n="cost.new">New entry</span>
       </button>
     </div>
@@ -445,7 +440,7 @@ function buildEditorEl(entry) {
       <header class="modal__head">
         <h2 class="h2" id="costEditorTitle" data-i18n="${isEdit?'cost.edit_title':'cost.new_title'}">${isEdit?'Edit cost entry':'New cost entry'}</h2>
         <button class="modal__close" aria-label="Close" id="editorClose">
-          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          ${cartaIcon('close', { size: 24 })}
         </button>
       </header>
       <form class="modal__form" id="costForm" novalidate>

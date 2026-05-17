@@ -7,12 +7,6 @@
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
-  body {
-    background:
-      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.42) 0%, transparent 65%),
-      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.22) 0%, transparent 65%),
-      var(--surface);
-  }
   .studio-page {
     padding: var(--sp-7) var(--margin-desktop) var(--sp-10);
     flex: 1; overflow-y: auto;
@@ -161,7 +155,7 @@
     outline: none;
     border-color: var(--primary);
     background: var(--surface-container-lowest);
-    box-shadow: 0 0 0 2px rgba(7,22,13,0.12);
+    box-shadow: 0 0 0 2px rgb(var(--ink-rgb) / 0.12);
   }
   .save-status {
     width: 18px; height: 18px;
@@ -226,6 +220,7 @@ import {
   buildCostMap, formatNumber, formatMoney
 } from '/src/recipe-compute.js';
 import { getMyRole, applyRoleGates } from '/src/permissions.js';
+import { cartaIcon } from '/src/carta-icon.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -274,7 +269,7 @@ main.innerHTML = `
     </div>
     <span class="filler"></span>
     <button type="button" class="btn btn-sage btn-sm" id="saveCfg" data-require="workspace_update">
-      <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">check</span>
+      ${cartaIcon('check', { size: 18 })}
       <span data-i18n="pricing.save_row">Save</span>
     </button>
   </div>
@@ -286,7 +281,7 @@ main.innerHTML = `
       <button type="button" data-kind="drink" aria-pressed="false" data-i18n="pricing.kind_drink">Drinks</button>
     </div>
     <div class="search-pill">
-      <span class="material-symbols-outlined" aria-hidden="true" style="color:var(--outline);font-size:20px">search</span>
+      ${cartaIcon('search', { size: 20, style: 'color:var(--outline)' })}
       <input id="searchInput" type="search" data-i18n-ph="pricing.search_ph" autocomplete="off">
     </div>
   </div>
@@ -480,7 +475,7 @@ function rowMarkup(d) {
       <td class="col-num hide-mobile">${formatMoney(sp, currency, 2)}</td>
       <td class="row-actions">
         <button type="button" class="icon-btn apply-btn" aria-label="${escapeHTML(t('pricing.set_price_to_suggested'))}" title="${escapeHTML(t('pricing.set_price_to_suggested'))}" data-require="pricing_edit">
-          <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
+          ${cartaIcon('auto_awesome', { size: 22 })}
         </button>
       </td>
     </tr>

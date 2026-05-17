@@ -7,12 +7,6 @@
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
-  body {
-    background:
-      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.40) 0%, transparent 65%),
-      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.18) 0%, transparent 65%),
-      var(--surface);
-  }
   .studio-page { padding: var(--sp-7) var(--margin-desktop) var(--sp-10); flex: 1; overflow-y: auto; }
   @media (max-width: 900px) { .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); } }
 
@@ -56,7 +50,7 @@
   .cap-card tbody tr:last-child td { border-bottom: 0; }
   .cap-card code {
     font-family: ui-monospace, monospace; font-size: 11px;
-    background: rgba(7,22,13,0.06); padding: 2px 6px; border-radius: var(--r-pill);
+    background: rgb(var(--ink-rgb) / 0.06); padding: 2px 6px; border-radius: var(--r-pill);
   }
   .cap-status {
     display: inline-block; padding: 4px 10px; border-radius: var(--r-pill);
@@ -64,7 +58,7 @@
   }
   .cap-status--missing { background: rgba(183, 28, 28, 0.12); color: #8c1d18; }
   .cap-status--partial { background: rgba(191, 144, 0, 0.18); color: #6b5300; }
-  .cap-status--na { background: rgba(7, 22, 13, 0.08); color: var(--on-surface-variant); }
+  .cap-status--na { background: rgb(var(--ink-rgb) / 0.08); color: var(--on-surface-variant); }
 
   .cap-foot { max-width: 1200px; margin: 0 auto; font-size: var(--type-caption); color: var(--on-surface-variant); max-width: 72ch; }
 </style>

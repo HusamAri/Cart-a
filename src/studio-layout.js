@@ -5,6 +5,7 @@ import { signOut } from './auth.js';
 import { getActiveWorkspace } from './workspaces.js';
 import { getMyRole, can } from './permissions.js';
 import { applyTranslations, t, setLang, getLang } from './i18n.js';
+import { cartaIcon } from './carta-icon.js';
 
 const MODULES = [
   { key: 'dashboard', href: '/app/studio/dashboard.html', icon: 'query_stats',       i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
@@ -44,19 +45,19 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     </div>
     <nav class="sidebar__nav" aria-label="Modules">
       <a class="sidebar__link ${active==='overview'?'active':''}" href="/app/studio.html" ${active==='overview'?'aria-current="page"':''}>
-        <span class="sidebar__icon material-symbols-outlined">dashboard</span>
+        <span class="sidebar__icon">${cartaIcon('dashboard', { size: 22 })}</span>
         <span data-i18n="studio.overview">Overview</span>
       </a>
       ${MODULES.map(m => `
         <a class="sidebar__link ${active===m.key?'active':''}" href="${m.href}" ${active===m.key?'aria-current="page"':''}>
-          <span class="sidebar__icon material-symbols-outlined">${m.icon}</span>
+          <span class="sidebar__icon">${cartaIcon(m.icon, { size: 22 })}</span>
           <span data-i18n="${m.i18n}">${m.fallback}</span>
         </a>
       `).join('')}
     </nav>
     <div class="sidebar__foot">
-      <div style="display:flex;gap:8px;align-items:center;padding:8px 14px;background:rgba(7,22,13,0.04);border-radius:var(--r-pill)">
-        <span class="material-symbols-outlined" style="font-size:18px;color:var(--on-surface-variant)">account_circle</span>
+      <div style="display:flex;gap:8px;align-items:center;padding:8px 14px;background:rgb(var(--ink-rgb) / 0.04);border-radius:var(--r-pill)">
+        ${cartaIcon('account_circle', { size: 18, style: 'color:var(--on-surface-variant)' })}
         <span class="caption" style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="sidebarUserEmail">${escapeHTML(session.user.email)}</span>
       </div>
       <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
@@ -80,17 +81,17 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
       aria-controls="studioSidebar"
       aria-expanded="false"
       style="padding:8px 12px;min-height:44px;min-width:44px">
-      <span class="material-symbols-outlined" style="font-size:22px" aria-hidden="true">menu</span>
+      ${cartaIcon('menu', { size: 22 })}
     </button>
     <a href="/app/studio.html" class="site-logo" aria-label="Carta studio home" style="flex:1;justify-content:center;display:flex">
       <img src="/assets/carta-logo.png" alt="Carta" style="height:22px">
     </a>
     ${canSwitchProperty
       ? `<a href="/app/" class="btn btn-sm btn-ghost" aria-label="Switch workspace" style="padding:8px 12px;min-height:44px;min-width:44px">
-        <span class="material-symbols-outlined" style="font-size:20px" aria-hidden="true">swap_horiz</span>
+        ${cartaIcon('swap_horiz', { size: 20 })}
       </a>`
       : `<button type="button" class="btn btn-sm btn-ghost" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}" style="padding:8px 12px;min-height:44px;min-width:44px">
-        <span class="material-symbols-outlined" style="font-size:20px" aria-hidden="true">lock</span>
+        ${cartaIcon('lock', { size: 20 })}
       </button>`}
   `;
 
