@@ -8,6 +8,7 @@ import { applyTranslations, t, setLang, getLang } from './i18n.js';
 const MODULES = [
   { key: 'dashboard', href: '/app/studio/dashboard.html', icon: 'query_stats',       i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
   { key: 'recipes',   href: '/app/studio/recipes.html',   icon: 'temp_preferences_eco', i18n: 'studio.m_builder',  fallback: 'Recipes' },
+  { key: 'menus',     href: '/app/studio/menus.html',     icon: 'restaurant_menu',       i18n: 'studio.m_menus',    fallback: 'My menus' },
   { key: 'ingredients', href: '/app/studio/ingredients.html', icon: 'nutrition', i18n: 'studio.m_ing_db', fallback: 'Ingredient DB' },
   { key: 'presets',   href: '/app/studio/presets.html',   icon: 'collections_bookmark', i18n: 'studio.m_presets', fallback: 'Presets' },
   { key: 'cost',      href: '/app/studio/cost.html',      icon: 'account_balance_wallet', i18n: 'studio.m_ledger',   fallback: 'Cost' },

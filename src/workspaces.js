@@ -75,8 +75,9 @@ export function setActiveOrg(id) {
 // ----- Workspaces (facilities) -----
 
 export async function listMyWorkspaces(orgId = null) {
-  // Only facilities where this user has an explicit workspace_members row.
-  // (Org-level membership alone must not reveal other properties you were not invited to.)
+  // Facilities where this user has a workspace_members row. Joining one
+  // property in an organization adds viewer membership to sibling properties
+  // (see migration org_wide_workspace_membership).
   const { data: directMembers, error: e1 } = await supabase
     .from('workspace_members')
     .select('role, workspaces(id, name, slug, plan, currency, created_at, organization_id, organizations(name))')
