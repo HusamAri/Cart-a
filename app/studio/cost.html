@@ -191,6 +191,7 @@ import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { formatNumber } from '/src/recipe-compute.js';
 import { suggestNutrients } from '/src/nutrient-db.js';
+import { getMyRole, applyRoleGates } from '/src/permissions.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -200,6 +201,7 @@ const ctx = await mountStudioShell({ active: 'cost', main });
 if (!ctx) throw new Error('No session/workspace');
 const wsId = ctx.workspace.id;
 const currency = ctx.workspace.currency || '₺';
+const role = await getMyRole(wsId);
 
 main.innerHTML = `
   <div class="page-head">
@@ -215,7 +217,7 @@ main.innerHTML = `
       <span class="material-symbols-outlined" aria-hidden="true" style="color:var(--outline);font-size:20px">search</span>
       <input id="searchInput" type="search" data-i18n-ph="cost.search_ph" autocomplete="off">
       <span class="divider" aria-hidden="true"></span>
-      <button class="btn btn-primary btn-sm" id="newBtn">
+      <button class="btn btn-primary btn-sm" id="newBtn" data-require="cost_create">
         <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
         <span data-i18n="cost.new">New entry</span>
       </button>
@@ -225,6 +227,7 @@ main.innerHTML = `
 `;
 applyTranslations();
 const ph = main.querySelector('[data-i18n-ph]'); if (ph) ph.placeholder = t(ph.getAttribute('data-i18n-ph'));
+applyRoleGates(role, main);
 
 let allEntries = [];
 
@@ -254,6 +257,7 @@ function render(filter = '') {
     container.innerHTML = renderEmpty();
     container.querySelector('#emptyNewBtn').addEventListener('click', () => openEditor(null));
     applyTranslations();
+    applyRoleGates(role, container);
     return;
   }
   if (items.length === 0) {
@@ -310,7 +314,7 @@ function renderEmpty() {
       <span class="eyebrow eyebrow-accent" data-i18n="cost.empty_eyebrow">First entry</span>
       <h2 class="h1" style="margin-top:var(--sp-3)"><em data-i18n="cost.empty_title">Start your cost ledger.</em></h2>
       <p class="lead" data-i18n="cost.empty_intro">Add ingredients with their per-100g price and yield %.</p>
-      <button class="btn btn-primary btn-lg" id="emptyNewBtn">
+      <button class="btn btn-primary btn-lg" id="emptyNewBtn" data-require="cost_create">
         <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">add</span>
         <span data-i18n="cost.new">New entry</span>
       </button>
@@ -327,6 +331,7 @@ main.querySelector('#searchInput').addEventListener('input', (e) => render(e.tar
 function openEditor(entry) {
   const editor = buildEditorEl(entry);
   document.body.appendChild(editor);
+  applyRoleGates(role, editor);
   const onKey = (e) => { if (e.key === 'Escape') closeEditor(); };
   document.addEventListener('keydown', onKey);
   editor._cleanup = () => document.removeEventListener('keydown', onKey);
@@ -347,6 +352,9 @@ function buildEditorEl(entry) {
 
   const isEdit = !!entry;
   const e = entry || { ingredient_name:'', per_100g:'', yield_pct:100, uom:'100G', source:'manual', as_of:'', sap_code:'' };
+  // Single action gates every editable surface in this modal.
+  // Read-only roles (chef, viewer) get disabled inputs + hidden save/delete.
+  const editAction = isEdit ? 'cost_update' : 'cost_create';
 
   wrap.innerHTML = `
     <div class="modal">
@@ -359,29 +367,29 @@ function buildEditorEl(entry) {
       <form class="modal__form" id="costForm" novalidate>
         <div class="form-row" style="position:relative">
           <label class="label" for="editName" data-i18n="cost.col_ingredient">Ingredient</label>
-          <input class="input" id="editName" type="text" required value="${escapeHTML(e.ingredient_name)}" ${isEdit?'readonly':''} autocomplete="off">
+          <input class="input" id="editName" type="text" required value="${escapeHTML(e.ingredient_name)}" ${isEdit?'readonly':''} autocomplete="off" data-require-disable="${editAction}">
         </div>
         <div class="form-grid-2">
           <div class="form-row">
             <label class="label" for="editPrice" data-i18n="cost.label_price_per_100g">Price per 100g</label>
             <div style="display:flex;gap:8px;align-items:center">
               <span style="font-family:var(--font-display);color:var(--on-surface-variant)">${escapeHTML(currency)}</span>
-              <input class="input" id="editPrice" type="number" min="0" step="0.01" required value="${e.per_100g ?? ''}">
+              <input class="input" id="editPrice" type="number" min="0" step="0.01" required value="${e.per_100g ?? ''}" data-require-disable="${editAction}">
             </div>
           </div>
           <div class="form-row">
             <label class="label" for="editYield" data-i18n="cost.label_yield">Yield (%)</label>
-            <input class="input" id="editYield" type="number" min="1" max="100" step="0.1" value="${e.yield_pct ?? 100}">
+            <input class="input" id="editYield" type="number" min="1" max="100" step="0.1" value="${e.yield_pct ?? 100}" data-require-disable="${editAction}">
           </div>
         </div>
         <div class="form-grid-2">
           <div class="form-row">
             <label class="label" for="editUom" data-i18n="cost.label_uom">UOM</label>
-            <input class="input" id="editUom" type="text" maxlength="8" value="${escapeHTML(e.uom || '100G')}">
+            <input class="input" id="editUom" type="text" maxlength="8" value="${escapeHTML(e.uom || '100G')}" data-require-disable="${editAction}">
           </div>
           <div class="form-row">
             <label class="label" for="editSource" data-i18n="cost.label_source">Source</label>
-            <select class="input" id="editSource">
+            <select class="input" id="editSource" data-require-disable="${editAction}">
               <option value="manual" ${e.source==='manual'?'selected':''} data-i18n="cost.source_manual">Manual</option>
               <option value="SAP"    ${e.source==='SAP'?'selected':''}    data-i18n="cost.source_sap">SAP</option>
               <option value="csv"    ${e.source==='csv'?'selected':''}    data-i18n="cost.source_csv">CSV</option>
@@ -391,22 +399,22 @@ function buildEditorEl(entry) {
         <div class="form-grid-2">
           <div class="form-row">
             <label class="label" for="editAsOf" data-i18n="cost.label_as_of">As of</label>
-            <input class="input" id="editAsOf" type="date" value="${e.as_of || ''}">
+            <input class="input" id="editAsOf" type="date" value="${e.as_of || ''}" data-require-disable="${editAction}">
           </div>
           <div class="form-row">
             <label class="label" for="editSap" data-i18n="cost.label_sap_code">SAP code</label>
-            <input class="input" id="editSap" type="text" value="${escapeHTML(e.sap_code || '')}">
+            <input class="input" id="editSap" type="text" value="${escapeHTML(e.sap_code || '')}" data-require-disable="${editAction}">
           </div>
         </div>
         <p class="eff-hint" id="effHint">—</p>
       </form>
       <footer class="modal__foot">
         <div>
-          ${isEdit ? `<button type="button" class="btn btn-sm btn-error" id="deleteBtn" data-i18n="cost.delete">Delete</button>` : ''}
+          ${isEdit ? `<button type="button" class="btn btn-sm btn-error" id="deleteBtn" data-i18n="cost.delete" data-require="cost_delete">Delete</button>` : ''}
         </div>
         <div class="modal__foot__right">
           <button type="button" class="btn btn-ghost" id="cancelBtn" data-i18n="cost.cancel">Cancel</button>
-          <button type="button" class="btn btn-primary" id="saveBtn">
+          <button type="button" class="btn btn-primary" id="saveBtn" data-require="${editAction}">
             <span data-i18n="cost.save">Save</span> <span class="arrow">→</span>
           </button>
         </div>

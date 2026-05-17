@@ -180,6 +180,7 @@ import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { formatNumber, formatMoney } from '/src/recipe-compute.js';
+import { getMyRole, applyRoleGates } from '/src/permissions.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -190,6 +191,7 @@ if (!ctx) throw new Error('No session/workspace');
 const ws = ctx.workspace;
 const wsId = ws.id;
 const currency = ws.currency || '₺';
+const role = await getMyRole(wsId);
 
 main.innerHTML = `
   <div class="page-head">
@@ -201,7 +203,7 @@ main.innerHTML = `
       </h1>
       <p class="lead" data-i18n="variance.intro">Snapshot your cost ledger. Compare. See what moved.</p>
     </div>
-    <button type="button" class="btn btn-primary" id="captureBtn">
+    <button type="button" class="btn btn-primary" id="captureBtn" data-require="snapshot_capture">
       <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px">photo_camera</span>
       <span data-i18n="variance.capture_now">Capture snapshot</span>
     </button>
@@ -212,6 +214,7 @@ main.innerHTML = `
   <div id="listOrEmpty"></div>
 `;
 applyTranslations();
+applyRoleGates(role, main);
 
 // ============================================================
 // Data
@@ -422,7 +425,7 @@ function openDiff(snapId) {
         `}
       </div>
       <footer class="modal__foot">
-        <button type="button" class="btn btn-sm btn-error" id="deleteSnap" data-i18n="variance.delete">Delete</button>
+        <button type="button" class="btn btn-sm btn-error" id="deleteSnap" data-i18n="variance.delete" data-require="snapshot_delete">Delete</button>
         <div class="modal__foot__right">
           <button type="button" class="btn btn-ghost" id="diffCancel" data-i18n="auth.cancel" style="">Close</button>
         </div>
@@ -431,6 +434,7 @@ function openDiff(snapId) {
   `;
   document.body.appendChild(wrap);
   applyTranslations();
+  applyRoleGates(role, wrap);
 
   const close = () => { wrap.remove(); document.removeEventListener('keydown', onKey); };
   const onKey = (e) => { if (e.key === 'Escape') close(); };

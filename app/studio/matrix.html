@@ -177,6 +177,7 @@ import { applyTranslations, t } from '/src/i18n.js';
 import {
   computeDishCost, marginCurrency, buildCostMap, formatNumber, formatMoney
 } from '/src/recipe-compute.js';
+import { getMyRole, applyRoleGates } from '/src/permissions.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -189,6 +190,7 @@ const wsId = ws.id;
 const currency = ws.currency || '₺';
 const vatPct  = Number(ws.vat_rate) || 10;
 const qFactor = Number(ws.q_factor) || 3;
+const role = await getMyRole(wsId);
 
 main.innerHTML = `
   <div class="page-head">
@@ -207,12 +209,13 @@ main.innerHTML = `
   <div id="listOrEmpty"></div>
   <div class="save-row">
     <span class="help-text" data-i18n="matrix.help_threshold">Pavesic 70% rule: popularity threshold = 0.70 / N</span>
-    <button type="button" class="btn btn-primary" id="saveAllBtn">
+    <button type="button" class="btn btn-primary" id="saveAllBtn" data-require="sales_edit">
       <span data-i18n="matrix.save">Save sales</span> <span class="arrow">→</span>
     </button>
   </div>
 `;
 applyTranslations();
+applyRoleGates(role, main);
 
 // ============================================================
 // Load dishes + cost_db + sales_data
@@ -325,7 +328,7 @@ function render() {
             <tr data-dish-id="${escapeHTML(r.d.id)}">
               <td class="col-name">${escapeHTML(r.name)}</td>
               <td class="col-num hide-mobile">${r.price > 0 ? formatMoney(r.price, currency, 2) : '—'}</td>
-              <td class="col-num"><input type="number" min="0" step="1" value="${r.sold || ''}" class="sold-input" data-dish="${escapeHTML(r.name)}" aria-label="${escapeHTML(t('matrix.col_sold'))}"></td>
+              <td class="col-num"><input type="number" min="0" step="1" value="${r.sold || ''}" class="sold-input" data-dish="${escapeHTML(r.name)}" aria-label="${escapeHTML(t('matrix.col_sold'))}" data-require-disable="sales_edit"></td>
               <td class="col-num hide-mobile">${r.cm !== null ? formatMoney(r.cm, currency, 2) : '—'}</td>
               <td class="col-num hide-mobile">${formatNumber(r.pop * 100, 1)}%</td>
               <td class="col-num">${quadChip(r.quadrant)}</td>
@@ -352,6 +355,7 @@ function render() {
   });
 
   applyTranslations();
+  applyRoleGates(role, main);
 }
 
 function quadCard(key, items) {
