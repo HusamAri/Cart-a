@@ -94,7 +94,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
       ${cartaIcon('menu', { size: 22 })}
     </button>
     <a href="/app/studio.html" class="site-logo" aria-label="Carta studio home" style="flex:1;justify-content:center;display:flex">
-      <img src="/assets/carta-logo.png" alt="Carta" style="height:22px">
+      <img src="/assets/carta-logo.png" alt="Carta" style="height:26px">
     </a>
     ${canSwitchProperty
       ? `<a href="/app/" class="btn btn-sm btn-ghost" aria-label="Switch workspace" style="padding:8px 12px;min-height:44px;min-width:44px">

@@ -6,16 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="dns-prefetch" href="https://images.unsplash.com">
 <title>Carta · F&B Operations Studio</title>
 <meta name="description" content="Carta is the F&B operations studio for hotels and serious kitchens: recipes, cost control, menu engineering, allergens, and compliance signals in one editorial workspace.">
-<meta name="theme-color" content="#468D98">
+<meta name="theme-color" content="#1B2A22">
 <meta property="og:title" content="Carta · F&B Operations Studio">
 <meta property="og:description" content="Recipes, cost control, menu engineering, and compliance for hotel and restaurant kitchens.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="icon" type="image/png" href="/assets/carta-favicon.png">
+<link rel="apple-touch-icon" href="/assets/carta-apple-touch-icon.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
   /* ===== Landing art direction (Occidental palette + Playfair titles) ===== */
@@ -23,12 +23,13 @@
   body.carta-landing main img {
     filter: sepia(0.08) saturate(0.88) contrast(1.04) brightness(0.97);
   }
+  body.carta-landing main img.is-brand-visual,
   body.carta-landing main img.hero__carbon-deco,
   body.carta-landing main img[src*="dashboard-carbon-accent"] {
     filter: none;
   }
   @media (prefers-reduced-motion: reduce) {
-    body.carta-landing main img { filter: sepia(0.06) saturate(0.9) contrast(1.02); }
+    body.carta-landing main img:not(.is-brand-visual) { filter: sepia(0.06) saturate(0.9) contrast(1.02); }
   }
   body.carta-landing .hero__figure {
     position: relative;
@@ -699,7 +700,7 @@
     </div>
     <figure class="hero__figure">
       <div class="hero__photo-wrap">
-        <img src="https://images.unsplash.com/photo-1600565193348-f74bd2c3cc17?auto=format&amp;fit=crop&amp;w=1200&amp;h=900&amp;q=82" alt="" width="1200" height="900" decoding="async" fetchpriority="high">
+        <img class="is-brand-visual" src="/assets/carta-hero-plate.png" alt="" width="1024" height="824" decoding="async" fetchpriority="high">
       </div>
       <img class="hero__carbon-deco" src="/assets/dashboard-carbon-accent.png" alt="" width="400" height="400" decoding="async" aria-hidden="true">
     </figure>
@@ -721,16 +722,16 @@
     </header>
     <div class="editorial-mosaic editorial-mosaic--3">
       <figure class="editorial-frame editorial-frame--tall">
-        <img src="https://images.unsplash.com/photo-1466637574441-749b8f19452f?auto=format&amp;fit=crop&amp;w=900&amp;h=1100&amp;q=82" alt="" width="900" height="1100" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_1">Herbs · mise en place</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-hero-bar.png" alt="" width="1024" height="824" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_1">Pour · citrus, spirit, craft</i></figcaption>
       </figure>
       <figure class="editorial-frame editorial-frame--tall">
-        <img src="https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&amp;fit=crop&amp;w=900&amp;h=1100&amp;q=82" alt="" width="900" height="1100" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_2">Whole spices · macro</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-editorial-notebook.png" alt="" width="1024" height="764" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_2">Notebook · compliance clips</i></figcaption>
       </figure>
       <figure class="editorial-frame editorial-frame--tall">
-        <img src="https://images.unsplash.com/photo-1546549022-79bf9c6d2173?auto=format&amp;fit=crop&amp;w=900&amp;h=1100&amp;q=82" alt="" width="900" height="1100" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_3">Citrus · rind &amp; oil</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-editorial-marble.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_3">Marble · brass &amp; ledger</i></figcaption>
       </figure>
     </div>
   </div>
@@ -773,16 +774,16 @@
   <div class="container">
     <div class="editorial-mosaic editorial-mosaic--feature">
       <figure class="editorial-frame">
-        <img src="https://images.unsplash.com/photo-1495521821757-a5126b50bf5f?auto=format&amp;fit=crop&amp;w=1100&amp;h=1400&amp;q=82" alt="" width="1100" height="1400" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_4">Grain · before the mill</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-editorial-wine.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_4">Wine · decant &amp; note</i></figcaption>
       </figure>
       <figure class="editorial-frame">
-        <img src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c1?auto=format&amp;fit=crop&amp;w=800&amp;h=600&amp;q=82" alt="" width="800" height="600" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_5">Olive oil · first press</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-editorial-mood-a.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_5">Menu · foil, seal, craft</i></figcaption>
       </figure>
       <figure class="editorial-frame">
-        <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&amp;fit=crop&amp;w=800&amp;h=600&amp;q=82" alt="" width="800" height="600" loading="lazy" decoding="async">
-        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_6">Dough · fermentation</i></figcaption>
+        <img class="is-brand-visual" src="/assets/carta-editorial-mood-b.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
+        <figcaption class="editorial-frame__cap"><span data-i18n="editorial.still">Still life</span><i data-i18n="editorial.cap_6">Service · tray &amp; linen</i></figcaption>
       </figure>
     </div>
   </div>
@@ -811,7 +812,7 @@
       </div>
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-breakfast.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--sage" aria-hidden="true">
           <span class="chapter__mark-glyph">℞</span>
@@ -824,7 +825,7 @@
   <section class="chapter-interlude" aria-hidden="true">
     <div class="container">
       <figure class="chapter-interlude__frame">
-        <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&amp;fit=crop&amp;w=1120&amp;h=630&amp;q=82" alt="" width="1120" height="630" loading="lazy" decoding="async">
+        <img class="is-brand-visual" src="/assets/carta-editorial-divided.png" alt="" width="1024" height="824" loading="lazy" decoding="async">
       </figure>
     </div>
   </section>
@@ -833,7 +834,7 @@
     <div class="container chapter__inner">
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-room-service.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--gold" aria-hidden="true">
           <span class="chapter__mark-glyph">₺</span>
@@ -867,7 +868,7 @@
       </div>
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-room-service-2.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--ink" aria-hidden="true">
           <span class="chapter__mark-glyph">%</span>
@@ -881,10 +882,10 @@
     <div class="container">
       <div class="chapter-interlude__pair">
         <figure class="chapter-interlude__cell">
-          <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&amp;fit=crop&amp;w=640&amp;h=800&amp;q=82" alt="" width="640" height="800" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-marble.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
         </figure>
         <figure class="chapter-interlude__cell">
-          <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&amp;fit=crop&amp;w=640&amp;h=800&amp;q=82" alt="" width="640" height="800" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-hero-bar.png" alt="" width="1024" height="824" loading="lazy" decoding="async">
         </figure>
       </div>
     </div>
@@ -894,7 +895,7 @@
     <div class="container chapter__inner">
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-wine.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--mist" aria-hidden="true">
           <span class="chapter__mark-glyph">★◐♟○</span>
@@ -928,7 +929,7 @@
       </div>
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-editorial-notebook.png" alt="" width="1024" height="764" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--sage" aria-hidden="true">
           <span class="chapter__mark-glyph">Δ</span>
@@ -941,7 +942,7 @@
   <section class="chapter-interlude" aria-hidden="true">
     <div class="container">
       <figure class="chapter-interlude__frame">
-        <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&amp;fit=crop&amp;w=1120&amp;h=630&amp;q=82" alt="" width="1120" height="630" loading="lazy" decoding="async">
+        <img class="is-brand-visual" src="/assets/carta-hero-kitchen.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
       </figure>
     </div>
   </section>
@@ -950,7 +951,7 @@
     <div class="container chapter__inner">
       <div class="chapter__rail">
         <figure class="chapter__tile">
-          <img src="https://images.unsplash.com/photo-1543286386-713bdd548da4?auto=format&amp;fit=crop&amp;w=800&amp;h=1000&amp;q=82" alt="" width="800" height="1000" loading="lazy" decoding="async">
+          <img class="is-brand-visual" src="/assets/carta-hero-plate.png" alt="" width="1024" height="824" loading="lazy" decoding="async">
         </figure>
         <div class="chapter__mark chapter__mark--gold" aria-hidden="true">
           <span class="chapter__mark-glyph">EN / TR</span>
@@ -1040,8 +1041,10 @@
   <div class="container">
     <div class="site-footer__top">
       <div>
-        <img src="/assets/carta-logo.png" alt="" style="height:28px;filter:brightness(0) invert(1);margin-bottom:var(--sp-4)">
+        <img class="site-footer__mark" src="/assets/carta-logo.png" alt="Carta">
         <p style="font-size:14px;color:rgba(255,255,255,0.7);max-width:36ch;line-height:var(--lh-body)" data-i18n="foot.tagline">A luxury F&B operating system for kitchens that take their craft and their numbers seriously.</p>
+        <img class="site-footer__badges" src="/assets/carta-brand-stickers.png" alt="TGK Ek-10, HACCP, KVKK compliance" width="1024" height="764" loading="lazy" decoding="async">
+        <img class="site-footer__palette" src="/assets/carta-brand-palette.png" alt="Carta color palette: bone cream, sand linen, eucalyptus, antique gold, pale sage, ink graphite" width="1024" height="764" loading="lazy" decoding="async">
       </div>
       <div>
         <h5 data-i18n="foot.product">Product</h5>

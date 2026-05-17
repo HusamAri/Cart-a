@@ -30,7 +30,7 @@ export function applyTheme() {
   document.documentElement.setAttribute('data-color-scheme', e);
   document.documentElement.dataset.themePref = pref;
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', e === 'dark' ? '#1a2f30' : '#468D98');
+  if (meta) meta.setAttribute('content', e === 'dark' ? '#0e1411' : '#1B2A22');
   window.dispatchEvent(new CustomEvent('carta-theme-change', { detail: { effective: e, pref } }));
 }
 
