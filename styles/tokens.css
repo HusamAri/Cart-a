@@ -1054,13 +1054,18 @@ html[data-color-scheme="dark"] .auth-screen {
    ============================================================ */
 .sidebar {
   position: sticky; top: 0;
+  /* Stay one viewport tall: do not stretch with a tall main column (else foot sits below the fold). */
+  align-self: flex-start;
   height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
   width: var(--sidebar-w);
   flex-shrink: 0;
   background: rgb(251 248 245 / 0.94);
   border-right: 1px solid rgb(var(--ink-rgb) / 0.08);
   padding: var(--sp-6) 0 var(--sp-6);
   display: flex; flex-direction: column;
+  overflow: hidden;
   z-index: 10;
   backdrop-filter: saturate(140%) blur(8px);
   -webkit-backdrop-filter: saturate(140%) blur(8px);
@@ -1069,7 +1074,10 @@ html[data-color-scheme="dark"] .sidebar {
   background: rgb(27 46 48 / 0.94);
   border-right-color: rgba(255, 255, 255, 0.08);
 }
-.sidebar__head { padding: 0 var(--glass-padding); }
+.sidebar__head {
+  padding: 0 var(--glass-padding);
+  flex-shrink: 0;
+}
 .sidebar__head .logo {
   display: block;
   line-height: 0;
@@ -1098,6 +1106,11 @@ html[data-color-scheme="dark"] .sidebar {
   gap: 4px;
   margin-top: var(--sp-6);
   padding: 0 var(--glass-padding);
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .sidebar__link {
   display: flex; align-items: center; gap: 14px;
@@ -1223,6 +1236,7 @@ html.motion-reduce .sidebar__link:hover { transform: none; }
   margin-top: auto;
   padding: 0 var(--glass-padding);
   display: flex; flex-direction: column; gap: var(--sp-4);
+  flex-shrink: 0;
 }
 
 /* Mobile: sidebar becomes a slide-in drawer */
@@ -1231,6 +1245,8 @@ html.motion-reduce .sidebar__link:hover { transform: none; }
     position: fixed; top: 0; left: 0;
     width: min(86vw, 320px);
     height: 100vh; height: 100dvh;
+    max-height: 100dvh;
+    align-self: auto;
     transform: translateX(-100%);
     transition: transform 280ms var(--ease-linear-out);
     box-shadow: var(--shadow-3);
@@ -1576,6 +1592,39 @@ html[data-color-scheme="dark"] .data-table tbody tr[role="button"]:hover {
    ============================================================ */
 .gold-rule { display: block; width: 48px; height: 1px; background: var(--tertiary-container); margin: 0; }
 .eyebrow-gold { color: var(--tertiary); }
+
+/* ============================================================
+   STUDIO MODULE — optional stills under page head
+   ============================================================ */
+.studio-panel-visual {
+  max-width: 1120px;
+  margin: 0 auto var(--sp-7);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+.studio-panel-visual--single {
+  grid-template-columns: 1fr;
+  max-width: min(720px, 92vw);
+}
+@media (max-width: 640px) {
+  .studio-panel-visual { grid-template-columns: 1fr; }
+}
+.studio-panel-visual__cell {
+  margin: 0;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  border: var(--glass-border);
+  box-shadow: var(--shadow-inner-glow), var(--shadow-1);
+  background: var(--surface-container-lowest);
+}
+.studio-panel-visual__cell img {
+  display: block;
+  width: 100%;
+  height: clamp(112px, 18vw, 200px);
+  object-fit: cover;
+  object-position: center;
+}
 
 /* ============================================================
    REDUCED MOTION
