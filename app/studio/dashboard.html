@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-logo.png">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    background:
+      radial-gradient(50% 40% at 80% 10%, rgba(212,231,216,0.45) 0%, transparent 65%),
+      radial-gradient(40% 40% at 10% 90%, rgba(255,224,136,0.25) 0%, transparent 65%),
+      var(--surface);
+  }
+  .studio-page { padding: var(--sp-7) var(--margin-desktop) var(--sp-10); flex: 1; overflow-y: auto; }
+  @media (max-width: 900px) { .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); } }
+  .page-head { max-width: 1120px; margin: 0 auto var(--sp-7); }
+  .page-head .eyebrow { margin-bottom: var(--sp-3); }
+  .page-head h1 { margin: 0 0 var(--sp-3); }
+  .page-head .lead { margin: 0 0 var(--sp-5); max-width: 62ch; }
+
+  .dash-toolbar {
+    display: flex; flex-wrap: wrap; gap: var(--sp-4); align-items: flex-end; margin-bottom: var(--sp-7);
+    max-width: 1120px; margin-left: auto; margin-right: auto;
+  }
+  .dash-toolbar label { display: block; font-size: 10px; font-weight: 600; letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--on-surface-variant); margin-bottom: 4px; }
+  .dash-toolbar select { min-width: 220px; padding: 10px 14px; border-radius: var(--r-lg); border: var(--glass-border); background: rgba(255,255,255,0.9); font-family: var(--font-sans); }
+  .dash-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-left: auto; }
+
+  .dash-grid {
+    max-width: 1120px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-5);
+  }
+  @media (max-width: 800px) { .dash-grid { grid-template-columns: 1fr; } }
+
+  .dash-card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: var(--glass-border);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2);
+    padding: var(--glass-padding);
+  }
+  .dash-card h2 {
+    font-family: var(--font-display); font-weight: 400; font-style: italic; font-size: 1.35rem; color: var(--primary);
+    margin: 0 0 var(--sp-4);
+  }
+  .dash-card h3 {
+    font-family: var(--font-sans); font-size: 11px; font-weight: 600; letter-spacing: var(--track-caps); text-transform: uppercase;
+    color: var(--on-surface-variant); margin: 0 0 var(--sp-3);
+  }
+  .dash-kpis {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3);
+  }
+  @media (max-width: 700px) { .dash-kpis { grid-template-columns: repeat(2, 1fr); } }
+  .dash-kpi {
+    padding: var(--sp-4); background: rgba(7,22,13,0.04); border-radius: var(--r-lg); text-align: center;
+  }
+  .dash-kpi .num { font-family: var(--font-display); font-size: 1.75rem; font-weight: 300; color: var(--primary); line-height: 1.2; }
+  .dash-kpi .lbl { font-size: 10px; letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--on-surface-variant); margin-top: 4px; }
+
+  .dash-macro-bar {
+    height: 12px; border-radius: var(--r-pill); overflow: hidden; display: flex; margin-top: var(--sp-3);
+  }
+  .dash-macro-bar span { height: 100%; }
+  .dash-macro-legend { display: flex; gap: var(--sp-4); flex-wrap: wrap; margin-top: var(--sp-3); font-size: var(--type-caption); }
+  .dash-macro-legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 6px; vertical-align: middle; }
+
+  .dash-row { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: 8px; font-size: var(--type-caption); }
+  .dash-row .bar-wrap { flex: 1; height: 8px; background: rgba(7,22,13,0.08); border-radius: var(--r-pill); overflow: hidden; }
+  .dash-row .bar { height: 100%; background: var(--tertiary-container); border-radius: var(--r-pill); transition: width 0.35s ease; }
+  .dash-row .pct { min-width: 40px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .dash-links {
+    display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-4);
+  }
+
+  .dash-gaps ul { margin: 0; padding-left: 1.2rem; font-size: var(--type-caption); line-height: 1.6; }
+  .dash-empty { text-align: center; padding: var(--sp-10) var(--sp-5); max-width: 480px; margin: 0 auto; }
+  @media print {
+    .dash-toolbar .dash-actions, .sidebar, .studio-mobile-top, .skip-link { display: none !important; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+<script type="module">
+import { mountStudioShell } from '/src/studio-layout.js';
+import { supabase } from '/src/supabase-client.js';
+import { applyTranslations, t, getLang } from '/src/i18n.js';
+import { computeRecipe, computeDishCost, buildCostMap, formatNumber } from '/src/recipe-compute.js';
+import { ALLERGEN_LABELS } from '/src/nutrient-db.js';
+
+const main = document.createElement('main');
+main.id = 'main';
+main.className = 'studio-page';
+
+const ctx = await mountStudioShell({ active: 'dashboard', main });
+if (!ctx) throw new Error('No session/workspace');
+const ws = ctx.workspace;
+const wsId = ws.id;
+const qFactor = Number(ws.q_factor) || 3;
+
+let allDishes = [];
+let clusters = [];
+let clusterFilter = '__all__';
+let lastCostMap = buildCostMap([]);
+
+main.innerHTML = `
+  <div class="page-head">
+    <span class="eyebrow eyebrow-accent" data-i18n="dash.page_eyebrow">Menu intelligence</span>
+    <h1 class="h1"><span data-i18n="dash.page_title">Kitchen</span> <em data-i18n="dash.page_title_em">dashboard</em></h1>
+    <p class="lead" data-i18n="dash.page_intro">Workspace-wide signals from saved recipes: nutrition mix, allergens, diet coverage, and cost completeness.</p>
+  </div>
+
+  <div class="dash-toolbar">
+    <div>
+      <label for="dashCluster" data-i18n="dash.scope_label">Scope</label>
+      <select id="dashCluster"></select>
+    </div>
+    <div class="dash-actions">
+      <button type="button" class="btn btn-accent btn-sm" id="dashRefresh" data-i18n="dash.refresh">Refresh</button>
+      <button type="button" class="btn btn-outline btn-sm" id="dashCsv" data-i18n="dash.export_csv">Export CSV</button>
+      <button type="button" class="btn btn-outline btn-sm" id="dashPrint" data-i18n="dash.print">Print</button>
+    </div>
+  </div>
+
+  <div id="dashRoot"></div>
+`;
+
+applyTranslations();
+
+async function load() {
+  const [dRes, cRes, clRes] = await Promise.all([
+    supabase.from('saved_dishes').select('*').eq('workspace_id', wsId).order('updated_at', { ascending: false }),
+    supabase.from('cost_db').select('*').eq('workspace_id', wsId),
+    supabase.from('menu_clusters').select('*').eq('workspace_id', wsId).order('name'),
+  ]);
+  if (dRes.error) {
+    main.querySelector('#dashRoot').innerHTML = `<p class="flash error">${escapeHTML(dRes.error.message)}</p>`;
+    return;
+  }
+  allDishes = dRes.data || [];
+  const costMap = buildCostMap(cRes.data || []);
+  lastCostMap = costMap;
+  clusters = clRes.data || [];
+  fillClusterSelect();
+  renderDash(costMap);
+}
+
+function fillClusterSelect() {
+  const sel = main.querySelector('#dashCluster');
+  const lang = getLang();
+  sel.innerHTML = `<option value="__all__">${escapeHTML(t('dash.scope_all'))}</option>` +
+    clusters.map(cl => `<option value="${escapeHTML(cl.id)}">${escapeHTML(cl.name)}</option>`).join('');
+  sel.value = clusterFilter;
+  sel.onchange = () => { clusterFilter = sel.value; load(); };
+}
+
+function clusterDishSet(clusterId) {
+  if (clusterId === '__all__') return null;
+  const cl = clusters.find(x => x.id === clusterId);
+  if (!cl) return new Set();
+  const raw = cl.dishes;
+  if (!Array.isArray(raw) || raw.length === 0) return new Set();
+  const ids = new Set();
+  for (const d of raw) {
+    if (typeof d === 'string') ids.add(d);
+    else if (d && typeof d.id === 'string') ids.add(d.id);
+  }
+  return ids;
+}
+
+function scopedDishes() {
+  const idSet = clusterDishSet(clusterFilter);
+  if (idSet === null) return allDishes;
+  return allDishes.filter(d => idSet.has(d.id));
+}
+
+function allergenLabel(key, lang) {
+  const L = ALLERGEN_LABELS[key];
+  if (!L) return key;
+  return lang === 'tr' ? L.tr : L.en;
+}
+
+function analyze(rows, costMap) {
+  const lang = getLang();
+  const items = rows.map(r => {
+    const data = r.data || {};
+    const comp = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
+    const cost = computeDishCost(data, costMap, qFactor);
+    return { row: r, comp, cost };
+  });
+  const n = items.length;
+  if (n === 0) return { empty: true };
+
+  let sumKcal = 0, sumP = 0, sumF = 0, sumC = 0;
+  const allergenRecipeCount = {};
+  const dietCounts = { vegan: 0, vegetarian: 0, halal: 0, gluten_free: 0 };
+  const kcalBuckets = { low: 0, mid: 0, high: 0, vhigh: 0 };
+  const ingCount = {};
+  let foodN = 0, drinkN = 0;
+  let costFull = 0, costPartial = 0, costNone = 0;
+
+  for (const { row, comp, cost } of items) {
+    if (row.kind === 'drink') drinkN++; else foodN++;
+    const k = comp.perServing.kcal || 0;
+    sumKcal += k;
+    sumP += comp.perServing.P || 0;
+    sumF += comp.perServing.F || 0;
+    sumC += comp.perServing.C || 0;
+    for (const a of comp.allergens || []) {
+      allergenRecipeCount[a] = (allergenRecipeCount[a] || 0) + 1;
+    }
+    for (const d of comp.dietTags || []) {
+      if (Object.prototype.hasOwnProperty.call(dietCounts, d)) dietCounts[d]++;
+    }
+    if (k < 300) kcalBuckets.low++;
+    else if (k < 500) kcalBuckets.mid++;
+    else if (k < 700) kcalBuckets.high++;
+    else kcalBuckets.vhigh++;
+    for (const i of (row.data?.ingredients || [])) {
+      const nm = (i.name || '').trim();
+      if (nm) ingCount[nm] = (ingCount[nm] || 0) + 1;
+    }
+    const nIng = (row.data?.ingredients || []).length;
+    const miss = cost.missing.length;
+    if (nIng === 0) costNone++;
+    else if (miss === 0) costFull++;
+    else if (miss < nIng) costPartial++;
+    else costNone++;
+  }
+
+  const avgKcal = sumKcal / n;
+  const avgP = sumP / n, avgF = sumF / n, avgC = sumC / n;
+  const kMacro = 4 * avgP + 4 * avgC + 9 * avgF;
+  const pctP = kMacro ? (4 * avgP / kMacro) * 100 : 0;
+  const pctF = kMacro ? (9 * avgF / kMacro) * 100 : 0;
+  const pctC = kMacro ? (4 * avgC / kMacro) * 100 : 0;
+
+  const topIngs = Object.entries(ingCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+  const allergenSorted = Object.entries(allergenRecipeCount)
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, c]) => ({ key: k, label: allergenLabel(k, lang), count: c, pct: (c / n) * 100 }));
+
+  const gaps = [];
+  if (dietCounts.vegan === 0 && dietCounts.vegetarian === 0) {
+    gaps.push(t('dash.gap_plant'));
+  }
+  if (dietCounts.gluten_free === 0 && n > 2) {
+    gaps.push(t('dash.gap_gf'));
+  }
+  if (avgKcal > 720) gaps.push(t('dash.gap_high_kcal'));
+  if (avgKcal > 0 && avgKcal < 220 && n > 2) gaps.push(t('dash.gap_low_kcal'));
+  for (const { key, pct } of allergenSorted) {
+    if (pct >= 42) gaps.push(t('dash.gap_allergen_dense').replace('{a}', allergenLabel(key, lang)));
+  }
+
+  return {
+    empty: false, n, foodN, drinkN, avgKcal, pctP, pctF, pctC,
+    dietCounts, kcalBuckets, topIngs, allergenSorted, gaps,
+    costFull, costPartial, costNone,
+  };
+}
+
+function renderDash(costMap) {
+  const root = main.querySelector('#dashRoot');
+  const rows = scopedDishes();
+
+  if (clusterFilter !== '__all__' && rows.length === 0 && allDishes.length > 0) {
+    root.innerHTML = `<div class="dash-card dash-empty"><p data-i18n="dash.cluster_empty">${escapeHTML(t('dash.cluster_empty'))}</p></div>`;
+    applyTranslations();
+    return;
+  }
+
+  const st = analyze(rows, costMap);
+
+  if (st.empty) {
+    root.innerHTML = `
+      <div class="dash-card dash-empty">
+        <p class="lead" data-i18n="dash.empty">${escapeHTML(t('dash.empty'))}</p>
+        <a class="btn btn-primary" href="/app/studio/recipes.html" data-i18n="dash.empty_cta">Open recipes</a>
+      </div>`;
+    applyTranslations();
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="dash-grid" style="margin-bottom:var(--sp-5)">
+      <div class="dash-card" style="grid-column:1/-1">
+        <h2 data-i18n="dash.kpi_title">At a glance</h2>
+        <div class="dash-kpis">
+          <div class="dash-kpi"><div class="num">${st.n}</div><div class="lbl" data-i18n="dash.kpi_recipes">Recipes</div></div>
+          <div class="dash-kpi"><div class="num">${formatNumber(st.avgKcal, 0)}</div><div class="lbl" data-i18n="dash.kpi_avg_kcal">Avg kcal / serving</div></div>
+          <div class="dash-kpi"><div class="num">${st.foodN}</div><div class="lbl" data-i18n="dash.kpi_food">Food</div></div>
+          <div class="dash-kpi"><div class="num">${st.drinkN}</div><div class="lbl" data-i18n="dash.kpi_drink">Drinks</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-card dash-gaps">
+        <h2 data-i18n="dash.gaps_title">Gaps and opportunities</h2>
+        ${st.gaps.length ? `<ul>${st.gaps.map(g => `<li>${escapeHTML(g)}</li>`).join('')}</ul>` : `<p class="text-muted" style="margin:0;font-size:var(--type-caption)" data-i18n="dash.gaps_none">No major gaps flagged for this set.</p>`}
+      </div>
+      <div class="dash-card">
+        <h2 data-i18n="dash.health_title">Menu health</h2>
+        <h3 data-i18n="dash.macro_split">Average energy from macros</h3>
+        <div class="dash-macro-bar" aria-hidden="true">
+          <span style="width:${st.pctP}%;background:#5d8a6a"></span>
+          <span style="width:${st.pctC}%;background:#c4a35a"></span>
+          <span style="width:${st.pctF}%;background:#8b6b4a"></span>
+        </div>
+        <div class="dash-macro-legend">
+          <span><i style="background:#5d8a6a"></i><span data-i18n="recipes.protein">Protein</span> ${formatNumber(st.pctP, 0)}%</span>
+          <span><i style="background:#c4a35a"></i><span data-i18n="recipes.carb">Carb</span> ${formatNumber(st.pctC, 0)}%</span>
+          <span><i style="background:#8b6b4a"></i><span data-i18n="recipes.fat">Fat</span> ${formatNumber(st.pctF, 0)}%</span>
+        </div>
+        <h3 style="margin-top:var(--sp-5)" data-i18n="dash.kcal_dist">Kcal per serving (buckets)</h3>
+        ${['low','mid','high','vhigh'].map((k, i) => {
+          const keys = ['dash.bucket_low','dash.bucket_mid','dash.bucket_high','dash.bucket_vhigh'];
+          const lbl = t(keys[i]);
+          const v = st.kcalBuckets[k];
+          const pct = st.n ? (v / st.n) * 100 : 0;
+          return `<div class="dash-row"><span style="min-width:100px">${escapeHTML(lbl)}</span><div class="bar-wrap"><div class="bar" style="width:${pct}%"></div></div><span class="pct">${v}</span></div>`;
+        }).join('')}
+      </div>
+
+      <div class="dash-card">
+        <h2 data-i18n="dash.inclusivity_title">Diet coverage</h2>
+        ${(['vegan','vegetarian','halal','gluten_free']).map(d => {
+          const v = st.dietCounts[d];
+          const pct = st.n ? (v / st.n) * 100 : 0;
+          const label = t('diet.' + d) || d;
+          return `<div class="dash-row"><span style="min-width:120px">${escapeHTML(label)}</span><div class="bar-wrap"><div class="bar" style="width:${pct}%"></div></div><span class="pct">${v}/${st.n}</span></div>`;
+        }).join('')}
+      </div>
+
+      <div class="dash-card">
+        <h2 data-i18n="dash.allergen_title">Allergen presence</h2>
+        <p class="text-muted" style="margin:-8px 0 var(--sp-3);font-size:var(--type-caption)" data-i18n="dash.allergen_sub">${escapeHTML(t('dash.allergen_sub'))}</p>
+        ${st.allergenSorted.length ? st.allergenSorted.slice(0, 10).map(a => `
+          <div class="dash-row">
+            <span style="min-width:140px">${escapeHTML(a.label)}</span>
+            <div class="bar-wrap"><div class="bar" style="width:${Math.min(100, a.pct)}%"></div></div>
+            <span class="pct">${formatNumber(a.pct, 0)}%</span>
+          </div>
+        `).join('') : `<p class="text-muted" data-i18n="dash.none">${escapeHTML(t('dash.none'))}</p>`}
+      </div>
+
+      <div class="dash-card">
+        <h2 data-i18n="dash.ingredients_title">Ingredient frequency</h2>
+        ${st.topIngs.length ? `<ul style="margin:0;padding-left:1.1rem;font-size:var(--type-caption);line-height:1.65">${st.topIngs.map(([name, c]) => `<li><strong>${escapeHTML(name)}</strong> — ${c}×</li>`).join('')}</ul>` : `<p class="text-muted" data-i18n="dash.none">${escapeHTML(t('dash.none'))}</p>`}
+      </div>
+
+      <div class="dash-card">
+        <h2 data-i18n="dash.cost_title">Cost ledger coverage</h2>
+        <p class="text-muted" style="margin:-8px 0 var(--sp-3);font-size:var(--type-caption)" data-i18n="dash.cost_sub">${escapeHTML(t('dash.cost_sub'))}</p>
+        <div class="dash-row"><span data-i18n="dash.cost_full">Fully costed</span><div class="bar-wrap"><div class="bar" style="width:${st.n ? (st.costFull / st.n) * 100 : 0}%"></div></div><span class="pct">${st.costFull}</span></div>
+        <div class="dash-row"><span data-i18n="dash.cost_partial">Partial</span><div class="bar-wrap"><div class="bar" style="width:${st.n ? (st.costPartial / st.n) * 100 : 0}%"></div></div><span class="pct">${st.costPartial}</span></div>
+        <div class="dash-row"><span data-i18n="dash.cost_missing">Missing prices</span><div class="bar-wrap"><div class="bar" style="width:${st.n ? (st.costNone / st.n) * 100 : 0}%"></div></div><span class="pct">${st.costNone}</span></div>
+        <div class="dash-links">
+          <a class="btn btn-sm btn-outline" href="/app/studio/cost.html" data-i18n="dash.link_cost">Cost ledger</a>
+          <a class="btn btn-sm btn-outline" href="/app/studio/pricing.html" data-i18n="dash.link_pricing">Pricing</a>
+        </div>
+      </div>
+
+      <div class="dash-card" style="grid-column:1/-1">
+        <h2 data-i18n="dash.next_title">Next steps</h2>
+        <div class="dash-links">
+          <a class="btn btn-sm btn-primary" href="/app/studio/matrix.html" data-i18n="dash.link_matrix">Menu engineering</a>
+          <a class="btn btn-sm btn-outline" href="/app/studio/surface.html" data-i18n="dash.link_surface">Export</a>
+          <a class="btn btn-sm btn-outline" href="/app/studio/variance.html" data-i18n="dash.link_variance">Variance</a>
+        </div>
+      </div>
+    </div>
+  `;
+  applyTranslations();
+}
+
+function escapeHTML(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function exportCsv(st) {
+  const lines = [
+    'metric,value',
+    `recipes,${st.n}`,
+    `avg_kcal_per_serving,${st.avgKcal.toFixed(1)}`,
+    `food,${st.foodN}`,
+    `drinks,${st.drinkN}`,
+    `pct_protein_energy,${st.pctP.toFixed(1)}`,
+    `pct_carb_energy,${st.pctC.toFixed(1)}`,
+    `pct_fat_energy,${st.pctF.toFixed(1)}`,
+    `diet_vegan,${st.dietCounts.vegan}`,
+    `diet_vegetarian,${st.dietCounts.vegetarian}`,
+    `diet_halal,${st.dietCounts.halal}`,
+    `diet_gluten_free,${st.dietCounts.gluten_free}`,
+    `cost_fully_mapped,${st.costFull}`,
+    `cost_partial,${st.costPartial}`,
+    `cost_missing,${st.costNone}`,
+  ];
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `carta-dashboard-${wsId.slice(0, 8)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+main.querySelector('#dashRefresh').addEventListener('click', () => load());
+main.querySelector('#dashCsv').addEventListener('click', async () => {
+  const { data: costs } = await supabase.from('cost_db').select('*').eq('workspace_id', wsId);
+  const costMap = buildCostMap(costs || []);
+  const st = analyze(scopedDishes(), costMap);
+  if (!st.empty) exportCsv(st);
+});
+main.querySelector('#dashPrint').addEventListener('click', () => window.print());
+
+await load();
+
+document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+  setTimeout(() => renderDash(lastCostMap), 0);
+});
+</script>
+</body>
+</html>
