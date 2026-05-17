@@ -34,11 +34,15 @@ Pure-static frontend (HTML + ESM JS, no build step) on Vercel + Supabase Postgre
 
 ## Repository layout
 
+Repo root **is** the static site root. Vercel deploys the working tree as-is.
+
 ```
-carta-saas/
+./                              Repo root = Vercel static root
 ├── index.html                  Landing page
 ├── vercel.json                 Vercel static-site config + security headers
 ├── HANDOFF.md                  ← you are here
+├── LICENSE                     MIT
+├── .gitignore
 │
 ├── app/                        Authenticated app shell
 │   ├── login.html              Magic link + password login
@@ -72,7 +76,10 @@ carta-saas/
 │   └── carta-logo.png
 │
 └── supabase/                   Migration history (for reference; live migrations applied via MCP)
-    └── migrations/...
+    ├── config.toml
+    ├── schema.sql
+    └── migrations/
+        └── 20260514182927_initial_schema.sql
 ```
 
 ---
@@ -152,14 +159,15 @@ Workspace name has accented characters (`Barceló`). The delete confirm in `app/
 
 ## How to deploy
 
+From the repo root:
+
 ```
-cd carta-saas
 npx vercel@latest deploy --prod --yes \
   --token <VERCEL_TOKEN> \
   --scope husamaris-projects
 ```
 
-Static-only — no build step. Pushes the working tree as-is.
+Static-only — no build step. Pushes the working tree as-is. Vercel project's Root Directory is the repo root; framework is `null`.
 
 ---
 
