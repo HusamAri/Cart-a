@@ -480,6 +480,22 @@ const STRINGS = {
     'dash.method_cost': 'Per recipe, ingredients are matched to the workspace ledger with your Q factor. Fully costed means every ingredient line resolves to a price; partial means some lines miss; missing means no prices or no ingredient lines.',
     'dash.method_carbon': 'Per ingredient line we convert amount to grams and multiply by a tiered kg CO₂e/kg emission factor, sum to the recipe, then divide by servings for per-serving g CO₂e. Workspace averages are simple means of those servings. g CO₂e per 1000 kcal averages recipes with at least 40 kcal per serving to avoid unstable ratios.',
     'a11y.skip': 'Skip to main content',
+    // global UI chrome
+    'ui.back_to_top': 'Back to top',
+    'ui.shortcuts.title': 'Keyboard shortcuts',
+    'ui.shortcuts.help_open': 'Open or close this help panel',
+    'ui.shortcuts.esc_close': 'Close open dialogs',
+    'ui.shortcuts.skip_tip': 'Activate the invisible “Skip to main” link after page load using Tab once',
+    'ui.shortcuts.esc_overlay': 'Close open overlays: mobile drawer, dialogs, shortcut help',
+    'ui.shortcuts.rail_toggle': 'Shrink or widen the sidebar (desktop)',
+    'ui.shortcuts.footer': 'Shortcuts are paused while typing in a field.',
+    'ui.shortcuts.done': 'OK',
+    'ui.shortcuts.close_aria': 'Close',
+    'ui.sidebar_expand': 'Expand sidebar',
+    'ui.sidebar_collapse': 'Collapse sidebar',
+    // workspaces list
+    'ws.copy_id': 'Copy workspace ID',
+    'ws.copied_id': 'Workspace ID copied',
     // Recipe builder
     'recipes.title': 'Recipe',
     'recipes.title_em': 'library',
@@ -1168,6 +1184,20 @@ const STRINGS = {
     'dash.method_carbon': 'Her malzeme satırı gramaj ve katmanlı kg CO₂e/kg emisyon katsayısı ile çarpılır, reçetede toplanır ve porsiyona bölünür. Çalışma alanı ortalamaları bu porsiyon değerlerinin aritmetik ortalamasıdır. 1000 kcal başına g CO₂e, en az 40 kcal porsiyonlu reçetelerde hesaplanır (aşırı büyük oranları azaltmak için).',
     // a11y
     'a11y.skip': 'Ana içeriğe atla',
+    'ui.back_to_top': 'Başa dön',
+    'ui.shortcuts.title': 'Klavye kısayolları',
+    'ui.shortcuts.help_open': 'Bu yardım panelini aç veya kapat',
+    'ui.shortcuts.esc_close': 'Açık pencereleri kapatır',
+    'ui.shortcuts.skip_tip': 'Sayfa açılışında ilk Tab ile görünmez “ana içeriğe atla” bağlantısı odaklanır',
+    'ui.shortcuts.esc_overlay': 'Katmanları kapatır: mobil yan menü, diyaloglar, kısayol yardımı',
+    'ui.shortcuts.rail_toggle': 'Kenar çubuğunu masaüstünde dar veya geniş yapar',
+    'ui.shortcuts.footer': 'Bir yazı alanı içinde yazarken kısayollar devre dışıdır.',
+    'ui.shortcuts.done': 'Tamam',
+    'ui.shortcuts.close_aria': 'Kapat',
+    'ui.sidebar_expand': 'Kenar çubuğunu genişlet',
+    'ui.sidebar_collapse': 'Kenar çubuğunu daralt',
+    'ws.copy_id': 'Çalışma alanı kimliğini kopyala',
+    'ws.copied_id': 'Çalışma alanı kimliği kopyalandı',
     // Reçete editörü
     'recipes.title': 'Reçete',
     'recipes.title_em': 'kütüphanesi',
@@ -1424,6 +1454,9 @@ export function applyTranslations() {
   });
   document.querySelectorAll('[data-i18n-title]').forEach(el => {
     el.setAttribute('title', t(el.getAttribute('data-i18n-title')));
+  });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+    el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label')));
   });
   document.querySelectorAll('[data-lang-btn]').forEach(b => {
     b.classList.toggle('active', b.dataset.langBtn === lang);

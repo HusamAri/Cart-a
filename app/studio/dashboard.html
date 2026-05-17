@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>Dashboard · Carta</title>
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
@@ -30,7 +32,7 @@
     max-width: 1120px; margin-left: auto; margin-right: auto;
   }
   .dash-toolbar label { display: block; font-size: 10px; font-weight: 600; letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--on-surface-variant); margin-bottom: 4px; }
-  .dash-toolbar select { min-width: 220px; padding: 10px 14px; border-radius: var(--r-lg); border: var(--glass-border); background: rgba(255,255,255,0.9); font-family: var(--font-sans); }
+  .dash-toolbar select { min-width: 220px; padding: 10px 14px; border-radius: var(--r-lg); border: var(--glass-border); background: var(--surface-container-lowest); font-family: var(--font-sans); }
   .dash-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-left: auto; }
 
   .dash-grid {
@@ -40,9 +42,7 @@
   @media (max-width: 800px) { .dash-grid { grid-template-columns: 1fr; } }
 
   .dash-card {
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    background: var(--surface-container-lowest);
     border: var(--glass-border);
     border-radius: var(--r-2xl);
     box-shadow: var(--shadow-2);

@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>Activity log · Carta</title>
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
@@ -19,16 +21,14 @@
     display: flex; flex-wrap: wrap; gap: var(--sp-4); align-items: flex-end;
   }
   .audit-toolbar label { display: block; font-size: 10px; font-weight: 600; letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--on-surface-variant); margin-bottom: 4px; }
-  .audit-toolbar select { min-width: 200px; padding: 10px 14px; border-radius: var(--r-lg); border: var(--glass-border); background: rgba(255,255,255,0.9); font-family: var(--font-sans); }
+  .audit-toolbar select { min-width: 200px; padding: 10px 14px; border-radius: var(--r-lg); border: var(--glass-border); background: var(--surface-container-lowest); font-family: var(--font-sans); }
 
   .audit-card {
     max-width: 1080px; margin: 0 auto;
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    background: var(--surface-container-lowest);
     border: var(--glass-border);
-    border-radius: var(--r-2xl);
-    box-shadow: var(--shadow-2);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-inner-glow), var(--shadow-2);
     overflow: hidden;
   }
   .audit-card table { width: 100%; border-collapse: collapse; }
@@ -64,9 +64,10 @@
     max-width: 520px; margin: var(--sp-10) auto;
     text-align: center;
     padding: var(--sp-8);
-    background: rgba(255,255,255,0.8);
-    border-radius: var(--r-2xl);
+    background: var(--surface-container-low);
+    border-radius: var(--r-xl);
     border: var(--glass-border);
+    box-shadow: var(--shadow-inner-glow), var(--shadow-1);
   }
 </style>
 </head>

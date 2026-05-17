@@ -1,14 +1,18 @@
 // Carta — agent action-parity capability map (human-readable + machine export).
-// Source of truth for UI actions vs planned agent primitives. Update when screens change.
+// Source of truth for UI actions vs planned agent primitives.
+//
+// Rule: when you add or change a user-visible UI action (controls that mutate or export
+// data, or open a primary workflow), update CAPABILITY_MODULES / CAPABILITY_ROWS in the
+// same change. Keeps /app/studio/capabilities.html accurate for agents and reviews.
 
-export const CAPABILITY_MAP_VERSION = '1';
+export const CAPABILITY_MAP_VERSION = '3';
 
 /** @typedef {'missing' | 'partial' | 'na'} CapabilityStatus */
 
 export const CAPABILITY_STATUSES = /** @type {const} */ (['missing', 'partial', 'na']);
 
 export const CAPABILITY_MODULES = [
-  { id: 'shell', path: 'app/index.html · sidebar' },
+  { id: 'shell', path: 'app/index.html · src/studio-layout.js (studio shell)' },
   { id: 'pricing_settings', path: 'app/studio/pricing.html' },
   { id: 'recipes', path: 'app/studio/recipes.html' },
   { id: 'cost', path: 'app/studio/cost.html' },
@@ -21,6 +25,7 @@ export const CAPABILITY_MODULES = [
   { id: 'surface', path: 'app/studio/surface.html' },
   { id: 'dashboard', path: 'app/studio/dashboard.html' },
   { id: 'audit', path: 'app/studio/audit.html' },
+  { id: 'capabilities', path: 'app/studio/capabilities.html' },
   { id: 'platform', path: 'Supabase / product' },
 ];
 
@@ -43,6 +48,10 @@ export const CAPABILITY_ROWS = [
   { id: 'ws_delete', moduleId: 'shell', uiAction: 'Delete workspace (confirmed)', location: 'app/index.html · Manage', permission: 'workspace_delete', tool: 'delete_workspace', promptHint: 'Permanently remove this workspace', status: 'missing' },
   { id: 'member_invite', moduleId: 'shell', uiAction: 'Invite member, copy link', location: 'app/index.html · Manage', permission: 'member_manage', tool: 'invite_workspace_member, list_workspace_members', promptHint: 'Invite this email to the team', status: 'missing' },
   { id: 'member_role', moduleId: 'shell', uiAction: 'Change role / remove member', location: 'app/index.html · Manage', permission: 'member_manage', tool: 'set_member_role, remove_workspace_member', promptHint: 'Make them cost_controller / remove access', status: 'missing' },
+  { id: 'ws_copy_id', moduleId: 'shell', uiAction: 'Copy workspace UUID (clipboard)', location: 'app/index.html workspace list', permission: null, tool: 'copy_workspace_id', promptHint: 'Copy this workspace UUID for support or MCP context', status: 'partial', notes: 'navigator.clipboard' },
+  { id: 'shell_sidebar_rail', moduleId: 'shell', uiAction: 'Toggle desktop sidebar density (narrow rail)', location: 'src/studio-layout.js', permission: null, tool: 'set_sidebar_layout_pref', promptHint: 'Collapse studio sidebar to icon rail', status: 'partial', notes: 'sessionStorage only' },
+  { id: 'shell_shortcuts_modal', moduleId: 'shell', uiAction: 'Toggle keyboard shortcuts help (? overlay)', location: 'src/app-chrome.js · studio-layout', permission: null, tool: '—', promptHint: 'Show available keyboard shortcuts', status: 'na', notes: 'Help overlay; Escape closes when open' },
+  { id: 'shell_scroll_top', moduleId: 'shell', uiAction: 'Scroll workspace / page to top (floating control)', location: 'src/app-chrome.js · index + studio modules', permission: null, tool: '—', promptHint: 'Jump to top of current view', status: 'na', notes: 'Chrome control' },
   { id: 'ws_settings', moduleId: 'pricing_settings', uiAction: 'Edit VAT, target GP, Q-factor', location: 'app/studio/pricing.html · settings strip', permission: 'workspace_update', tool: 'update_workspace_settings', promptHint: 'Set target gross profit or VAT for this workspace', status: 'missing' },
   { id: 'recipe_list', moduleId: 'recipes', uiAction: 'List and open recipes', location: 'app/studio/recipes.html', permission: null, tool: 'list_recipes, get_recipe', promptHint: 'Show dishes in this menu', status: 'missing' },
   { id: 'recipe_cud', moduleId: 'recipes', uiAction: 'Create, update, delete recipe', location: 'app/studio/recipes.html', permission: 'recipe_create / recipe_update / recipe_delete', tool: 'create_recipe, update_recipe, delete_recipe', promptHint: 'Add a recipe, change ingredients, remove dish', status: 'missing' },
@@ -61,9 +70,12 @@ export const CAPABILITY_ROWS = [
   { id: 'ing_export', moduleId: 'ingredients', uiAction: 'Export audit Excel', location: 'app/studio/ingredients.html', permission: 'export', tool: 'export_ingredient_audit_xlsx', promptHint: 'Download audit workbook', status: 'partial', notes: 'Align UI gate with permissions.export' },
   { id: 'ing_custom', moduleId: 'ingredients', uiAction: 'Add / remove custom rows', location: 'app/studio/ingredients.html · localStorage', permission: null, tool: 'sync_custom_ingredient_rows', promptHint: 'Save custom reference rows for workspace', status: 'partial', notes: 'Client-only today; server primitive needed for parity' },
   { id: 'surface_export', moduleId: 'surface', uiAction: 'Export recipes / cost / pricing / matrix workbooks', location: 'app/studio/surface.html', permission: 'export', tool: 'export_surface_bundle', promptHint: 'Export Excel pack for reporting', status: 'missing' },
-  { id: 'dash_export', moduleId: 'dashboard', uiAction: 'Export KPI CSV, print', location: 'app/studio/dashboard.html', permission: 'export', tool: 'export_dashboard_csv', promptHint: 'Download dashboard CSV', status: 'missing' },
+  { id: 'dash_export', moduleId: 'dashboard', uiAction: 'Export KPI CSV', location: 'app/studio/dashboard.html · Export CSV', permission: 'export', tool: 'export_dashboard_csv', promptHint: 'Download dashboard CSV', status: 'missing' },
+  { id: 'dash_print', moduleId: 'dashboard', uiAction: 'Print dashboard view', location: 'app/studio/dashboard.html · Print', permission: 'export', tool: 'print_dashboard_view', promptHint: 'Print kitchen dashboard', status: 'missing' },
   { id: 'audit_read', moduleId: 'audit', uiAction: 'Read activity log', location: 'app/studio/audit.html', permission: null, tool: 'list_audit_log', promptHint: 'Show recent audit events', status: 'missing' },
   { id: 'audit_write', moduleId: 'platform', uiAction: 'Append audit event', location: 'Various (not wired in UI)', permission: null, tool: 'append_audit_event', promptHint: 'Log this action for compliance', status: 'partial', notes: 'Table exists; writers not consolidated' },
+  { id: 'cap_filter_module', moduleId: 'capabilities', uiAction: 'Filter capability table by module', location: 'app/studio/capabilities.html · Module', permission: null, tool: '—', promptHint: '—', status: 'na', notes: 'Read-only UI filter' },
+  { id: 'cap_download_json', moduleId: 'capabilities', uiAction: 'Download capability map JSON', location: 'app/studio/capabilities.html · Download JSON', permission: null, tool: 'export_capability_map_json', promptHint: 'Export agent parity map for MCP', status: 'partial', notes: 'Client via buildCapabilityMapExport today' },
 ];
 
 export function getModuleById(moduleId) {

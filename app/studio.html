@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>Studio · Carta</title>
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
@@ -41,26 +43,33 @@
   }
 
   .module-card {
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    background: var(--surface-container-lowest);
     border-radius: var(--r-2xl);
     border: var(--glass-border);
-    box-shadow: var(--shadow-2);
+    box-shadow: var(--shadow-inner-glow), var(--shadow-2);
     padding: var(--glass-padding);
     display: flex; flex-direction: column; gap: var(--sp-4);
     min-height: 220px;
     text-decoration: none; color: inherit;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    position: relative;
     transition:
-      transform 0.48s var(--ease),
-      background 0.48s var(--ease),
-      box-shadow 0.48s var(--ease),
-      border-color 0.35s var(--ease);
+      transform var(--dur-2) var(--ease-linear-out),
+      background var(--dur-2) var(--ease-linear-out),
+      box-shadow var(--dur-2),
+      border-color var(--dur-2);
   }
   .module-card:hover {
     transform: translateY(-6px);
-    box-shadow: var(--shadow-3);
-    border-color: rgb(var(--ink-rgb) / 0.14);
+    box-shadow: var(--shadow-inner-glow), var(--shadow-3);
+    border-color: rgb(var(--ink-rgb) / 0.22);
+  }
+  .module-card:active {
+    transform: translateY(-4px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .module-card:active { transform: none; }
   }
   .module-card:focus-visible {
     outline: 2px solid var(--tertiary-container);
@@ -75,8 +84,20 @@
     display: inline-flex; align-items: center; justify-content: center;
     background: rgb(var(--ink-rgb) / 0.06);
     border-radius: var(--r-lg);
+    transition: background var(--dur-2), color var(--dur-2);
   }
-  .module-card--ink .module-card__icon { background: rgba(255,255,255,0.10); }
+  .module-card:hover:not(.module-card--ink) .module-card__icon {
+    background: rgb(var(--honey-mist-rgb) / 0.22);
+    color: var(--secondary);
+  }
+  .module-card--ink .module-card__icon {
+    background: rgba(255,255,255,0.10);
+    color: inherit;
+  }
+  .module-card--ink:hover .module-card__icon {
+    background: rgba(255,255,255,0.18);
+    color: var(--tertiary-container);
+  }
   .module-card__icon .carta-icon {
     width: 28px; height: 28px;
     display: block;
@@ -106,7 +127,7 @@
     font-size: var(--type-label-sm);
     letter-spacing: var(--track-caps); text-transform: uppercase;
   }
-  .module-card__cta .arrow { transition: transform 0.45s var(--ease); }
+  .module-card__cta .arrow { transition: transform var(--dur-2) var(--ease); }
   .module-card:hover .module-card__cta .arrow { transform: translateX(6px); }
   .module-card__cta-coming {
     margin-top: auto;
@@ -122,7 +143,7 @@
 
   /* Module-card is .disabled when "coming soon" — give a different cursor */
   .module-card.disabled { cursor: default; }
-  .module-card.disabled:hover { transform: none; box-shadow: var(--shadow-2); }
+  .module-card.disabled:hover { transform: none; box-shadow: var(--shadow-inner-glow), var(--shadow-2); }
 
   .studio-mast {
     max-width: 1120px;
@@ -138,10 +159,10 @@
   .studio-mast__cell {
     margin: 0;
     padding: 8px;
-    background: rgba(255, 255, 255, 0.88);
-    border: 1px solid rgb(var(--ink-rgb) / 0.08);
+    background: var(--surface-container-lowest);
+    border: var(--glass-border);
     border-radius: var(--r-xl);
-    box-shadow: var(--shadow-2);
+    box-shadow: var(--shadow-inner-glow), var(--shadow-2);
   }
   .studio-mast__cell img {
     width: 100%;
