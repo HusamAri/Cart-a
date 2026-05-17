@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script src="/scripts/theme-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,7 +66,7 @@
     transition: transform var(--dur-2) var(--ease-linear-out), box-shadow var(--dur-2);
   }
   .recipe-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-3); }
-  .recipe-card:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 3px; }
+  .recipe-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 
   .recipe-card__kind { align-self: flex-start; }
   .recipe-card__name {
@@ -136,7 +137,7 @@
     cursor: pointer;
   }
   .modal__close:hover { background: var(--surface-container); color: var(--primary); }
-  .modal__close:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .modal__close:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
   .modal__body {
     display: grid; grid-template-columns: 1.5fr 1fr;
     gap: 0;
@@ -179,7 +180,7 @@
   .seg button[aria-pressed="true"] {
     background: var(--primary); color: var(--on-primary);
   }
-  .seg button:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .seg button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
   /* Ingredient rows */
   .ing-list { display: flex; flex-direction: column; gap: var(--sp-3); }
@@ -205,7 +206,7 @@
     cursor: pointer;
   }
   .ing-row .rm-btn:hover { background: var(--error-container); color: var(--on-error-container); }
-  .ing-row .rm-btn:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .ing-row .rm-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
   /* Autocomplete — fixed to viewport in JS so modal overflow does not clip it */
   .ac-dropdown {
@@ -300,7 +301,7 @@
   .serving-pills .serving-pill.is-active {
     background: var(--primary); color: var(--on-primary); border-color: var(--primary);
   }
-  .serving-pills .serving-pill:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .serving-pills .serving-pill:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
   .paste-panel {
     margin-top: var(--sp-2);

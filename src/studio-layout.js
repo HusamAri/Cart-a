@@ -7,6 +7,7 @@ import { getMyRole, can } from './permissions.js';
 import { applyTranslations, t, setLang, getLang } from './i18n.js';
 import { cartaIcon } from './carta-icon.js';
 import { mountFloatingBackToTop, mountShortcutsHelp } from './app-chrome.js';
+import { initTheme, cycleThemePref, getThemePref, themePrefGlyph } from './theme.js';
 
 const RAIL_SESSION_KEY = 'carta_sidebar_rail';
 
@@ -66,11 +67,14 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
         ${cartaIcon('account_circle', { size: 18, style: 'color:var(--on-surface-variant)' })}
         <span class="caption" style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="sidebarUserEmail">${escapeHTML(session.user.email)}</span>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+        <button type="button" class="carta-theme-btn" id="sidebarThemeBtn" aria-label="">◐</button>
+        <div style="display:flex;gap:8px;align-items:center;flex:1;justify-content:flex-end;flex-wrap:wrap;min-width:0">
         ${canSwitchProperty
           ? `<button type="button" class="btn btn-sm btn-ghost" onclick="window.location.href='/app/'" data-i18n="studio.switch_ws" style="flex:1;padding:8px 12px;font-size:11px">Switch workspace</button>`
           : `<button type="button" class="btn btn-sm btn-ghost" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}" style="flex:1;padding:8px 12px;font-size:11px">${escapeHTML(t('studio.switch_ws'))}</button>`}
         <button type="button" class="btn btn-sm btn-ghost" id="sidebarLangBtn" aria-label="Toggle language" style="padding:8px 12px;min-width:48px">EN</button>
+        </div>
       </div>
       <button type="button" class="btn btn-sm btn-ghost btn-block" id="sidebarSignOut" data-i18n="app.sign_out" style="padding:10px 14px">Sign out</button>
     </div>
@@ -131,6 +135,24 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   // Wire up controls
   document.getElementById('sidebarSignOut').addEventListener('click', signOut);
 
+  // Colour theme (system / light / dark)
+  initTheme();
+  function syncSidebarThemeBtn() {
+    const b = document.getElementById('sidebarThemeBtn');
+    if (!b) return;
+    const pref = getThemePref();
+    b.textContent = themePrefGlyph(pref);
+    const label = pref === 'system' ? t('ui.theme.aria_system') : pref === 'light' ? t('ui.theme.aria_light') : t('ui.theme.aria_dark');
+    b.setAttribute('aria-label', label);
+    b.title = label;
+  }
+  syncSidebarThemeBtn();
+  document.getElementById('sidebarThemeBtn')?.addEventListener('click', () => {
+    cycleThemePref();
+    syncSidebarThemeBtn();
+  });
+  window.addEventListener('carta-theme-change', syncSidebarThemeBtn);
+
   const langBtn = document.getElementById('sidebarLangBtn');
   function syncLang(){ langBtn.textContent = getLang()==='en' ? 'TR' : 'EN'; }
   syncLang();
@@ -139,6 +161,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     syncLang();
     applyTranslations();
     syncSidebarRailUi();
+    syncSidebarThemeBtn();
   });
 
   applyTranslations();

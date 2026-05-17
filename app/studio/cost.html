@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script src="/scripts/theme-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -75,7 +76,7 @@
     transition: background var(--dur-2);
   }
   .ledger tbody tr:hover { background: rgba(255,255,255,0.7); }
-  .ledger tbody tr:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: -2px; }
+  .ledger tbody tr:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
   .ledger .col-name {
     font-family: var(--font-display); font-style: italic; font-weight: 400;
     font-size: 1.1rem; color: var(--primary);
@@ -138,7 +139,7 @@
     cursor: pointer;
   }
   .modal__close:hover { background: var(--surface-container); color: var(--primary); }
-  .modal__close:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .modal__close:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
   .modal__form { padding: var(--sp-6); overflow-y: auto; flex: 1; }
   .form-row { margin-bottom: var(--sp-4); }
   .form-grid-2 {

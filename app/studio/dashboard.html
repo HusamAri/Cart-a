@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script src="/scripts/theme-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -118,7 +119,7 @@
   .dash-calc-summary::-webkit-details-marker { display: none; }
   .dash-calc-summary:hover { border-color: var(--outline-variant); color: var(--primary); background: rgba(223, 228, 221, 0.35); }
   .dash-calc-summary:focus-visible {
-    outline: 2px solid var(--tertiary-container); outline-offset: 2px;
+    outline: 2px solid var(--primary); outline-offset: 2px;
   }
   .dash-calc-summary__ic { display: flex; color: var(--outline); flex-shrink: 0; }
   .dash-calc-body {
@@ -181,7 +182,7 @@
   .dash-bar-fill {
     height: 100%;
     width: var(--bar-w, 0%);
-    background: var(--tertiary-container);
+    background: var(--primary);
     border-radius: var(--r-pill);
     transform: scaleX(0);
     transform-origin: left center;

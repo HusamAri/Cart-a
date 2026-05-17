@@ -505,6 +505,9 @@ const STRINGS = {
     'ui.shortcuts.close_aria': 'Close',
     'ui.sidebar_expand': 'Expand sidebar',
     'ui.sidebar_collapse': 'Collapse sidebar',
+    'ui.theme.aria_system': 'Colour theme: match device settings',
+    'ui.theme.aria_light': 'Colour theme: light',
+    'ui.theme.aria_dark': 'Colour theme: dark',
     // workspaces list
     'ws.copy_id': 'Copy workspace ID',
     'ws.copied_id': 'Workspace ID copied',
@@ -1225,6 +1228,9 @@ const STRINGS = {
     'ui.shortcuts.close_aria': 'Kapat',
     'ui.sidebar_expand': 'Kenar çubuğunu genişlet',
     'ui.sidebar_collapse': 'Kenar çubuğunu daralt',
+    'ui.theme.aria_system': 'Renk teması: cihaz ayarına uy',
+    'ui.theme.aria_light': 'Renk teması: açık',
+    'ui.theme.aria_dark': 'Renk teması: koyu',
     'ws.copy_id': 'Çalışma alanı kimliğini kopyala',
     'ws.copied_id': 'Çalışma alanı kimliği kopyalandı',
     // Reçete editörü

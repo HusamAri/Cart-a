@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script src="/scripts/theme-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,7 +54,7 @@
     font-size: 1.1rem; color: var(--primary);
     text-align: right;
   }
-  .settings-card .pair input:focus { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .settings-card .pair input:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
 
   /* Filter row */
   .filter-row {
@@ -78,7 +79,7 @@
   .seg button[aria-pressed="true"] {
     background: var(--primary); color: var(--on-primary);
   }
-  .seg button:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .seg button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
   .search-pill {
     display: flex; gap: var(--sp-3); align-items: center;
     background: var(--surface-container-lowest);
@@ -185,7 +186,7 @@
     cursor: pointer;
   }
   .icon-btn:hover { background: var(--surface-container); color: var(--primary); border-color: var(--outline-variant); }
-  .icon-btn:focus-visible { outline: 2px solid var(--tertiary-container); outline-offset: 2px; }
+  .icon-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
   .empty {
     max-width: 600px; margin: var(--sp-9) auto;

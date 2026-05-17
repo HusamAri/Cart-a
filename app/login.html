@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script src="/scripts/theme-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>Sign in · Carta</title>
 <meta name="description" content="Sign in to Carta with a magic link or password.">
-<meta name="theme-color" content="#F0E8DE">
+<meta name="theme-color" content="#468D98">
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
 <style>
@@ -37,6 +38,9 @@
 </style>
 </head>
 <body class="auth-screen">
+<div class="auth-chrome-bar" style="position:fixed;top:16px;right:16px;z-index:70">
+  <button type="button" class="carta-theme-btn" id="authThemeBtn" aria-label="">◐</button>
+</div>
 
 <a href="#main" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
 
@@ -84,7 +88,24 @@ import { sendMagicLink, signInWithPassword } from '/src/auth.js';
 import { getSessionAfterUrlAuth } from '/src/supabase-client.js';
 import { storeInviteToken, readStoredInviteToken } from '/src/workspaces.js';
 import { applyTranslations, t } from '/src/i18n.js';
+import { initTheme, cycleThemePref, getThemePref, themePrefGlyph } from '/src/theme.js';
 applyTranslations();
+initTheme();
+function syncAuthThemeBtn() {
+  const btn = document.getElementById('authThemeBtn');
+  if (!btn) return;
+  const pref = getThemePref();
+  btn.textContent = themePrefGlyph(pref);
+  const label = pref === 'system' ? t('ui.theme.aria_system') : pref === 'light' ? t('ui.theme.aria_light') : t('ui.theme.aria_dark');
+  btn.setAttribute('aria-label', label);
+  btn.title = label;
+}
+syncAuthThemeBtn();
+document.getElementById('authThemeBtn')?.addEventListener('click', () => {
+  cycleThemePref();
+  syncAuthThemeBtn();
+});
+window.addEventListener('carta-theme-change', syncAuthThemeBtn);
 
 const params = new URLSearchParams(window.location.search);
 const inviteToken = (params.get('invite') || '').trim();
