@@ -162,15 +162,8 @@
   .module-card.disabled:hover { transform: none; box-shadow: var(--shadow-inner-glow), var(--shadow-2); }
 
   .studio-mast {
-    max-width: 1120px;
+    max-width: min(720px, 92vw);
     margin: 0 auto var(--sp-8);
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--sp-4);
-    align-items: start;
-  }
-  @media (max-width: 700px) {
-    .studio-mast { grid-template-columns: 1fr; }
   }
   .studio-mast__cell {
     margin: 0;
@@ -186,21 +179,14 @@
     border-radius: var(--r-lg);
     background: var(--surface-container-low);
   }
-  .studio-mast__cell--brand img.mast-hero--kitchen {
-    aspect-ratio: 3 / 4;
-    max-height: min(320px, 42vh);
-    object-fit: cover;
-    object-position: 50% 45%;
-  }
   .studio-mast__cell--brand img.mast-hero--plate {
     aspect-ratio: 4 / 3;
-    max-height: min(280px, 38vh);
+    max-height: min(320px, 44vh);
     object-fit: cover;
     object-position: 50% 50%;
   }
   @media (max-width: 700px) {
-    .studio-mast__cell--brand img.mast-hero--kitchen { max-height: 260px; }
-    .studio-mast__cell--brand img.mast-hero--plate { max-height: 220px; }
+    .studio-mast__cell--brand img.mast-hero--plate { max-height: 240px; }
   }
 </style>
 </head>
@@ -224,9 +210,6 @@ main.innerHTML = `
   </div>
 
   <div class="studio-mast" aria-hidden="true">
-    <figure class="studio-mast__cell studio-mast__cell--brand">
-      <img class="is-brand-visual mast-hero--kitchen" src="/assets/carta-hero-kitchen.png" alt="" width="824" height="1024" loading="lazy" decoding="async">
-    </figure>
     <figure class="studio-mast__cell studio-mast__cell--brand">
       <img class="is-brand-visual mast-hero--plate" src="/assets/carta-hero-plate.png" alt="" width="1024" height="824" loading="lazy" decoding="async">
     </figure>
