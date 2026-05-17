@@ -1,7 +1,18 @@
 // Carta — Authentication (magic link + password)
 import { supabase } from './supabase-client.js';
 
-const REDIRECT_TO = window.location.origin + '/app/';
+const APP_HOME = `${window.location.origin}/app/`;
+
+/**
+ * Magic link landing URL. Include ?invite= when present so the token survives
+ * email clients that open the link in a fresh context (no prior localStorage).
+ * Add matching redirect URLs in Supabase Auth (e.g. https://your.domain/app/).
+ */
+export function buildMagicLinkRedirectUrl(inviteToken = '') {
+  const t = (inviteToken || '').trim();
+  if (!t) return APP_HOME;
+  return `${APP_HOME}?invite=${encodeURIComponent(t)}`;
+}
 
 export async function signInWithPassword(email, password) {
   const cleanEmail = (email || '').trim().toLowerCase();
@@ -24,10 +35,11 @@ export async function sendMagicLink(email, opts = {}) {
   if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
     return { ok: false, error: 'Please enter a valid email address.' };
   }
+  const emailRedirectTo = buildMagicLinkRedirectUrl(opts.inviteToken);
   const { error } = await supabase.auth.signInWithOtp({
     email: cleanEmail,
     options: {
-      emailRedirectTo: REDIRECT_TO,
+      emailRedirectTo,
       shouldCreateUser: opts.allowSignup !== false,
       data: opts.metadata || {},
     },

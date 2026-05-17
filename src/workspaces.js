@@ -5,6 +5,21 @@ const ACTIVE_WS_KEY = 'carta_active_workspace_id';
 const ACTIVE_ORG_KEY = 'carta_active_org_id';
 const INVITE_TOKEN_KEY = 'carta_invite_token';
 
+/** Merge duplicate org_members rows (same org, different role labels) for stable UI. */
+const ORG_ROLE_RANK = {
+  owner: 100,
+  admin: 80,
+  manager: 60,
+  member: 40,
+  viewer: 20,
+};
+function strongerOrgRole(a, b) {
+  const ra = ORG_ROLE_RANK[a] ?? 0;
+  const rb = ORG_ROLE_RANK[b] ?? 0;
+  if (rb > ra) return b;
+  return a || b || 'member';
+}
+
 // ----- Organizations -----
 
 export async function listMyOrganizations() {
@@ -14,7 +29,28 @@ export async function listMyOrganizations() {
     .select('role, joined_at, organizations(id, name, slug, created_at)')
     .order('joined_at', { ascending: false });
   if (error) { console.error('listMyOrganizations', error); return []; }
-  return (data || []).map(r => ({ ...r.organizations, role: r.role }));
+  const rows = (data || [])
+    .map(r => {
+      const o = r.organizations;
+      if (!o?.id) return null;
+      return { ...o, role: r.role || 'member', _joined: r.joined_at };
+    })
+    .filter(Boolean);
+  const byId = new Map();
+  for (const row of rows) {
+    const prev = byId.get(row.id);
+    if (!prev) {
+      byId.set(row.id, row);
+    } else {
+      byId.set(row.id, {
+        ...prev,
+        role: strongerOrgRole(prev.role, row.role),
+      });
+    }
+  }
+  const merged = [...byId.values()].map(({ _joined, ...o }) => o);
+  merged.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'tr', { sensitivity: 'base' }));
+  return merged;
 }
 
 export async function createOrganization(name) {
@@ -39,7 +75,8 @@ export function setActiveOrg(id) {
 // ----- Workspaces (facilities) -----
 
 export async function listMyWorkspaces(orgId = null) {
-  // Returns workspaces I have direct membership in (workspace_members)
+  // Only facilities where this user has an explicit workspace_members row.
+  // (Org-level membership alone must not reveal other properties you were not invited to.)
   const { data: directMembers, error: e1 } = await supabase
     .from('workspace_members')
     .select('role, workspaces(id, name, slug, plan, currency, created_at, organization_id, organizations(name))')
@@ -49,20 +86,12 @@ export async function listMyWorkspaces(orgId = null) {
     .map(r => normalizeWorkspaceRow(r.workspaces, r.role))
     .filter(Boolean);
 
-  // Also include workspaces from orgs I'm a member of (cross-facility via org_members)
-  // RLS lets us SELECT workspaces if is_workspace_member is true (which now includes org membership)
-  const { data: orgWorkspaces, error: e2 } = await supabase
-    .from('workspaces')
-    .select('id, name, slug, plan, currency, created_at, organization_id, organizations(name)');
-  if (!e2 && orgWorkspaces) {
-    const known = new Set(workspaces.map(w => w.id));
-    for (const w of orgWorkspaces) {
-      if (!known.has(w.id)) {
-        const normalized = normalizeWorkspaceRow(w, 'org_member');
-        if (normalized) workspaces.push(normalized);
-      }
-    }
-  }
+  const seen = new Set();
+  workspaces = workspaces.filter((w) => {
+    if (!w.id || seen.has(w.id)) return false;
+    seen.add(w.id);
+    return true;
+  });
   if (orgId) workspaces = workspaces.filter(w => w.organization_id === orgId);
   return workspaces;
 }
