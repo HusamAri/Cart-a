@@ -56,7 +56,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
       `).join('')}
     </nav>
     <div class="sidebar__foot">
-      <div style="display:flex;gap:8px;align-items:center;padding:8px 14px;background:rgba(7,22,13,0.04);border-radius:var(--r-pill)">
+      <div style="display:flex;gap:8px;align-items:center;padding:8px 14px;background:rgb(var(--ink-rgb) / 0.04);border-radius:var(--r-pill)">
         ${cartaIcon('account_circle', { size: 18, style: 'color:var(--on-surface-variant)' })}
         <span class="caption" style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="sidebarUserEmail">${escapeHTML(session.user.email)}</span>
       </div>

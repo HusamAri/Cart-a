@@ -22,6 +22,9 @@ supabase/.branches/
 *.log
 npm-debug.log*
 
+# Local design reference drops (not shipped)
+.ref-occidental/
+
 # Env / secrets — Carta has no .env files yet but defensively block any future ones
 .env
 .env.local

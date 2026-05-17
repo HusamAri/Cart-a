@@ -12,7 +12,18 @@
   .page-head { max-width: 1120px; margin: 0 auto var(--sp-7); }
   .page-head .eyebrow { margin-bottom: var(--sp-3); }
   .page-head h1 { margin: 0 0 var(--sp-3); }
-  .page-head .lead { margin: 0 0 var(--sp-5); max-width: 62ch; }
+  .page-head .lead { margin: 0 0 var(--sp-3); max-width: 62ch; }
+  .dash-disclaimer {
+    margin: 0 0 var(--sp-5);
+    max-width: 68ch;
+    padding: var(--sp-4) var(--sp-5);
+    border-radius: var(--r-lg);
+    border: 1px solid rgba(201, 132, 18, 0.28);
+    background: rgb(var(--honey-mist-rgb) / 0.14);
+    font-size: var(--type-caption);
+    line-height: 1.55;
+    color: var(--on-surface-variant);
+  }
 
   .dash-toolbar {
     display: flex; flex-wrap: wrap; gap: var(--sp-4); align-items: flex-end; margin-bottom: var(--sp-7);
@@ -37,10 +48,91 @@
     box-shadow: var(--shadow-2);
     padding: var(--glass-padding);
   }
-  .dash-card h2 {
-    font-family: var(--font-display); font-weight: 400; font-style: italic; font-size: 1.35rem; color: var(--primary);
-    margin: 0 0 var(--sp-4);
+  .dash-card--viz {
+    animation: dashCardIn 0.52s var(--ease) backwards;
   }
+  .dash-card--viz:nth-child(1) { animation-delay: 0.02s; }
+  .dash-card--viz:nth-child(2) { animation-delay: 0.08s; }
+  .dash-card--viz:nth-child(3) { animation-delay: 0.14s; }
+  .dash-card--viz:nth-child(4) { animation-delay: 0.2s; }
+  .dash-card--viz:nth-child(5) { animation-delay: 0.26s; }
+  .dash-card--viz:nth-child(6) { animation-delay: 0.32s; }
+  .dash-card--viz:nth-child(7) { animation-delay: 0.38s; }
+  .dash-card--viz:nth-child(8) { animation-delay: 0.42s; }
+  @keyframes dashCardIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dash-card--viz { animation: none !important; }
+    .dash-macro-seg,
+    .dash-bar-fill,
+    .dash-kpi { animation: none !important; transition: none !important; }
+    .dash-macro-seg,
+    .dash-bar-fill { transform: scaleX(1) !important; }
+    .dash-kpi { transform: none !important; opacity: 1 !important; }
+    .dash-card--warn { animation: none !important; box-shadow: 0 0 0 1px rgba(201, 132, 18, 0.1), var(--shadow-2) !important; }
+  }
+
+  .dash-card--warn {
+    border-color: rgba(201, 132, 18, 0.38);
+    box-shadow: 0 0 0 1px rgba(201, 132, 18, 0.1), var(--shadow-2);
+    animation: dashWarnPulse 2.4s var(--ease) 1;
+  }
+  @keyframes dashWarnPulse {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(201, 132, 18, 0.1), var(--shadow-2); }
+    40% { box-shadow: 0 0 0 4px rgba(201, 132, 18, 0.14), var(--shadow-2); }
+  }
+
+  .dash-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-4);
+  }
+  .dash-card__head h2 {
+    font-family: var(--font-display); font-weight: 400; font-style: italic; font-size: 1.35rem; color: var(--primary);
+    margin: 0;
+    flex: 1 1 12rem;
+  }
+  .dash-calc { flex: 0 1 14rem; max-width: 100%; margin: 0; }
+  .dash-calc-summary {
+    cursor: pointer;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--r-pill);
+    border: 1px solid rgb(var(--ink-rgb) / 0.12);
+    background: rgba(255, 255, 255, 0.72);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: var(--track-caps);
+    text-transform: uppercase;
+    color: var(--on-surface-variant);
+    transition: border-color var(--dur-2) var(--ease), color var(--dur-2) var(--ease), background var(--dur-2) var(--ease);
+  }
+  .dash-calc-summary::-webkit-details-marker { display: none; }
+  .dash-calc-summary:hover { border-color: var(--outline-variant); color: var(--primary); background: rgba(223, 228, 221, 0.35); }
+  .dash-calc-summary:focus-visible {
+    outline: 2px solid var(--tertiary-container); outline-offset: 2px;
+  }
+  .dash-calc-summary__ic { display: flex; color: var(--outline); flex-shrink: 0; }
+  .dash-calc-body {
+    margin-top: var(--sp-3);
+    padding: var(--sp-4);
+    border-radius: var(--r-lg);
+    background: rgb(var(--ink-rgb) / 0.04);
+    border: 1px solid rgb(var(--ink-rgb) / 0.07);
+    font-size: var(--type-caption);
+    line-height: 1.58;
+    color: var(--on-surface-variant);
+  }
+  .dash-calc-body p { margin: 0; }
+
   .dash-card h3 {
     font-family: var(--font-sans); font-size: 11px; font-weight: 600; letter-spacing: var(--track-caps); text-transform: uppercase;
     color: var(--on-surface-variant); margin: 0 0 var(--sp-3);
@@ -48,24 +140,57 @@
   .dash-kpis {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3);
   }
+  .dash-kpis--co2 { grid-template-columns: repeat(2, 1fr); max-width: 100%; }
+  @media (max-width: 700px) { .dash-kpis--co2 { grid-template-columns: 1fr; } }
   @media (max-width: 700px) { .dash-kpis { grid-template-columns: repeat(2, 1fr); } }
   .dash-kpi {
-    padding: var(--sp-4); background: rgba(7,22,13,0.04); border-radius: var(--r-lg); text-align: center;
+    padding: var(--sp-4); background: rgb(var(--ink-rgb) / 0.04); border-radius: var(--r-lg); text-align: center;
+    animation: dashKpiIn 0.55s var(--ease) backwards;
   }
-  .dash-kpi .num { font-family: var(--font-display); font-size: 1.75rem; font-weight: 300; color: var(--primary); line-height: 1.2; }
+  .dash-kpi:nth-child(1) { animation-delay: 0.08s; }
+  .dash-kpi:nth-child(2) { animation-delay: 0.14s; }
+  .dash-kpi:nth-child(3) { animation-delay: 0.2s; }
+  .dash-kpi:nth-child(4) { animation-delay: 0.26s; }
+  @keyframes dashKpiIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+  .dash-kpi .num { font-family: var(--font-display); font-size: 1.75rem; font-weight: 300; color: var(--primary); line-height: 1.2; font-variant-numeric: tabular-nums; }
   .dash-kpi .lbl { font-size: 10px; letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--on-surface-variant); margin-top: 4px; }
 
   .dash-macro-bar {
     height: 12px; border-radius: var(--r-pill); overflow: hidden; display: flex; margin-top: var(--sp-3);
   }
-  .dash-macro-bar span { height: 100%; }
+  .dash-macro-seg {
+    height: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    animation: dashMacroSeg 0.85s var(--ease) forwards;
+  }
+  .dash-macro-seg--p { animation-delay: 0.06s; }
+  .dash-macro-seg--c { animation-delay: 0.16s; }
+  .dash-macro-seg--f { animation-delay: 0.26s; }
+  @keyframes dashMacroSeg {
+    to { transform: scaleX(1); }
+  }
   .dash-macro-legend { display: flex; gap: var(--sp-4); flex-wrap: wrap; margin-top: var(--sp-3); font-size: var(--type-caption); }
   .dash-macro-legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 6px; vertical-align: middle; }
 
-  .dash-row { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: 8px; font-size: var(--type-caption); }
-  .dash-row .bar-wrap { flex: 1; height: 8px; background: rgba(7,22,13,0.08); border-radius: var(--r-pill); overflow: hidden; }
-  .dash-row .bar { height: 100%; background: var(--tertiary-container); border-radius: var(--r-pill); transition: width 0.35s ease; }
-  .dash-row .pct { min-width: 40px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .dash-row { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: 8px; font-size: var(--type-caption); min-height: 1.25rem; }
+  .dash-row .bar-wrap { flex: 1; min-width: 0; height: 8px; background: rgb(var(--ink-rgb) / 0.08); border-radius: var(--r-pill); overflow: hidden; }
+  .dash-bar-fill {
+    height: 100%;
+    width: var(--bar-w, 0%);
+    background: var(--tertiary-container);
+    border-radius: var(--r-pill);
+    transform: scaleX(0);
+    transform-origin: left center;
+    animation: dashBarGrow 0.72s var(--ease) forwards;
+  }
+  @keyframes dashBarGrow {
+    to { transform: scaleX(1); }
+  }
+  .dash-row .pct { min-width: 48px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
 
   .dash-links {
     display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-4);
@@ -75,6 +200,10 @@
   .dash-empty { text-align: center; padding: var(--sp-10) var(--sp-5); max-width: 480px; margin: 0 auto; }
   @media print {
     .dash-toolbar .dash-actions, .sidebar, .studio-mobile-top, .skip-link { display: none !important; }
+    .dash-calc-body { display: block !important; }
+    .dash-card--viz, .dash-kpi, .dash-macro-seg, .dash-bar-fill { animation: none !important; transform: none !important; opacity: 1 !important; }
+    .dash-macro-seg { transform: scaleX(1) !important; }
+    .dash-bar-fill { transform: scaleX(1) !important; }
   }
 </style>
 </head>
@@ -89,6 +218,7 @@ import { computeRecipe, computeDishCost, buildCostMap, formatNumber, computeReci
 import { emissionIntensityKgCo2ePerKg } from '/src/carbon-factors.js';
 import { ALLERGEN_LABELS } from '/src/nutrient-db.js';
 import { getMyRole, applyRoleGates } from '/src/permissions.js';
+import { cartaIcon } from '/src/carta-icon.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -111,6 +241,7 @@ main.innerHTML = `
     <span class="eyebrow eyebrow-accent" data-i18n="dash.page_eyebrow">Menu intelligence</span>
     <h1 class="h1"><span data-i18n="dash.page_title">Kitchen</span> <em data-i18n="dash.page_title_em">dashboard</em></h1>
     <p class="lead" data-i18n="dash.page_intro">Workspace-wide signals from saved recipes: nutrition mix, allergens, diet coverage, a greenhouse-gas proxy, and cost completeness.</p>
+    <p class="dash-disclaimer" data-i18n="dash.disclaimer" role="note"></p>
   </div>
 
   <div class="dash-toolbar">
@@ -291,6 +422,23 @@ function analyze(rows, costMap) {
   };
 }
 
+function dashCalcDetails(i18nBodyKey) {
+  return `<details class="dash-calc">
+    <summary class="dash-calc-summary">
+      <span class="dash-calc-summary__ic">${cartaIcon('info', { size: 16, ariaHidden: true })}</span>
+      <span data-i18n="dash.method_summary">How we calculate this</span>
+    </summary>
+    <div class="dash-calc-body"><p data-i18n="${i18nBodyKey}"></p></div>
+  </details>`;
+}
+
+function dashCardHead(titleKey, methodBodyKey) {
+  return `<div class="dash-card__head">
+    <h2 data-i18n="${titleKey}">${escapeHTML(t(titleKey))}</h2>
+    ${dashCalcDetails(methodBodyKey)}
+  </div>`;
+}
+
 function renderDash(costMap) {
   const root = main.querySelector('#dashRoot');
   const rows = scopedDishes();
@@ -317,34 +465,34 @@ function renderDash(costMap) {
 
   root.innerHTML = `
     <div class="dash-grid" style="margin-bottom:var(--sp-5)">
-      <div class="dash-card" style="grid-column:1/-1">
-        <h2 data-i18n="dash.kpi_title">At a glance</h2>
+      <article class="dash-card dash-card--viz" style="grid-column:1/-1">
+        ${dashCardHead('dash.kpi_title', 'dash.method_kpi')}
         <div class="dash-kpis">
           <div class="dash-kpi"><div class="num">${st.n}</div><div class="lbl" data-i18n="dash.kpi_recipes">Recipes</div></div>
           <div class="dash-kpi"><div class="num">${formatNumber(st.avgKcal, 0)}</div><div class="lbl" data-i18n="dash.kpi_avg_kcal">Avg kcal / serving</div></div>
           <div class="dash-kpi"><div class="num">${st.foodN}</div><div class="lbl" data-i18n="dash.kpi_food">Food</div></div>
           <div class="dash-kpi"><div class="num">${st.drinkN}</div><div class="lbl" data-i18n="dash.kpi_drink">Drinks</div></div>
         </div>
-      </div>
+      </article>
     </div>
 
     <div class="dash-grid">
-      <div class="dash-card dash-gaps">
-        <h2 data-i18n="dash.gaps_title">Gaps and opportunities</h2>
+      <article class="dash-card dash-gaps dash-card--viz ${st.gaps.length ? 'dash-card--warn' : ''}">
+        ${dashCardHead('dash.gaps_title', 'dash.method_gaps')}
         ${st.gaps.length ? `<ul>${st.gaps.map(g => `<li>${escapeHTML(g)}</li>`).join('')}</ul>` : `<p class="text-muted" style="margin:0;font-size:var(--type-caption)" data-i18n="dash.gaps_none">No major gaps flagged for this set.</p>`}
-      </div>
-      <div class="dash-card">
-        <h2 data-i18n="dash.health_title">Menu health</h2>
+      </article>
+      <article class="dash-card dash-card--viz">
+        ${dashCardHead('dash.health_title', 'dash.method_health')}
         <h3 data-i18n="dash.macro_split">Average energy from macros</h3>
         <div class="dash-macro-bar" aria-hidden="true">
-          <span style="width:${st.pctP}%;background:#5d8a6a"></span>
-          <span style="width:${st.pctC}%;background:#c4a35a"></span>
-          <span style="width:${st.pctF}%;background:#8b6b4a"></span>
+          <span class="dash-macro-seg dash-macro-seg--p" style="width:${st.pctP}%;background:var(--chart-macro-protein)"></span>
+          <span class="dash-macro-seg dash-macro-seg--c" style="width:${st.pctC}%;background:var(--chart-macro-carb)"></span>
+          <span class="dash-macro-seg dash-macro-seg--f" style="width:${st.pctF}%;background:var(--chart-macro-fat)"></span>
         </div>
         <div class="dash-macro-legend">
-          <span><i style="background:#5d8a6a"></i><span data-i18n="recipes.protein">Protein</span> ${formatNumber(st.pctP, 0)}%</span>
-          <span><i style="background:#c4a35a"></i><span data-i18n="recipes.carb">Carb</span> ${formatNumber(st.pctC, 0)}%</span>
-          <span><i style="background:#8b6b4a"></i><span data-i18n="recipes.fat">Fat</span> ${formatNumber(st.pctF, 0)}%</span>
+          <span><i style="background:var(--chart-macro-protein)"></i><span data-i18n="recipes.protein">Protein</span> ${formatNumber(st.pctP, 0)}%</span>
+          <span><i style="background:var(--chart-macro-carb)"></i><span data-i18n="recipes.carb">Carb</span> ${formatNumber(st.pctC, 0)}%</span>
+          <span><i style="background:var(--chart-macro-fat)"></i><span data-i18n="recipes.fat">Fat</span> ${formatNumber(st.pctF, 0)}%</span>
         </div>
         <h3 style="margin-top:var(--sp-5)" data-i18n="dash.kcal_dist">Kcal per serving (buckets)</h3>
         ${['low','mid','high','vhigh'].map((k, i) => {
@@ -352,57 +500,57 @@ function renderDash(costMap) {
           const lbl = t(keys[i]);
           const v = st.kcalBuckets[k];
           const pct = st.n ? (v / st.n) * 100 : 0;
-          return `<div class="dash-row"><span style="min-width:100px">${escapeHTML(lbl)}</span><div class="bar-wrap"><div class="bar" style="width:${pct}%"></div></div><span class="pct">${v}</span></div>`;
+          return `<div class="dash-row"><span style="min-width:100px;flex-shrink:0">${escapeHTML(lbl)}</span><div class="bar-wrap"><div class="dash-bar-fill" style="--bar-w:${pct}%;animation-delay:${0.04 + i * 0.07}s"></div></div><span class="pct">${v}</span></div>`;
         }).join('')}
-      </div>
+      </article>
 
-      <div class="dash-card">
-        <h2 data-i18n="dash.inclusivity_title">Diet coverage</h2>
-        ${(['vegan','vegetarian','halal','gluten_free']).map(d => {
+      <article class="dash-card dash-card--viz">
+        ${dashCardHead('dash.inclusivity_title', 'dash.method_diet')}
+        ${(['vegan','vegetarian','halal','gluten_free']).map((d, di) => {
           const v = st.dietCounts[d];
           const pct = st.n ? (v / st.n) * 100 : 0;
           const label = t('diet.' + d) || d;
-          return `<div class="dash-row"><span style="min-width:120px">${escapeHTML(label)}</span><div class="bar-wrap"><div class="bar" style="width:${pct}%"></div></div><span class="pct">${v}/${st.n}</span></div>`;
+          return `<div class="dash-row"><span style="min-width:120px;flex-shrink:0">${escapeHTML(label)}</span><div class="bar-wrap"><div class="dash-bar-fill" style="--bar-w:${pct}%;animation-delay:${0.05 + di * 0.06}s"></div></div><span class="pct">${v}/${st.n}</span></div>`;
         }).join('')}
-      </div>
+      </article>
 
-      <div class="dash-card">
-        <h2 data-i18n="dash.allergen_title">Allergen presence</h2>
-        <p class="text-muted" style="margin:-8px 0 var(--sp-3);font-size:var(--type-caption)" data-i18n="dash.allergen_sub">${escapeHTML(t('dash.allergen_sub'))}</p>
-        ${st.allergenSorted.length ? st.allergenSorted.slice(0, 10).map(a => `
+      <article class="dash-card dash-card--viz">
+        ${dashCardHead('dash.allergen_title', 'dash.method_allergen')}
+        <p class="text-muted" style="margin:0 0 var(--sp-3);font-size:var(--type-caption)" data-i18n="dash.allergen_sub">${escapeHTML(t('dash.allergen_sub'))}</p>
+        ${st.allergenSorted.length ? st.allergenSorted.slice(0, 10).map((a, ai) => `
           <div class="dash-row">
-            <span style="min-width:140px">${escapeHTML(a.label)}</span>
-            <div class="bar-wrap"><div class="bar" style="width:${Math.min(100, a.pct)}%"></div></div>
+            <span style="min-width:140px;flex-shrink:0">${escapeHTML(a.label)}</span>
+            <div class="bar-wrap"><div class="dash-bar-fill" style="--bar-w:${Math.min(100, a.pct)}%;animation-delay:${0.04 + ai * 0.05}s"></div></div>
             <span class="pct">${formatNumber(a.pct, 0)}%</span>
           </div>
         `).join('') : `<p class="text-muted" data-i18n="dash.none">${escapeHTML(t('dash.none'))}</p>`}
-      </div>
+      </article>
 
-      <div class="dash-card">
-        <h2 data-i18n="dash.ingredients_title">Ingredient frequency</h2>
+      <article class="dash-card dash-card--viz">
+        ${dashCardHead('dash.ingredients_title', 'dash.method_ingredients')}
         ${st.topIngs.length ? `<ul style="margin:0;padding-left:1.1rem;font-size:var(--type-caption);line-height:1.65">${st.topIngs.map(([name, c]) => `<li><strong>${escapeHTML(name)}</strong> — ${c}×</li>`).join('')}</ul>` : `<p class="text-muted" data-i18n="dash.none">${escapeHTML(t('dash.none'))}</p>`}
-      </div>
+      </article>
 
-      <div class="dash-card">
-        <h2 data-i18n="dash.cost_title">Cost ledger coverage</h2>
-        <p class="text-muted" style="margin:-8px 0 var(--sp-3);font-size:var(--type-caption)" data-i18n="dash.cost_sub">${escapeHTML(t('dash.cost_sub'))}</p>
-        <div class="dash-row"><span data-i18n="dash.cost_full">Fully costed</span><div class="bar-wrap"><div class="bar" style="width:${st.n ? (st.costFull / st.n) * 100 : 0}%"></div></div><span class="pct">${st.costFull}</span></div>
-        <div class="dash-row"><span data-i18n="dash.cost_partial">Partial</span><div class="bar-wrap"><div class="bar" style="width:${st.n ? (st.costPartial / st.n) * 100 : 0}%"></div></div><span class="pct">${st.costPartial}</span></div>
-        <div class="dash-row"><span data-i18n="dash.cost_missing">Missing prices</span><div class="bar-wrap"><div class="bar" style="width:${st.n ? (st.costNone / st.n) * 100 : 0}%"></div></div><span class="pct">${st.costNone}</span></div>
+      <article class="dash-card dash-card--viz">
+        ${dashCardHead('dash.cost_title', 'dash.method_cost')}
+        <p class="text-muted" style="margin:0 0 var(--sp-3);font-size:var(--type-caption)" data-i18n="dash.cost_sub">${escapeHTML(t('dash.cost_sub'))}</p>
+        <div class="dash-row"><span style="min-width:140px;flex-shrink:0" data-i18n="dash.cost_full">Fully costed</span><div class="bar-wrap"><div class="dash-bar-fill" style="--bar-w:${st.n ? (st.costFull / st.n) * 100 : 0}%;animation-delay:0.04s"></div></div><span class="pct">${st.costFull}</span></div>
+        <div class="dash-row"><span style="min-width:140px;flex-shrink:0" data-i18n="dash.cost_partial">Partial</span><div class="bar-wrap"><div class="dash-bar-fill" style="--bar-w:${st.n ? (st.costPartial / st.n) * 100 : 0}%;animation-delay:0.11s"></div></div><span class="pct">${st.costPartial}</span></div>
+        <div class="dash-row"><span style="min-width:140px;flex-shrink:0" data-i18n="dash.cost_missing">Missing prices</span><div class="bar-wrap"><div class="dash-bar-fill" style="--bar-w:${st.n ? (st.costNone / st.n) * 100 : 0}%;animation-delay:0.18s"></div></div><span class="pct">${st.costNone}</span></div>
         <div class="dash-links">
           <a class="btn btn-sm btn-outline" href="/app/studio/cost.html" data-i18n="dash.link_cost">Cost ledger</a>
           <a class="btn btn-sm btn-outline" href="/app/studio/pricing.html" data-i18n="dash.link_pricing">Pricing</a>
         </div>
-      </div>
+      </article>
 
-      <div class="dash-card" style="grid-column:1/-1">
-        <h2 data-i18n="dash.carbon_title">Climate proxy (CO₂e)</h2>
-        <p class="text-muted" style="margin:-8px 0 var(--sp-3);font-size:var(--type-caption);line-height:1.5" data-i18n="dash.carbon_sub"></p>
-        <div class="dash-kpis" style="max-width:640px;margin-bottom:var(--sp-5)">
+      <article class="dash-card dash-card--viz" style="grid-column:1/-1">
+        ${dashCardHead('dash.carbon_title', 'dash.method_carbon')}
+        <p class="text-muted" style="margin:0 0 var(--sp-3);font-size:var(--type-caption);line-height:1.5" data-i18n="dash.carbon_sub"></p>
+        <div class="dash-kpis dash-kpis--co2" style="max-width:640px;margin-bottom:var(--sp-5)">
           <div class="dash-kpi"><div class="num">${formatNumber(st.avgGco2, 0)}</div><div class="lbl" data-i18n="dash.kpi_avg_co2">g CO₂e / serving</div></div>
           <div class="dash-kpi"><div class="num">${st.co2KcalN ? formatNumber(st.co2Per1000Kcal, 0) : '—'}</div><div class="lbl" data-i18n="dash.kpi_co2_kcal">g CO₂e / 1000 kcal</div></div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--sp-5)">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--sp-5);align-items:start">
           <div>
             <h3 data-i18n="dash.carbon_top_dishes">Highest CO₂e per serving</h3>
             ${st.topCo2Dishes.length ? `<ul style="margin:0;padding-left:1.1rem;font-size:var(--type-caption);line-height:1.65">${st.topCo2Dishes.map(d => `<li><strong>${escapeHTML(d.name)}</strong> — ${formatNumber(d.g, 0)} g</li>`).join('')}</ul>` : `<p class="text-muted" data-i18n="dash.none">${escapeHTML(t('dash.none'))}</p>`}
@@ -413,16 +561,18 @@ function renderDash(costMap) {
             ${st.topEmitIngs.length ? `<ul style="margin:0;padding-left:1.1rem;font-size:var(--type-caption);line-height:1.65">${st.topEmitIngs.map(([name, g]) => `<li><strong>${escapeHTML(name)}</strong> — ${formatNumber(g, 0)} g</li>`).join('')}</ul>` : `<p class="text-muted" data-i18n="dash.none">${escapeHTML(t('dash.none'))}</p>`}
           </div>
         </div>
-      </div>
+      </article>
 
-      <div class="dash-card" style="grid-column:1/-1">
-        <h2 data-i18n="dash.next_title">Next steps</h2>
+      <article class="dash-card dash-card--viz" style="grid-column:1/-1">
+        <div class="dash-card__head" style="margin-bottom:var(--sp-3)">
+          <h2 data-i18n="dash.next_title">${escapeHTML(t('dash.next_title'))}</h2>
+        </div>
         <div class="dash-links">
           <a class="btn btn-sm btn-primary" href="/app/studio/matrix.html" data-i18n="dash.link_matrix">Menu engineering</a>
           <a class="btn btn-sm btn-outline" href="/app/studio/surface.html" data-i18n="dash.link_surface">Export</a>
           <a class="btn btn-sm btn-outline" href="/app/studio/variance.html" data-i18n="dash.link_variance">Variance</a>
         </div>
-      </div>
+      </article>
     </div>
   `;
   applyTranslations();
@@ -469,6 +619,13 @@ main.querySelector('#dashCsv').addEventListener('click', async () => {
   if (!st.empty) exportCsv(st);
 });
 main.querySelector('#dashPrint').addEventListener('click', () => window.print());
+
+window.addEventListener('beforeprint', () => {
+  main.querySelectorAll('.dash-calc').forEach(d => d.setAttribute('open', ''));
+});
+window.addEventListener('afterprint', () => {
+  main.querySelectorAll('.dash-calc').forEach(d => d.removeAttribute('open'));
+});
 
 await load();
 
