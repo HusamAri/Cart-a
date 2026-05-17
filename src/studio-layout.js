@@ -6,6 +6,9 @@ import { getActiveWorkspace } from './workspaces.js';
 import { getMyRole, can } from './permissions.js';
 import { applyTranslations, t, setLang, getLang } from './i18n.js';
 import { cartaIcon } from './carta-icon.js';
+import { mountFloatingBackToTop, mountShortcutsHelp } from './app-chrome.js';
+
+const RAIL_SESSION_KEY = 'carta_sidebar_rail';
 
 const MODULES = [
   { key: 'dashboard', href: '/app/studio/dashboard.html', icon: 'query_stats',       i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
@@ -42,21 +45,24 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
         <img src="/assets/carta-logo.png" alt="Carta">
       </a>
       <span class="role" id="sidebarWsName">${escapeHTML(ws.name)}</span>
+      <button type="button" id="sidebarRailToggle" class="sidebar-rail-toggle" aria-pressed="false" aria-label="">
+        <span class="sidebar-rail-toggle__glyph" aria-hidden="true">‹</span>
+      </button>
     </div>
     <nav class="sidebar__nav" aria-label="Modules">
       <a class="sidebar__link ${active==='overview'?'active':''}" href="/app/studio.html" ${active==='overview'?'aria-current="page"':''}>
         <span class="sidebar__icon">${cartaIcon('dashboard', { size: 22 })}</span>
-        <span data-i18n="studio.overview">Overview</span>
+        <span class="sidebar__label" data-i18n="studio.overview">Overview</span>
       </a>
       ${MODULES.map(m => `
         <a class="sidebar__link ${active===m.key?'active':''}" href="${m.href}" ${active===m.key?'aria-current="page"':''}>
           <span class="sidebar__icon">${cartaIcon(m.icon, { size: 22 })}</span>
-          <span data-i18n="${m.i18n}">${m.fallback}</span>
+          <span class="sidebar__label" data-i18n="${m.i18n}">${m.fallback}</span>
         </a>
       `).join('')}
     </nav>
     <div class="sidebar__foot">
-      <div style="display:flex;gap:8px;align-items:center;padding:8px 14px;background:rgb(var(--ink-rgb) / 0.04);border-radius:var(--r-pill)">
+      <div id="sidebarUserChip" style="display:flex;gap:8px;align-items:center;padding:8px 14px;background:rgb(var(--ink-rgb) / 0.04);border-radius:var(--r-pill)">
         ${cartaIcon('account_circle', { size: 18, style: 'color:var(--on-surface-variant)' })}
         <span class="caption" style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="sidebarUserEmail">${escapeHTML(session.user.email)}</span>
       </div>
@@ -128,9 +134,62 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   const langBtn = document.getElementById('sidebarLangBtn');
   function syncLang(){ langBtn.textContent = getLang()==='en' ? 'TR' : 'EN'; }
   syncLang();
-  langBtn.addEventListener('click', () => { setLang(getLang()==='en' ? 'tr' : 'en'); syncLang(); applyTranslations(); });
+  langBtn.addEventListener('click', () => {
+    setLang(getLang()==='en' ? 'tr' : 'en');
+    syncLang();
+    applyTranslations();
+    syncSidebarRailUi();
+  });
 
   applyTranslations();
+
+  const mqDesktop = window.matchMedia('(min-width: 901px)');
+
+  function readRailCollapsed() {
+    try { return sessionStorage.getItem(RAIL_SESSION_KEY) === '1'; } catch (_) { return false; }
+  }
+  function persistRailCollapsed(on) {
+    try { sessionStorage.setItem(RAIL_SESSION_KEY, on ? '1' : '0'); } catch (_) {}
+  }
+
+  const railBtn = document.getElementById('sidebarRailToggle');
+  let railCollapsed = readRailCollapsed();
+
+  function refreshSidebarLinkAriaLabels() {
+    document.querySelectorAll('#studioSidebar a.sidebar__link').forEach(a => {
+      const lab = a.querySelector('.sidebar__label');
+      if (!lab) return;
+      if (sidebar.classList.contains('sidebar--rail')) {
+        a.setAttribute('aria-label', lab.textContent.trim());
+      } else {
+        a.removeAttribute('aria-label');
+      }
+    });
+  }
+
+  function syncSidebarRailUi() {
+    const desktopWide = mqDesktop.matches;
+    if (!desktopWide) {
+      sidebar.classList.remove('sidebar--rail');
+    } else {
+      sidebar.classList.toggle('sidebar--rail', railCollapsed);
+    }
+    if (railBtn) {
+      const collapsed = desktopWide && railCollapsed;
+      railBtn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+      railBtn.setAttribute('aria-label', collapsed ? t('ui.sidebar_expand') : t('ui.sidebar_collapse'));
+      railBtn.querySelector('.sidebar-rail-toggle__glyph').textContent = collapsed ? '›' : '‹';
+    }
+    refreshSidebarLinkAriaLabels();
+  }
+
+  syncSidebarRailUi();
+  railBtn?.addEventListener('click', () => {
+    if (!mqDesktop.matches) return;
+    railCollapsed = !railCollapsed;
+    persistRailCollapsed(railCollapsed);
+    syncSidebarRailUi();
+  });
 
   // ============================================================
   // Mobile drawer behavior (hamburger toggle + backdrop + focus trap)
@@ -180,10 +239,22 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     a.addEventListener('click', () => { if (isDrawerOpen()) closeDrawer(); });
   });
 
-  // Close when resizing past desktop breakpoint
-  const mqDesktop = window.matchMedia('(min-width: 901px)');
-  const onResize = () => { if (mqDesktop.matches && isDrawerOpen()) closeDrawer(); };
-  mqDesktop.addEventListener?.('change', onResize);
+  mqDesktop.addEventListener?.('change', () => {
+    if (mqDesktop.matches && isDrawerOpen()) closeDrawer();
+    syncSidebarRailUi();
+  });
+
+  if (main) {
+    mountFloatingBackToTop({ scrollRoot: main });
+  } else {
+    mountFloatingBackToTop();
+  }
+  mountShortcutsHelp([
+    { keyHtml: '?', labelKey: 'ui.shortcuts.help_open' },
+    { keyHtml: 'Esc', labelKey: 'ui.shortcuts.esc_overlay' },
+    { keyHtml: String.fromCharCode(8226), labelKey: 'ui.shortcuts.rail_toggle' },
+    { keyHtml: 'Tab', labelKey: 'ui.shortcuts.skip_tip' },
+  ]);
 
   return { session, workspace: ws };
 }

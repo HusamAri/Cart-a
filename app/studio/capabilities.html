@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>Capability map · Carta</title>
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
@@ -23,17 +25,15 @@
     display: block; font-size: 10px; font-weight: 600; letter-spacing: var(--track-caps);
     text-transform: uppercase; color: var(--on-surface-variant); margin-bottom: 4px;
   }
-  .cap-toolbar select { min-width: 220px; padding: 10px 14px; border-radius: var(--r-lg); border: var(--glass-border); background: rgba(255,255,255,0.9); font-family: var(--font-sans); }
+  .cap-toolbar select { min-width: 220px; padding: 10px 14px; border-radius: var(--r-lg); border: var(--glass-border); background: var(--surface-container-lowest); font-family: var(--font-sans); }
   .cap-toolbar .grow { flex: 1; min-width: 120px; }
 
   .cap-card {
     max-width: 1200px; margin: 0 auto var(--sp-6);
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    background: var(--surface-container-lowest);
     border: var(--glass-border);
-    border-radius: var(--r-2xl);
-    box-shadow: var(--shadow-2);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-inner-glow), var(--shadow-2);
     overflow: auto;
   }
   .cap-card table { width: 100%; border-collapse: collapse; min-width: 960px; }

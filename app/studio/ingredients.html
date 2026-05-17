@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>Ingredient DB · Carta</title>
 <link rel="icon" type="image/png" href="/assets/carta-logo.png">
 <link rel="stylesheet" href="/styles/tokens.css">
@@ -42,7 +44,7 @@
   }
   .filter-chip {
     border: 1px solid var(--outline-variant);
-    background: rgba(255,255,255,0.88);
+    background: var(--surface-container-lowest);
     border-radius: var(--r-pill);
     padding: 8px 14px;
     font-family: var(--font-sans); font-size: 11px;
@@ -59,7 +61,7 @@
 
   .search-row {
     display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center;
-    background: rgba(255,255,255,0.85);
+    background: var(--surface-container-lowest);
     border: var(--glass-border);
     border-radius: var(--r-pill);
     padding: 6px 6px 6px 18px;
@@ -73,11 +75,10 @@
 
   .ledger-wrap { max-width: 1200px; margin: 0 auto var(--sp-8); }
   .ledger {
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    background: var(--surface-container-lowest);
     border: var(--glass-border);
-    border-radius: var(--r-2xl);
-    box-shadow: var(--shadow-2);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-inner-glow), var(--shadow-2);
     overflow: auto;
     max-height: min(70vh, 720px);
   }
@@ -104,11 +105,11 @@
 
   .custom-panel {
     max-width: 1200px; margin: 0 auto;
-    background: rgba(255,255,255,0.88);
+    background: var(--surface-container-lowest);
     border: var(--glass-border);
-    border-radius: var(--r-2xl);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-inner-glow), var(--shadow-2);
     padding: var(--sp-6);
-    box-shadow: var(--shadow-2);
   }
   .custom-panel h2 { margin: 0 0 var(--sp-4); font-family: var(--font-display); font-style: italic; font-weight: 400; color: var(--primary); }
   .custom-form {
