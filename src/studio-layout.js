@@ -2,6 +2,7 @@
 import { getSession } from './supabase-client.js';
 import { signOut } from './auth.js';
 import { getActiveWorkspace } from './workspaces.js';
+import { getMyRole, can } from './permissions.js';
 import { applyTranslations, t, setLang, getLang } from './i18n.js';
 
 const MODULES = [
@@ -19,6 +20,8 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   if (!session) { window.location.href = '/app/login.html'; return null; }
   const ws = await getActiveWorkspace();
   if (!ws) { window.location.href = '/app/'; return null; }
+  const role = await getMyRole(ws.id);
+  const canSwitchProperty = can(role, 'property_switch');
 
   // Build sidebar HTML
   const sidebar = document.createElement('aside');
@@ -50,7 +53,9 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
         <span class="caption" style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="sidebarUserEmail">${escapeHTML(session.user.email)}</span>
       </div>
       <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
-        <button type="button" class="btn btn-sm btn-ghost" onclick="window.location.href='/app/'" data-i18n="studio.switch_ws" style="flex:1;padding:8px 12px;font-size:11px">Switch workspace</button>
+        ${canSwitchProperty
+          ? `<button type="button" class="btn btn-sm btn-ghost" onclick="window.location.href='/app/'" data-i18n="studio.switch_ws" style="flex:1;padding:8px 12px;font-size:11px">Switch workspace</button>`
+          : `<button type="button" class="btn btn-sm btn-ghost" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}" style="flex:1;padding:8px 12px;font-size:11px">${escapeHTML(t('studio.switch_ws'))}</button>`}
         <button type="button" class="btn btn-sm btn-ghost" id="sidebarLangBtn" aria-label="Toggle language" style="padding:8px 12px;min-width:48px">EN</button>
       </div>
       <button type="button" class="btn btn-sm btn-ghost btn-block" id="sidebarSignOut" data-i18n="app.sign_out" style="padding:10px 14px">Sign out</button>
@@ -73,9 +78,13 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     <a href="/app/studio.html" class="site-logo" aria-label="Carta studio home" style="flex:1;justify-content:center;display:flex">
       <img src="/assets/carta-logo.png" alt="Carta" style="height:22px">
     </a>
-    <a href="/app/" class="btn btn-sm btn-ghost" aria-label="Switch workspace" style="padding:8px 12px;min-height:44px;min-width:44px">
-      <span class="material-symbols-outlined" style="font-size:20px" aria-hidden="true">swap_horiz</span>
-    </a>
+    ${canSwitchProperty
+      ? `<a href="/app/" class="btn btn-sm btn-ghost" aria-label="Switch workspace" style="padding:8px 12px;min-height:44px;min-width:44px">
+        <span class="material-symbols-outlined" style="font-size:20px" aria-hidden="true">swap_horiz</span>
+      </a>`
+      : `<button type="button" class="btn btn-sm btn-ghost" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}" style="padding:8px 12px;min-height:44px;min-width:44px">
+        <span class="material-symbols-outlined" style="font-size:20px" aria-hidden="true">lock</span>
+      </button>`}
   `;
 
   // Backdrop for drawer

@@ -43,8 +43,14 @@
 <script type="module">
 import { sendMagicLink } from '/src/auth.js';
 import { getSession } from '/src/supabase-client.js';
+import { storeInviteToken } from '/src/workspaces.js';
 import { applyTranslations, t } from '/src/i18n.js';
 applyTranslations();
+
+const params = new URLSearchParams(window.location.search);
+const inviteToken = (params.get('invite') || '').trim();
+const prefillEmail = (params.get('email') || '').trim();
+if (inviteToken) storeInviteToken(inviteToken);
 
 (async () => {
   const session = await getSession();
@@ -55,6 +61,11 @@ const form = document.getElementById('signupForm');
 const submitBtn = document.getElementById('submitBtn');
 const submitLabel = document.getElementById('submitLabel');
 const flash = document.getElementById('flash');
+
+if (prefillEmail) document.getElementById('email').value = prefillEmail;
+if (inviteToken) {
+  flash.innerHTML = `<div class="flash success">${escapeHTML(t('ws.invite_link_opened') || 'Invitation detected. Create your profile to continue.')}</div>`;
+}
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -75,6 +86,10 @@ form.addEventListener('submit', async (e) => {
     flash.innerHTML = `<div class="flash error">${result.error}</div>`;
   }
 });
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 </body>
 </html>

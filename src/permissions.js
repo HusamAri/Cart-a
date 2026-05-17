@@ -15,6 +15,10 @@ import { supabase } from './supabase-client.js';
 //   cost_controller  — finance (cost ledger + pricing + sales)
 //   viewer           — read-only
 export const ACTIONS = {
+  // Cross-workspace and organization-level navigation controls
+  organization_select:  ['owner', 'admin'],
+  property_switch:      ['owner', 'admin', 'cost_controller'],
+
   workspace_delete:    ['owner'],
   workspace_update:    ['owner', 'admin'],
   member_manage:       ['owner', 'admin'],
