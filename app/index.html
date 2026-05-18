@@ -140,6 +140,38 @@
   }
   @media (max-width: 700px) { .ws-create-card .row { grid-template-columns: 1fr; } }
 
+  @media (max-width: 600px) {
+    .app-bar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--sp-4);
+    }
+    .app-bar__right {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+    .user-email {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ws-card {
+      grid-template-columns: 1fr;
+      gap: var(--sp-3);
+      padding: var(--sp-4) var(--glass-padding);
+    }
+    .ws-card__link {
+      padding: var(--sp-2) 0;
+    }
+    .ws-card__rail {
+      justify-content: space-between;
+      padding-top: var(--sp-2);
+      border-top: 1px solid rgb(var(--ink-rgb) / 0.08);
+    }
+    .ws-card__name { font-size: 1.35rem; }
+  }
+
   /* Empty state */
   .empty-state { padding: var(--sp-9) 0 var(--sp-7); text-align: center; }
   .empty-state .eyebrow { margin-bottom: var(--sp-4); display: inline-block; }
