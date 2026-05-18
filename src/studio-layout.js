@@ -16,12 +16,12 @@ function sidebarNavSprite(col, row) {
   return `<span class="sidebar__icon sidebar__icon--sheet" style="--s-col:${col};--s-row:${row}" aria-hidden="true"></span>`;
 }
 
-/** Primary destinations in the mobile bottom bar (thumb reach). */
+/** Primary destinations on the mobile bottom bar (full list stays in the drawer). */
 const MOBILE_TABS = [
-  { key: 'overview', href: '/app/studio.html', icon: 'dashboard', i18n: 'studio.overview', fallback: 'Overview' },
-  { key: 'dashboard', href: '/app/studio/dashboard.html', icon: 'query_stats', i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
-  { key: 'recipes', href: '/app/studio/recipes.html', icon: 'temp_preferences_eco', i18n: 'studio.m_builder', fallback: 'Recipes' },
-  { key: 'menus', href: '/app/studio/menus.html', icon: 'restaurant_menu', i18n: 'studio.m_menus', fallback: 'Menus' },
+  { key: 'overview', href: '/app/studio.html', sprite: [0, 0], i18n: 'studio.overview', fallback: 'Overview' },
+  { key: 'dashboard', href: '/app/studio/dashboard.html', sprite: [3, 2], i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
+  { key: 'recipes', href: '/app/studio/recipes.html', sprite: [1, 2], i18n: 'studio.m_builder', fallback: 'Recipes' },
+  { key: 'menus', href: '/app/studio/menus.html', sprite: [0, 2], i18n: 'studio.m_menus', fallback: 'Menus' },
 ];
 
 const MODULES = [
@@ -39,13 +39,9 @@ const MODULES = [
   { key: 'surface',   href: '/app/studio/surface.html',   sprite: [4, 0], i18n: 'studio.m_surface',  fallback: 'Surface' },
 ];
 
-const MOBILE_TAB_KEYS = new Set(MOBILE_TABS.map((tab) => tab.key));
-
-function moduleTitleFor(active) {
-  if (active === 'overview') return { i18n: 'studio.overview', fallback: 'Overview' };
-  const mod = MODULES.find((m) => m.key === active);
-  if (mod) return { i18n: mod.i18n, fallback: mod.fallback };
-  return { i18n: 'studio.overview', fallback: 'Studio' };
+function moduleMetaForActive(active) {
+  if (active === 'overview') return MOBILE_TABS[0];
+  return MODULES.find((m) => m.key === active) || MOBILE_TABS[0];
 }
 
 export async function mountStudioShell({ active = 'overview', main } = {}) {
@@ -56,7 +52,6 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   if (!ws) { window.location.href = '/app/'; return null; }
   const role = await getMyRole(ws.id);
   const canSwitchProperty = can(role, 'property_switch');
-  const pageTitle = moduleTitleFor(active);
 
   onAuthChange((event) => {
     if (event === 'SIGNED_OUT') invalidateRoleCache();
@@ -67,17 +62,19 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   const sidebar = document.createElement('aside');
   sidebar.className = 'sidebar';
   sidebar.id = 'studioSidebar';
+  const pageMeta = moduleMetaForActive(active);
   sidebar.setAttribute('aria-label', 'Studio navigation');
   sidebar.innerHTML = `
+    <div class="sidebar__drawer-head">
+      <p class="sidebar__drawer-title" data-i18n="ui.nav_menu">Menu</p>
+      <button type="button" class="sidebar__drawer-close" id="sidebarDrawerClose" data-i18n-aria-label="ui.nav_close" aria-label="Close menu">
+        ${cartaIcon('close', { size: 22 })}
+      </button>
+    </div>
     <div class="sidebar__head">
-      <div class="sidebar__head-row">
       <a href="/app/studio.html" class="logo" aria-label="Carta studio home">
         <img src="/assets/carta-brand-vertical.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1536" height="1024" decoding="async">
       </a>
-      <button type="button" class="sidebar__drawer-close" id="sidebarDrawerClose" data-i18n-aria-label="studio.mobile_drawer_close" aria-label="">
-        ${cartaIcon('close', { size: 24 })}
-      </button>
-      </div>
       <div class="sidebar__context" id="sidebarContextStrip" role="group" title="${escapeHTML([ws.organization_name, ws.name].filter(Boolean).join(' · '))}">
         ${ws.organization_name ? `<span class="sidebar__org" id="sidebarOrgName">${escapeHTML(ws.organization_name)}</span>` : ''}
         <span class="sidebar__facility role" id="sidebarWsName">${escapeHTML(ws.name)}</span>
@@ -120,27 +117,55 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   const mobileTop = document.createElement('header');
   mobileTop.className = 'studio-mobile-top';
   mobileTop.setAttribute('aria-label', 'Studio top bar');
+  const facilitySubtitle = [ws.organization_name, ws.name].filter(Boolean).join(' · ');
   mobileTop.innerHTML = `
+    <a href="/app/studio.html" class="site-logo studio-mobile-top__brand" aria-label="Carta studio home">
+      <img src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024">
+    </a>
+    <div class="studio-mobile-top__context" id="mobileContextStrip" role="group" title="${escapeHTML(facilitySubtitle)}">
+      ${ws.organization_name ? `<span class="studio-mobile-top__crumb studio-mobile-top__crumb--org">${escapeHTML(ws.organization_name)}</span><span class="studio-mobile-top__sep" aria-hidden="true">·</span>` : ''}
+      <span class="studio-mobile-top__crumb">${escapeHTML(ws.name)}</span>
+    </div>
+    <span class="studio-mobile-top__spacer" aria-hidden="true"></span>
+    <span class="studio-mobile-top__rule" aria-hidden="true"></span>
     <button type="button" id="mobileMenuBtn"
       class="btn btn-sm btn-ghost studio-mobile-top__menu"
-      data-i18n-aria-label="studio.mobile_menu_open"
-      aria-label=""
+      data-i18n-aria-label="ui.open_nav"
+      aria-label="Open navigation"
       aria-controls="studioSidebar"
-      aria-expanded="false">
-      ${cartaIcon('menu', { size: 24 })}
+      aria-expanded="false"
+      style="padding:8px 12px;min-height:44px;min-width:44px">
+      ${cartaIcon('menu', { size: 22 })}
     </button>
-    <div class="studio-mobile-top__titles">
-      <span class="studio-mobile-top__module" data-i18n="${pageTitle.i18n}">${escapeHTML(pageTitle.fallback)}</span>
-      <span class="studio-mobile-top__facility" id="mobileFacilityName">${escapeHTML(ws.name)}</span>
+    <div class="studio-mobile-top__lead">
+      <p class="studio-mobile-top__title" id="mobilePageTitle" data-i18n="${pageMeta.i18n}">${escapeHTML(pageMeta.fallback)}</p>
+      <p class="studio-mobile-top__subtitle" id="mobileFacilitySubtitle">${escapeHTML(facilitySubtitle)}</p>
     </div>
-    ${canSwitchProperty
-      ? `<a href="/app/" class="btn btn-sm btn-ghost studio-mobile-top__ws" data-i18n-aria-label="studio.switch_ws" aria-label="">
-          ${cartaIcon('swap_horiz', { size: 22 })}
+    <div class="studio-mobile-top__actions">
+      ${canSwitchProperty
+        ? `<a href="/app/" class="btn btn-sm btn-ghost studio-mobile-top__ws" data-i18n-aria-label="studio.switch_ws" aria-label="Switch workspace" style="padding:8px 12px;min-height:44px;min-width:44px">
+          ${cartaIcon('swap_horiz', { size: 20 })}
         </a>`
-      : `<button type="button" class="btn btn-sm btn-ghost studio-mobile-top__ws" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}">
-          ${cartaIcon('lock', { size: 22 })}
+        : `<button type="button" class="btn btn-sm btn-ghost studio-mobile-top__ws" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}" style="padding:8px 12px;min-height:44px;min-width:44px">
+          ${cartaIcon('lock', { size: 20 })}
         </button>`}
-    <div class="studio-mobile-top__context" id="mobileContextStrip" hidden aria-hidden="true"></div>
+    </div>
+  `;
+
+  const mobileBottom = document.createElement('nav');
+  mobileBottom.className = 'studio-mobile-bottom';
+  mobileBottom.id = 'studioMobileBottom';
+  mobileBottom.setAttribute('aria-label', t('ui.mobile_nav_aria'));
+  mobileBottom.innerHTML = MOBILE_TABS.map((tab) => `
+    <a class="studio-mobile-tab ${active === tab.key ? 'is-active' : ''}" href="${tab.href}" ${active === tab.key ? 'aria-current="page"' : ''}>
+      <span class="sidebar__icon sidebar__icon--sheet" style="--s-col:${tab.sprite[0]};--s-row:${tab.sprite[1]}" aria-hidden="true"></span>
+      <span class="studio-mobile-tab__label" data-i18n="${tab.i18n}">${escapeHTML(tab.fallback)}</span>
+    </a>
+  `).join('') + `
+    <button type="button" class="studio-mobile-tab" id="mobileMoreBtn" data-i18n-aria-label="ui.nav_more" aria-label="More">
+      ${cartaIcon('grid_view', { size: 22 })}
+      <span class="studio-mobile-tab__label" data-i18n="ui.nav_more">More</span>
+    </button>
   `;
 
   // Backdrop for drawer
@@ -168,40 +193,8 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
       requestAnimationFrame(() => main.classList.add('content-reveal'));
     });
   }
+  document.body.appendChild(mobileBottom);
   document.body.appendChild(mainWrap);
-
-  const mobileTabs = document.createElement('nav');
-  mobileTabs.className = 'studio-mobile-tabs';
-  mobileTabs.id = 'studioMobileTabs';
-  mobileTabs.setAttribute('data-i18n-aria-label', 'studio.mobile_nav_label');
-  mobileTabs.setAttribute('aria-label', '');
-  const moreTabActive = !MOBILE_TAB_KEYS.has(active);
-  mobileTabs.innerHTML = `
-    <div class="studio-mobile-tabs__inner">
-      <a class="studio-mobile-tabs__item${active === 'overview' ? ' is-active' : ''}" href="/app/studio.html" data-tab-key="overview">
-        ${cartaIcon('dashboard', { size: 22 })}
-        <span data-i18n="studio.overview">Overview</span>
-      </a>
-      <a class="studio-mobile-tabs__item${active === 'dashboard' ? ' is-active' : ''}" href="/app/studio/dashboard.html" data-tab-key="dashboard">
-        ${cartaIcon('query_stats', { size: 22 })}
-        <span data-i18n="studio.m_dashboard">Dashboard</span>
-      </a>
-      <a class="studio-mobile-tabs__item${active === 'recipes' ? ' is-active' : ''}" href="/app/studio/recipes.html" data-tab-key="recipes">
-        ${cartaIcon('temp_preferences_eco', { size: 22 })}
-        <span data-i18n="studio.m_builder">Recipes</span>
-      </a>
-      <a class="studio-mobile-tabs__item${active === 'menus' ? ' is-active' : ''}" href="/app/studio/menus.html" data-tab-key="menus">
-        ${cartaIcon('restaurant_menu', { size: 22 })}
-        <span data-i18n="studio.m_menus">Menus</span>
-      </a>
-      <button type="button" class="studio-mobile-tabs__item studio-mobile-tabs__item--more${moreTabActive ? ' is-active' : ''}" id="mobileTabMore" data-i18n-aria-label="studio.mobile_nav_more" aria-label="" aria-expanded="false" aria-controls="studioSidebar">
-        ${cartaIcon('grid_view', { size: 22 })}
-        <span data-i18n="studio.mobile_nav_more">More</span>
-      </button>
-    </div>
-  `;
-  document.body.appendChild(mobileTabs);
-
 
   // Wire up controls
   document.getElementById('sidebarSignOut').addEventListener('click', signOut);
@@ -237,7 +230,6 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     syncWorkspaceContextAria(ws);
     syncSidebarRailUi();
     syncSidebarThemeBtn();
-    syncMobileMenuAria();
   });
 
   applyTranslations();
@@ -314,43 +306,46 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   const menuBtn = document.getElementById('mobileMenuBtn');
   const drawerBackdrop = document.getElementById('sidebarBackdrop');
   const drawerCloseBtn = document.getElementById('sidebarDrawerClose');
+  const mobileMoreBtn = document.getElementById('mobileMoreBtn');
 
-  function isDrawerOpen() {
-    return sidebar.classList.contains('is-open');
+  if (!MOBILE_TABS.some((tab) => tab.key === active)) {
+    mobileMoreBtn?.classList.add('is-active');
   }
-  function syncMobileMenuAria() {
+
+  function syncMenuBtnAria() {
     const open = isDrawerOpen();
     menuBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
-    menuBtn?.setAttribute('aria-label', open ? t('studio.mobile_menu_close') : t('studio.mobile_menu_open'));
-    document.getElementById('mobileTabMore')?.setAttribute('aria-expanded', open ? 'true' : 'false');
+    menuBtn?.setAttribute('aria-label', t(open ? 'ui.close_nav' : 'ui.open_nav'));
   }
+
   function openDrawer() {
     sidebar.classList.add('is-open');
     drawerBackdrop?.classList.add('is-open');
     document.body.classList.add('drawer-open');
-    syncMobileMenuAria();
-    const firstLink = sidebar.querySelector('.sidebar__link');
-    if (firstLink) setTimeout(() => firstLink.focus(), 50);
+    syncMenuBtnAria();
+    drawerCloseBtn?.focus({ preventScroll: true });
   }
   function closeDrawer() {
     sidebar.classList.remove('is-open');
     drawerBackdrop?.classList.remove('is-open');
     document.body.classList.remove('drawer-open');
-    syncMobileMenuAria();
+    syncMenuBtnAria();
   }
+  function isDrawerOpen() {
+    return sidebar.classList.contains('is-open');
+  }
+
   menuBtn?.addEventListener('click', () => {
     isDrawerOpen() ? closeDrawer() : openDrawer();
   });
   drawerCloseBtn?.addEventListener('click', closeDrawer);
-  document.getElementById('mobileTabMore')?.addEventListener('click', () => {
-    isDrawerOpen() ? closeDrawer() : openDrawer();
-  });
+  mobileMoreBtn?.addEventListener('click', openDrawer);
   drawerBackdrop?.addEventListener('click', closeDrawer);
-  syncMobileMenuAria();
+  syncMenuBtnAria();
 
   // Close on Escape; basic focus trap while open
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isDrawerOpen()) { closeDrawer(); menuBtn?.focus(); return; }
+    if (e.key === 'Escape' && isDrawerOpen()) { closeDrawer(); menuBtn?.focus({ preventScroll: true }); return; }
     if (e.key === 'Tab' && isDrawerOpen()) {
       const focusables = sidebar.querySelectorAll('a, button, select, textarea, [tabindex]:not([tabindex="-1"])');
       if (!focusables.length) return;
