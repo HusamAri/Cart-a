@@ -387,11 +387,26 @@ export function lookupNutrient(name) {
 export function suggestNutrients(query, limit = 8) {
   if (!query) return [];
   const q = turkNorm(query);
+  const rawQ = String(query).trim().toLowerCase();
   const matches = [];
+  const seen = new Set();
+  const push = (key) => {
+    const id = turkNorm(key);
+    if (!id || seen.has(id)) return;
+    seen.add(id);
+    matches.push(key);
+  };
   for (const k in NUTRIENT_DB) {
     const nk = turkNorm(k);
-    if (nk.startsWith(q)) matches.unshift(k);          // prefix match first
-    else if (nk.includes(q)) matches.push(k);
+    if (nk.startsWith(q)) push(k);
+    else if (nk.includes(q)) push(k);
+  }
+  for (const [trKey, enLabel] of Object.entries(NUTRIENT_EN)) {
+    const en = String(enLabel || '').toLowerCase();
+    if (!en) continue;
+    if (en.startsWith(rawQ) || en.includes(rawQ) || turkNorm(en).includes(q)) {
+      push(trKey);
+    }
   }
   return matches.slice(0, limit);
 }
