@@ -469,6 +469,10 @@ function escapeHTML(s) {
 }
 
 await loadAll();
+
+document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+  setTimeout(() => { render(); applyRoleGates(role, main); }, 0);
+});
 </script>
 </body>
 </html>

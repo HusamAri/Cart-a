@@ -364,6 +364,7 @@ function render() {
       </div>
     `;
     applyTranslations();
+    applyRoleGates(role, container);
     return;
   }
 
@@ -375,6 +376,8 @@ function render() {
   }
   if (items.length === 0) {
     container.innerHTML = `<p style="text-align:center;margin:var(--sp-9) auto;max-width:400px;color:var(--on-surface-variant)" data-i18n="pricing.no_results">${t('pricing.no_results')}</p>`;
+    applyTranslations();
+    applyRoleGates(role, container);
     return;
   }
 
@@ -524,6 +527,10 @@ function escapeHTML(s) {
 }
 
 await loadAll();
+
+document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+  setTimeout(() => { render(); applyRoleGates(role, main); }, 0);
+});
 </script>
 </body>
 </html>

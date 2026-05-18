@@ -573,6 +573,7 @@ document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
     if (dishes.length) patchMatrixUI(buildRows());
     else render();
     syncDocTitle();
+    applyRoleGates(role, main);
   }, 0);
 });
 

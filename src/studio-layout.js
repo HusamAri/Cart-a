@@ -1,9 +1,9 @@
 // Carta — Studio layout (shared sidebar nav + top bar)
 import './page-motion.js';
-import { getSession } from './supabase-client.js';
+import { getSessionAfterUrlAuth, onAuthChange } from './supabase-client.js';
 import { signOut } from './auth.js';
 import { getActiveWorkspace } from './workspaces.js';
-import { getMyRole, can } from './permissions.js';
+import { getMyRole, can, invalidateRoleCache } from './permissions.js';
 import { applyTranslations, t, setLang, getLang } from './i18n.js';
 import { cartaIcon } from './carta-icon.js';
 import { mountFloatingBackToTop, mountShortcutsHelp } from './app-chrome.js';
@@ -33,12 +33,17 @@ const MODULES = [
 
 export async function mountStudioShell({ active = 'overview', main } = {}) {
   // Auth + workspace guard
-  const session = await getSession();
+  const session = await getSessionAfterUrlAuth();
   if (!session) { window.location.href = '/app/login.html'; return null; }
   const ws = await getActiveWorkspace();
   if (!ws) { window.location.href = '/app/'; return null; }
   const role = await getMyRole(ws.id);
   const canSwitchProperty = can(role, 'property_switch');
+
+  onAuthChange((event) => {
+    if (event === 'SIGNED_OUT') invalidateRoleCache();
+    else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') invalidateRoleCache(ws.id);
+  });
 
   // Build sidebar HTML
   const sidebar = document.createElement('aside');
@@ -76,7 +81,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
         <button type="button" class="carta-theme-btn" id="sidebarThemeBtn" aria-label="">◐</button>
         <div style="display:flex;gap:8px;align-items:center;flex:1;justify-content:flex-end;flex-wrap:wrap;min-width:0">
         ${canSwitchProperty
-          ? `<button type="button" class="btn btn-sm btn-ghost" onclick="window.location.href='/app/'" data-i18n="studio.switch_ws" style="flex:1;padding:8px 12px;font-size:11px">Switch workspace</button>`
+          ? `<button type="button" id="sidebarSwitchWsBtn" class="btn btn-sm btn-ghost" data-i18n="studio.switch_ws" style="flex:1;padding:8px 12px;font-size:11px">Switch workspace</button>`
           : `<button type="button" class="btn btn-sm btn-ghost" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}" style="flex:1;padding:8px 12px;font-size:11px">${escapeHTML(t('studio.switch_ws'))}</button>`}
         <button type="button" class="btn btn-sm btn-ghost" id="sidebarLangBtn" aria-label="Toggle language" style="padding:8px 12px;min-width:48px">EN</button>
         </div>
@@ -143,6 +148,9 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
 
   // Wire up controls
   document.getElementById('sidebarSignOut').addEventListener('click', signOut);
+  document.getElementById('sidebarSwitchWsBtn')?.addEventListener('click', () => {
+    window.location.href = '/app/';
+  });
 
   // Colour theme (system / light / dark)
   initTheme();

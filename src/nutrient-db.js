@@ -3,6 +3,10 @@
 // (Türk Gıda Kodeksi · Beslenme Tabelası Yönetmeliği, Ek-10).
 // Macros in grams. Energy is computed via Atwater factors at runtime.
 //
+// Data is shipped in-app (curated starter set). Carta does not call
+// turkomp.tarimorman.gov.tr or any live “TÜRK-Komp” API; products that need
+// an official composition database should license or follow that source’s terms separately.
+//
 // This is a starter set (~70 items) covering common professional kitchen
 // ingredients. Users can add custom ingredients via the Cost Ledger module.
 

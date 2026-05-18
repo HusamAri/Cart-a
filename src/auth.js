@@ -1,5 +1,5 @@
 // Carta — Authentication (magic link + password)
-import { supabase } from './supabase-client.js';
+import { supabase, getSessionAfterUrlAuth } from './supabase-client.js';
 import { getPublicAppOrigin } from './config.js';
 
 const APP_HOME = `${getPublicAppOrigin()}/app/`;
@@ -58,10 +58,10 @@ export async function signOut() {
 }
 
 export async function requireAuth() {
-  const { data } = await supabase.auth.getSession();
-  if (!data.session) {
+  const session = await getSessionAfterUrlAuth();
+  if (!session) {
     window.location.href = '/app/login.html';
     return null;
   }
-  return data.session;
+  return session;
 }
