@@ -149,9 +149,7 @@ export async function getActiveWorkspace() {
     .maybeSingle();
   if (error) { console.warn(error); return null; }
   if (!data) return null;
-  const orgName = data.organizations?.name ?? null;
-  const { organizations: _org, ...rest } = data;
-  return { ...rest, organization_name: orgName };
+  return normalizeWorkspaceRow(data);
 }
 
 export async function updateWorkspace(id, patch) {
