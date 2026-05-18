@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="/scripts/theme-boot.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-i18n="legal.privacy_page_title">Privacy · Carta</title>
+<link rel="icon" type="image/png" href="/assets/carta-favicon.png?v=7">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  .legal-shell { max-width: 65ch; margin: 0 auto; padding: var(--sp-8) var(--sp-4) var(--sp-12); }
+  .legal-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-8); }
+  .legal-doc h1 { margin: 0 0 var(--sp-4); }
+  .legal-doc .muted { color: var(--on-surface-variant); font-size: var(--type-caption); margin: 0 0 var(--sp-6); }
+  .legal-doc p { margin: 0 0 var(--sp-4); line-height: var(--lh-body); }
+</style>
+</head>
+<body>
+<div class="legal-shell">
+  <div class="legal-top">
+    <a href="/" class="btn btn-ghost btn-sm" data-i18n="legal.back_home">← Home</a>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" data-lang-btn="en" class="active">EN</button>
+      <button type="button" data-lang-btn="tr">TR</button>
+    </div>
+  </div>
+  <article class="legal-doc">
+    <h1 data-i18n="legal.privacy_h1">Privacy policy</h1>
+    <p class="muted" data-i18n="legal.updated">Last updated: May 2026.</p>
+    <p data-i18n="legal.privacy_intro"></p>
+    <p data-i18n="legal.privacy_p1"></p>
+    <p data-i18n="legal.privacy_p2"></p>
+    <p data-i18n="legal.privacy_p3"></p>
+    <p data-i18n="legal.privacy_p4"></p>
+    <p data-i18n="legal.privacy_p5"></p>
+  </article>
+</div>
+<script type="module">
+import { applyTranslations, setLang, getLang } from '/src/i18n.js';
+import { initTheme } from '/src/theme.js';
+
+initTheme();
+function syncLangButtons() {
+  document.querySelectorAll('[data-lang-btn]').forEach(b => {
+    const on = b.dataset.langBtn === getLang();
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.classList.toggle('active', on);
+  });
+}
+document.querySelectorAll('[data-lang-btn]').forEach(b => {
+  b.addEventListener('click', () => {
+    setLang(b.dataset.langBtn);
+    applyTranslations();
+    syncLangButtons();
+  });
+});
+applyTranslations();
+syncLangButtons();
+</script>
+</body>
+</html>

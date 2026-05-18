@@ -300,6 +300,7 @@ import {
   acceptWorkspaceInvite, storeInviteToken, readStoredInviteToken,
   deleteWorkspace, getWorkspaceArtifactCounts,
 } from '/src/workspaces.js';
+import { planAllowsAdditionalMembers } from '/src/plan-limits.js';
 import { getMyRole, can, invalidateRoleCache } from '/src/permissions.js';
 import { applyTranslations, t, setLang, getLang } from '/src/i18n.js';
 import { cartaIcon } from '/src/carta-icon.js';
@@ -627,6 +628,7 @@ async function openManageModal(ws) {
   const role = await getMyRole(ws.id);
   const isAdmin = can(role, 'member_manage');
   const canDelete = can(role, 'workspace_delete');
+  const teamInvitesOk = planAllowsAdditionalMembers(ws.plan);
 
   const members = await listMembers(ws.id);
   const counts = await getWorkspaceArtifactCounts(ws.id);
@@ -653,7 +655,7 @@ async function openManageModal(ws) {
           <p style="margin:0 0 var(--sp-4);font-size:var(--type-caption);color:var(--on-surface-variant)">${escapeHTML(t('ws.members_intro'))}</p>
           <div id="memberList"></div>
 
-          ${isAdmin ? `
+          ${isAdmin ? (teamInvitesOk ? `
           <h3 style="margin-top:var(--sp-6)">${escapeHTML(t('ws.invite_label'))}</h3>
           <p style="margin:0 0 var(--sp-3);font-size:var(--type-caption);color:var(--on-surface-variant)">${escapeHTML(t('ws.invite_hint'))}</p>
           <div class="invite-row">
@@ -669,7 +671,11 @@ async function openManageModal(ws) {
             <button type="button" class="btn btn-primary btn-sm" id="inviteBtn">${escapeHTML(t('ws.invite_send'))}</button>
           </div>
           <div id="inviteFlash" role="status" aria-live="polite"></div>
-          ` : ''}
+          ` : `
+          <div style="margin-top:var(--sp-6);padding:var(--sp-4);border-radius:var(--r-lg);background:rgb(var(--ink-rgb) / 0.06);border:1px solid var(--outline-variant)">
+            <p style="margin:0;font-size:var(--type-caption);line-height:1.5;color:var(--on-surface-variant)">${escapeHTML(t('ws.invite_blocked_free'))}</p>
+          </div>
+          `) : ''}
         </section>
 
         ${canDelete ? `
@@ -752,6 +758,9 @@ async function openManageModal(ws) {
         let msg = result.error || 'Error';
         if (msg === 'invite_link_flow_not_deployed') {
           msg = t('ws.invite_migration_required') || 'Invite link flow is not deployed yet. Apply the latest Supabase migration first.';
+        }
+        if (String(msg).includes('CARTA_FREE_PLAN_MEMBER_LIMIT')) {
+          msg = t('plan.err_member_limit');
         }
         flash.innerHTML = `<div class="flash error">${escapeHTML(msg)}</div>`;
         return;
