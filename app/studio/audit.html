@@ -94,6 +94,7 @@
 import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
+import { applyRoleGates } from '/src/permissions.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -103,6 +104,7 @@ const ctx = await mountStudioShell({ active: 'audit', main });
 if (!ctx) throw new Error('No session/workspace');
 const ws = ctx.workspace;
 const wsId = ws.id;
+const { role } = ctx;
 
 let allRows = [];
 let typeFilter = '';
@@ -130,6 +132,7 @@ main.innerHTML = `
 `;
 
 applyTranslations();
+applyRoleGates(role, main);
 
 function escapeHTML(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -172,6 +175,7 @@ function render() {
         <p class="lead" data-i18n="activity.empty">No audit events yet for this workspace.</p>
       </div>`;
     applyTranslations();
+    applyRoleGates(role, main);
     return;
   }
 
@@ -203,6 +207,7 @@ function render() {
     <p class="text-muted" style="max-width:1080px;margin:var(--sp-4) auto 0;font-size:var(--type-caption);text-align:center" data-i18n="activity.footer_hint">Newest first. Up to 500 rows loaded.</p>
   `;
   applyTranslations();
+  applyRoleGates(role, main);
 }
 
 async function load() {
@@ -238,6 +243,7 @@ document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
     fillTypeFilter(types);
     render();
     applyTranslations();
+    applyRoleGates(role, main);
   }, 0);
 });
 </script>

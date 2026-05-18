@@ -1,5 +1,18 @@
 /* Carta — run in <head> before CSS paint. Keeps data-color-scheme in sync with localStorage + system. */
 (function () {
+  try {
+    var LK = 'carta_lang';
+    var savedLang = localStorage.getItem(LK);
+    if (savedLang === 'tr' || savedLang === 'en') {
+      document.documentElement.lang = savedLang;
+    } else {
+      var browser = (navigator.language || 'en').toLowerCase();
+      document.documentElement.lang = browser.indexOf('tr') === 0 ? 'tr' : 'en';
+    }
+  } catch (_) {
+    document.documentElement.lang = 'en';
+  }
+
   var K = 'carta-theme';
   try {
     var pref = localStorage.getItem(K) || 'system';

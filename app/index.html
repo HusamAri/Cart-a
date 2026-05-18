@@ -510,7 +510,7 @@ function renderOrgSection(org, ws, cl) {
         <header class="org-section__head">
           <h2 class="org-section__title">${escapeHTML(org.name)}</h2>
           <div class="org-section__meta">
-            <span class="chip" style="font-size:11px">${ws.length} ${ws.length === 1 ? escapeHTML(t('studio.m_pricing')||'workspace') : 'workspaces'}</span>
+            <span class="chip" style="font-size:11px">${escapeHTML(t(ws.length === 1 ? 'ws.count_spaces_1' : 'ws.count_spaces_n').replace('{n}', String(ws.length)))}</span>
             ${orgRoleChip}
           </div>
         </header>
@@ -625,13 +625,14 @@ function setupCreateMore() {
 // Manage modal
 // ============================================================
 async function openManageModal(ws) {
-  const role = await getMyRole(ws.id);
+  const [role, members, counts] = await Promise.all([
+    getMyRole(ws.id),
+    listMembers(ws.id),
+    getWorkspaceArtifactCounts(ws.id),
+  ]);
   const isAdmin = can(role, 'member_manage');
   const canDelete = can(role, 'workspace_delete');
   const teamInvitesOk = planAllowsAdditionalMembers(ws.plan);
-
-  const members = await listMembers(ws.id);
-  const counts = await getWorkspaceArtifactCounts(ws.id);
 
   const modal = document.createElement('div');
   modal.className = 'modal-backdrop';

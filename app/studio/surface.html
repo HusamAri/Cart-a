@@ -330,6 +330,10 @@ function round(v, digits = 2) {
   const f = Math.pow(10, digits);
   return Math.round(v * f) / f;
 }
+
+document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+  setTimeout(() => applyRoleGates(role, main), 0);
+});
 </script>
 </body>
 </html>

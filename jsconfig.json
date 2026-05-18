@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "checkJs": false,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "/src/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*.js", "app/**/*.html", "scripts/**/*.js"]
+}

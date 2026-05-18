@@ -52,7 +52,10 @@ export async function getMyRole(wsId) {
   if (!wsId) return 'viewer';
   if (_cache.has(wsId)) return _cache.get(wsId);
   const { data, error } = await supabase.rpc('user_workspace_role', { ws_id: wsId });
-  if (error) { console.warn('getMyRole error', error); return 'viewer'; }
+  if (error) {
+    console.warn('getMyRole RPC error (not caching; UI falls back to viewer)', error);
+    return 'viewer';
+  }
   const role = data || 'viewer';
   _cache.set(wsId, role);
   return role;

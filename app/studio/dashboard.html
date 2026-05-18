@@ -653,7 +653,11 @@ window.addEventListener('afterprint', () => {
 });
 
 document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
-  setTimeout(() => { renderDash(lastCostMap); applyRoleGates(role, main); }, 0);
+  setTimeout(() => {
+    fillClusterSelect();
+    renderDash(lastCostMap);
+    applyRoleGates(role, main);
+  }, 0);
 });
 </script>
 </body>

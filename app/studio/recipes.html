@@ -355,7 +355,7 @@ import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { ALLERGEN_LABELS, suggestNutrients, lookupNutrient, NUTRIENT_EN } from '/src/nutrient-db.js';
 import { computeRecipe, formatNumber } from '/src/recipe-compute.js';
-import { applyRoleGates } from '/src/permissions.js';
+import { applyRoleGates, requireCan } from '/src/permissions.js';
 import { cartaIcon } from '/src/carta-icon.js';
 import { canAddRecipes, planLimitMessageKey } from '/src/plan-limits.js';
 
@@ -370,7 +370,15 @@ const ctx = await mountStudioShell({ active: 'recipes', main });
 if (!ctx) throw new Error('No session/workspace');
 const wsId = ctx.workspace.id;
 const wsPlan = ctx.workspace.plan;
+const orgId = ctx.workspace.organization_id ?? null;
 const { role } = ctx;
+
+function localRecipes() {
+  return allRecipes.filter(r => r.workspace_id === wsId);
+}
+function localRecipeCount() {
+  return localRecipes().length;
+}
 
 // ============================================================
 // 2. Build top + grid markup
@@ -394,6 +402,11 @@ main.innerHTML = `
         ${cartaIcon('add', { size: 18 })}
         <span data-i18n="recipes.new">New recipe</span>
       </button>
+      <button type="button" class="btn btn-outline btn-sm" id="importJsonBtn" data-require="recipe_create" aria-label="">
+        ${cartaIcon('upload_file', { size: 18 })}
+        <span data-i18n="recipes.import_json">Import JSON</span>
+      </button>
+      <input type="file" id="recipeJsonFile" accept=".json,application/json" hidden>
     </div>
   </div>
 
@@ -416,7 +429,7 @@ applyRoleGates(role, main);
 let allRecipes = [];
 
 async function loadRecipes() {
-  const { data, error } = await supabase
+  const { data: localRows, error } = await supabase
     .from('saved_dishes')
     .select('*')
     .eq('workspace_id', wsId)
@@ -426,7 +439,24 @@ async function loadRecipes() {
     main.querySelector('#listOrEmpty').innerHTML = `<p class="flash error" style="max-width:600px;margin:var(--sp-6) auto">${error.message}</p>`;
     return;
   }
-  allRecipes = data || [];
+  let merged = [...(localRows || [])];
+  if (orgId) {
+    const { data: sharedRows, error: shareErr } = await supabase
+      .from('saved_dishes')
+      .select('*')
+      .eq('share_with_org', true)
+      .not('share_consent_at', 'is', null)
+      .neq('workspace_id', wsId)
+      .order('updated_at', { ascending: false });
+    if (shareErr) console.warn('loadRecipes org shared', shareErr);
+    else merged = merged.concat(sharedRows || []);
+  }
+  merged.sort((a, b) => {
+    const ta = new Date(a.updated_at || 0).getTime();
+    const tb = new Date(b.updated_at || 0).getTime();
+    return tb - ta;
+  });
+  allRecipes = merged;
   render();
 }
 
@@ -440,14 +470,25 @@ function render(filter = '') {
     items = items.filter(r => (r.name || '').toLowerCase().includes(q));
   }
 
-  if (allRecipes.length === 0) {
+  if (localRecipeCount() === 0 && allRecipes.length === 0) {
     container.innerHTML = renderEmpty();
     main.querySelector('#emptyNewBtn').addEventListener('click', () => openEditor(null));
+    const emptyImp = main.querySelector('#emptyImportJsonBtn');
+    const emptyFile = main.querySelector('#recipeJsonFile');
+    if (emptyImp && emptyFile) {
+      emptyImp.addEventListener('click', () => {
+        if (!requireCan(role, 'recipe_create', t('recipes.import_denied'))) return;
+        emptyFile.click();
+      });
+    }
+    applyTranslations();
     applyRoleGates(role, container);
     return;
   }
   if (items.length === 0) {
     container.innerHTML = `<p class="text-muted" style="text-align:center;margin:var(--sp-9) auto;max-width:400px" data-i18n="recipes.no_results">${escapeHTML(t('recipes.no_results'))}</p>`;
+    applyTranslations();
+    applyRoleGates(role, container);
     return;
   }
 
@@ -478,6 +519,12 @@ function renderEmpty() {
         ${cartaIcon('add', { size: 18 })}
         <span data-i18n="recipes.new">New recipe</span>
       </button>
+      <div style="margin-top:var(--sp-4);display:flex;flex-wrap:wrap;gap:var(--sp-3);justify-content:center">
+        <button type="button" class="btn btn-outline btn-lg" id="emptyImportJsonBtn" data-require="recipe_create">
+          ${cartaIcon('upload_file', { size: 18 })}
+          <span data-i18n="recipes.import_json">Import JSON</span>
+        </button>
+      </div>
     </div>
   `;
 }
@@ -489,9 +536,15 @@ function renderCard(r, cl) {
   const kindClass = r.kind === 'drink' ? 'chip-gold' : 'chip-mist';
   const allergens = (computed.allergens || []).slice(0, 3);
   const diets = (computed.dietTags || []).slice(0, 2);
+  const sister = r.workspace_id !== wsId;
+  const orgShared = !!(r.share_with_org && r.share_consent_at);
   return `
     <article tabindex="0" role="button" data-recipe-id="${escapeHTML(r.id)}" class="recipe-card" aria-label="${escapeHTML(r.name)}">
-      <span class="chip recipe-card__kind ${kindClass}">${escapeHTML(kindLabel)}</span>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+        <span class="chip recipe-card__kind ${kindClass}">${escapeHTML(kindLabel)}</span>
+        ${sister ? `<span class="chip" style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em">${escapeHTML(t('recipes.card_sister_property'))}</span>` : ''}
+        ${orgShared ? `<span class="chip chip-gold" style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em">${escapeHTML(t('recipes.card_org_shared'))}</span>` : ''}
+      </div>
       <h3 class="recipe-card__name">${escapeHTML(r.name || '—')}</h3>
       <div class="recipe-card__meta">
         <div><span class="num">${formatNumber(computed.perServing.kcal, 0)}</span> ${escapeHTML(t('recipes.kcal_per_serving'))}</div>
@@ -507,6 +560,14 @@ function renderCard(r, cl) {
 
 main.querySelector('#newBtn').addEventListener('click', () => openEditor(null));
 main.querySelector('#searchInput').addEventListener('input', (e) => render(e.target.value));
+document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+  setTimeout(() => {
+    const q = main.querySelector('#searchInput')?.value || '';
+    render(q);
+    applyRoleGates(role, main);
+    document.getElementById('recipeEditor') && applyTranslations();
+  }, 0);
+});
 
 function readIngredients(wrap) {
   return [...wrap.querySelectorAll('.ing-row')].map(row => ({
@@ -520,11 +581,13 @@ function escapeHTML(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-const PASTE_UNITS = new Set(['g','kg','ml','l','mg','yk','tk','ck','sb','ad']);
+const PASTE_UNITS = new Set(['g','kg','ml','l','mg','yk','tk','ck','sb','cb','sis','kd','ad']);
 
 function normalizePasteUnit(u) {
   const x = String(u || 'g').toLowerCase().trim();
   if (x === 'gr' || x === 'gram' || x === 'grams') return 'g';
+  if (x === 'şişe' || x === 'sise' || x === 'sis' || x === 'şişeler' || x === 'bottle') return 'sis';
+  if (x === 'kadeh') return 'kd';
   return x;
 }
 
@@ -562,12 +625,17 @@ function parsePastedIngredients(text) {
       continue;
     }
 
-    let m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|mg|yk|tk|ck|sb|ad)\s+(.+)$/i);
+    let m = line.match(/^(\d+(?:[.,]\d+)?)\s*(şişe|şişeler|sis|sise|bottle)\s+(.+)$/iu);
+    if (m && m[3].trim()) {
+      rows.push({ amount: normPasteAmount(m[1]), unit: 'sis', name: m[3].trim() });
+      continue;
+    }
+    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|mg|yk|tk|ck|sb|cb|sis|kd|ad)\s+(.+)$/i);
     if (m && m[3].trim()) {
       rows.push({ amount: normPasteAmount(m[1]), unit: normalizePasteUnit(m[2]), name: m[3].trim() });
       continue;
     }
-    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|mg|yk|tk|ck|sb|ad)([^\s\d].*)$/i);
+    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|mg|yk|tk|ck|sb|cb|sis|kd|ad)([^\s\d].*)$/i);
     if (m && m[3].trim()) {
       rows.push({ amount: normPasteAmount(m[1]), unit: normalizePasteUnit(m[2]), name: m[3].trim() });
       continue;
@@ -595,6 +663,102 @@ function parsePastedIngredients(text) {
     warnings.push(rawLine);
   }
   return { rows, warnings };
+}
+
+function recipesArrayFromParsed(parsed) {
+  if (parsed == null) return [];
+  if (Array.isArray(parsed)) return parsed;
+  if (typeof parsed !== 'object') return [];
+  for (const key of ['recipes', 'dishes', 'items', 'data']) {
+    if (Array.isArray(parsed[key])) return parsed[key];
+  }
+  if (parsed.recipe && typeof parsed.recipe === 'object') return [parsed.recipe];
+  return [];
+}
+
+function normalizeImportedRecipe(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const name = String(raw.name || '').trim();
+  if (!name) return null;
+  const kind = raw.kind === 'drink' ? 'drink' : 'food';
+  let blob = raw.data;
+  if (!blob || typeof blob !== 'object') {
+    blob = {
+      servings: raw.servings,
+      ingredients: raw.ingredients,
+      menu_price: raw.menu_price,
+    };
+  }
+  const servings = Math.max(1, parseInt(String(blob.servings ?? 1), 10) || 1);
+  const ingSrc = Array.isArray(blob.ingredients) ? blob.ingredients : [];
+  const ingredients = [];
+  for (const ing of ingSrc) {
+    if (!ing || typeof ing !== 'object') continue;
+    const nm = String(ing.name || '').trim();
+    if (!nm) continue;
+    const row = {
+      name: nm,
+      amount: String(ing.amount ?? ing.qty ?? '').trim(),
+      unit: normalizePasteUnit(ing.unit || ing.u || 'g'),
+    };
+    if (isValidPasteRow(row)) ingredients.push(row);
+  }
+  if (!ingredients.length) return null;
+  const computed = computeRecipe({ ingredients, servings });
+  const { ingredients: _ing, servings: _srv, computed: _cmp, ...rest } = blob;
+  const data = { ...rest, servings, ingredients, computed };
+  return { name, kind, data };
+}
+
+async function runRecipeJsonImport(file) {
+  let parsed;
+  try {
+    parsed = JSON.parse(await file.text());
+  } catch {
+    alert(t('recipes.import_json_err_parse'));
+    return;
+  }
+  const arr = recipesArrayFromParsed(parsed);
+  const normalized = arr.map(normalizeImportedRecipe).filter(Boolean);
+  if (!normalized.length) {
+    alert(t('recipes.import_json_err_empty'));
+    return;
+  }
+  let skipped = 0;
+  const pending = [];
+  for (const row of normalized) {
+    if (localRecipes().some(r => r.name === row.name && r.kind === row.kind)) {
+      skipped++;
+      continue;
+    }
+    pending.push(row);
+  }
+  if (!pending.length) {
+    alert(t('recipes.import_json_done').replace('{n}', '0').replace('{s}', String(skipped)));
+    return;
+  }
+  const q = canAddRecipes(wsPlan, localRecipeCount(), pending.length);
+  if (!q.ok) {
+    alert(t('plan.err_recipe_limit'));
+    return;
+  }
+  let n = 0;
+  for (const row of pending) {
+    const { error } = await supabase.from('saved_dishes').insert({
+      workspace_id: wsId,
+      name: row.name,
+      kind: row.kind,
+      data: row.data,
+    });
+    if (error) {
+      console.warn('recipe import', row.name, error);
+      skipped++;
+    } else {
+      n++;
+    }
+  }
+  await loadRecipes();
+  alert(t('recipes.import_json_done').replace('{n}', String(n)).replace('{s}', String(skipped)));
 }
 
 function toTitleTrWords(str) {
@@ -636,7 +800,6 @@ function openEditor(recipe) {
 
   const editor = buildEditorEl({ recipe, data });
   document.body.appendChild(editor);
-  applyRoleGates(role, editor);
   // Trap focus + Escape
   const onKey = (e) => {
     if (e.key === 'Escape') closeEditor();
@@ -662,6 +825,10 @@ function buildEditorEl({ recipe, data }) {
   wrap.setAttribute('aria-labelledby', 'editorTitle');
 
   const isEdit = !!recipe;
+  const isForeignShared = !!(recipe && recipe.workspace_id !== wsId);
+  const gateRole = isForeignShared ? 'viewer' : role;
+  const shareOrgChecked = !!(recipe && recipe.share_with_org === true);
+  const consentChecked = !!(recipe && recipe.share_consent_at);
   const titleKey = isEdit ? 'recipes.edit_title' : 'recipes.new_title';
   const kind = recipe?.kind || 'food';
   // Single action gates every editable surface in this modal.
@@ -720,6 +887,19 @@ function buildEditorEl({ recipe, data }) {
             </div>
             <div id="pastePreview" class="paste-preview" hidden></div>
           </div>
+          ${isForeignShared ? `
+          <div class="form-row">
+            <p class="flash" style="margin:0;font-size:var(--type-caption)" data-i18n="recipes.foreign_readonly_banner" role="note"></p>
+          </div>` : ''}
+          ${!isForeignShared && orgId ? `
+          <div class="form-row paste-panel" id="shareOrgSection" style="margin-top:var(--sp-4)">
+            <span class="label" data-i18n="recipes.share_org_heading">Organization sharing</span>
+            <p class="text-muted" style="font-size:var(--type-caption);margin:0 0 var(--sp-3)" data-i18n="recipes.share_org_help">Help</p>
+            <label class="paste-replace-label"><input type="checkbox" id="shareOrgCb" ${shareOrgChecked ? 'checked' : ''}> <span data-i18n="recipes.share_org_label">Share</span></label>
+            <div id="shareConsentWrap" style="margin-top:var(--sp-3);display:${shareOrgChecked ? 'block' : 'none'}">
+              <label class="paste-replace-label"><input type="checkbox" id="shareConsentCb" ${consentChecked ? 'checked' : ''}> <span data-i18n="recipes.share_consent_label">Consent</span></label>
+            </div>
+          </div>` : ''}
         </section>
         <aside class="modal__preview" aria-live="polite">
           <span class="eyebrow eyebrow-accent preview-eyebrow" data-i18n="recipes.computed">Live preview</span>
@@ -754,7 +934,10 @@ function buildEditorEl({ recipe, data }) {
         <div class="modal__foot__right">
           <button type="button" class="btn btn-ghost" id="cancelBtn" data-i18n="recipes.cancel">Cancel</button>
           <button type="button" class="btn btn-primary" id="saveBtn" data-require="${editAction}">
-            <span data-i18n="recipes.save">Save</span> <span class="arrow">→</span>
+            <span data-i18n="recipes.save">Save</span>
+          </button>
+          <button type="button" class="btn btn-outline" id="saveCloseBtn" data-require="${editAction}">
+            <span data-i18n="recipes.save_and_close">Save & close</span>
           </button>
         </div>
       </footer>
@@ -778,7 +961,7 @@ function buildEditorEl({ recipe, data }) {
   wrap.querySelector('#addIngBtn').addEventListener('click', () => {
     const row = buildIngRow({ name:'', amount:'', unit:'g' }, editAction);
     ingList.appendChild(row);
-    applyRoleGates(role, row);
+    applyRoleGates(gateRole, row);
     recompute();
   });
 
@@ -860,7 +1043,7 @@ function buildEditorEl({ recipe, data }) {
         unit: normalizePasteUnit(r.unit),
       }, editAction);
       ingList.appendChild(row);
-      applyRoleGates(role, row);
+      applyRoleGates(gateRole, row);
     }
     pasteTa.value = '';
     pastePrev.hidden = true;
@@ -879,44 +1062,97 @@ function buildEditorEl({ recipe, data }) {
     }
   });
 
-  // Close handlers
-  wrap.querySelector('#editorClose').addEventListener('click', closeEditor);
-  wrap.querySelector('#cancelBtn').addEventListener('click', closeEditor);
-  wrap.addEventListener('click', (e) => { if (e.target === wrap) closeEditor(); });
+  const shareOrgCb = wrap.querySelector('#shareOrgCb');
+  const shareConsentWrap = wrap.querySelector('#shareConsentWrap');
+  const shareConsentCb = wrap.querySelector('#shareConsentCb');
+  if (shareOrgCb && shareConsentWrap && shareConsentCb) {
+    shareOrgCb.addEventListener('change', () => {
+      if (shareOrgCb.checked) {
+        shareConsentWrap.style.display = 'block';
+      } else {
+        shareConsentCb.checked = false;
+        shareConsentWrap.style.display = 'none';
+      }
+    });
+  }
 
-  // Save
-  wrap.querySelector('#saveBtn').addEventListener('click', async () => {
+  function buildSharePatch() {
+    if (!orgId || !shareOrgCb || isForeignShared) return {};
+    if (!shareOrgCb.checked) {
+      return { share_with_org: false, share_consent_at: null, share_consent_by: null };
+    }
+    if (!shareConsentCb?.checked) return null;
+    if (recipe?.share_consent_at) {
+      return { share_with_org: true };
+    }
+    return {
+      share_with_org: true,
+      share_consent_at: new Date().toISOString(),
+    };
+  }
+
+  async function runSave(closeAfter) {
     const name = wrap.querySelector('#editName').value.trim();
     if (!name) { wrap.querySelector('#editName').focus(); return; }
+    const sharePatch = buildSharePatch();
+    if (sharePatch === null) {
+      alert(t('recipes.share_consent_required'));
+      return;
+    }
     const servings = Math.max(1, parseInt(wrap.querySelector('#editServings').value) || 1);
     const ingredients = readIngredients(wrap);
     const computed = computeRecipe({ ingredients, servings });
     const data = { servings, ingredients, computed };
     const saveBtn = wrap.querySelector('#saveBtn');
-    saveBtn.disabled = true;
+    const saveCloseBtn = wrap.querySelector('#saveCloseBtn');
+    const btns = [saveBtn, saveCloseBtn].filter(Boolean);
+    btns.forEach(b => { b.disabled = true; });
     try {
-      if (recipe) {
-        const { error } = await supabase.from('saved_dishes').update({ name, kind: editorKind, data }).eq('id', recipe.id);
+      if (recipe && recipe.id) {
+        const { error } = await supabase
+          .from('saved_dishes')
+          .update({ name, kind: editorKind, data, ...sharePatch })
+          .eq('id', recipe.id);
         if (error) throw error;
+        await loadRecipes();
+        if (closeAfter) closeEditor();
       } else {
-        const q = canAddRecipes(wsPlan, allRecipes.length, 1);
+        const q = canAddRecipes(wsPlan, localRecipeCount(), 1);
         if (!q.ok) {
           alert(t('plan.err_recipe_limit'));
-          saveBtn.disabled = false;
           return;
         }
-        const { error } = await supabase.from('saved_dishes').insert({ workspace_id: wsId, name, kind: editorKind, data });
+        const { data: saved, error } = await supabase
+          .from('saved_dishes')
+          .insert({ workspace_id: wsId, name, kind: editorKind, data, ...sharePatch })
+          .select()
+          .single();
         if (error) throw error;
+        await loadRecipes();
+        if (closeAfter) {
+          closeEditor();
+        } else {
+          closeEditor();
+          openEditor(saved);
+        }
       }
-      closeEditor();
-      await loadRecipes();
     } catch (err) {
       console.error('save', err);
       const pk = planLimitMessageKey(err);
       alert(pk ? t(pk) : ((err && err.message) || 'Save failed'));
-      saveBtn.disabled = false;
+    } finally {
+      btns.forEach(b => { b.disabled = false; });
     }
-  });
+  }
+
+  // Close handlers
+  wrap.querySelector('#editorClose').addEventListener('click', closeEditor);
+  wrap.querySelector('#cancelBtn').addEventListener('click', closeEditor);
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) closeEditor(); });
+
+  // Save (stay open) & save and close
+  wrap.querySelector('#saveBtn').addEventListener('click', () => runSave(false));
+  wrap.querySelector('#saveCloseBtn').addEventListener('click', () => runSave(true));
 
   // Delete
   if (isEdit) {
@@ -931,7 +1167,7 @@ function buildEditorEl({ recipe, data }) {
     // Duplicate — clones the recipe into a new row with " (copy)" suffix
     wrap.querySelector('#duplicateBtn').addEventListener('click', async () => {
       const dupBtn = wrap.querySelector('#duplicateBtn');
-      const q = canAddRecipes(wsPlan, allRecipes.length, 1);
+      const q = canAddRecipes(wsPlan, localRecipeCount(), 1);
       if (!q.ok) {
         alert(t('plan.err_recipe_limit'));
         return;
@@ -991,8 +1227,11 @@ function buildEditorEl({ recipe, data }) {
   // Translate any newly-rendered text
   applyTranslations();
   recompute();
+  applyRoleGates(gateRole, wrap);
   return wrap;
 }
+
+const ING_UNITS = ['g','kg','ml','l','yk','tk','ck','sb','cb','sis','kd','ad'];
 
 function buildIngRow(ing, editAction) {
   const row = document.createElement('div');
@@ -1006,7 +1245,10 @@ function buildIngRow(ing, editAction) {
     </div>
     <div class="col-unit">
       <select class="input ing-unit" aria-label="${escapeHTML(t('recipes.col_unit'))}" data-require-disable="${editAction}">
-        ${['g','kg','ml','l','yk','tk','ck','sb','ad'].map(u => `<option value="${u}" ${u===(ing.unit||'g')?'selected':''}>${u}</option>`).join('')}
+        ${ING_UNITS.map(u => {
+          const sel = normalizePasteUnit(ing.unit || 'g') === u ? 'selected' : '';
+          return `<option value="${u}" data-i18n="recipes.unit_${u}" ${sel}>${escapeHTML(t(`recipes.unit_${u}`))}</option>`;
+        }).join('')}
       </select>
     </div>
     <div class="col-rm">
@@ -1082,7 +1324,22 @@ const vh = document.createElement('style');
 vh.textContent = '.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}';
 document.head.appendChild(vh);
 
-await loadRecipes();
+const importJsonBtn = main.querySelector('#importJsonBtn');
+const recipeJsonFile = main.querySelector('#recipeJsonFile');
+if (importJsonBtn && recipeJsonFile) {
+  importJsonBtn.setAttribute('aria-label', t('recipes.import_json_aria'));
+  importJsonBtn.addEventListener('click', () => {
+    if (!requireCan(role, 'recipe_create', t('recipes.import_denied'))) return;
+    recipeJsonFile.click();
+  });
+  recipeJsonFile.addEventListener('change', async (ev) => {
+    const f = ev.target.files?.[0];
+    ev.target.value = '';
+    if (!f) return;
+    if (!requireCan(role, 'recipe_create', t('recipes.import_denied'))) return;
+    await runRecipeJsonImport(f);
+  });
+}
 </script>
 </body>
 </html>

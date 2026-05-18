@@ -38,6 +38,11 @@ export function toGrams(amount, unit, name = '') {
   if (u === 'cay kasigi' || u === 'ck')                    return a * 2 * densityGperMl;
   if (u === 'sb' || u === 'su bardagi' || u === 'cup')     return a * 200 * densityGperMl;
   if (u === 'cb' || u === 'cay bardagi')                   return a * 100 * densityGperMl;
+  // Wine service (ml → mass via beverage density)
+  if (u === 'kd' || u === 'kadeh')                        return a * 150 * densityGperMl;
+  if (u === 'sis' || u === 'sise' || u === 'şişe' || u === 'bottle') {
+    return a * 750 * densityGperMl;
+  }
 
   // Pieces (best-effort defaults)
   if (u === 'ad' || u === 'adet' || u === 'piece' || u === 'pc') {
