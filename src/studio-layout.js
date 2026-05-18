@@ -16,6 +16,14 @@ function sidebarNavSprite(col, row) {
   return `<span class="sidebar__icon sidebar__icon--sheet" style="--s-col:${col};--s-row:${row}" aria-hidden="true"></span>`;
 }
 
+/** Primary destinations in the mobile bottom bar (thumb reach). */
+const MOBILE_TABS = [
+  { key: 'overview', href: '/app/studio.html', icon: 'dashboard', i18n: 'studio.overview', fallback: 'Overview' },
+  { key: 'dashboard', href: '/app/studio/dashboard.html', icon: 'query_stats', i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
+  { key: 'recipes', href: '/app/studio/recipes.html', icon: 'temp_preferences_eco', i18n: 'studio.m_builder', fallback: 'Recipes' },
+  { key: 'menus', href: '/app/studio/menus.html', icon: 'restaurant_menu', i18n: 'studio.m_menus', fallback: 'Menus' },
+];
+
 const MODULES = [
   { key: 'dashboard', href: '/app/studio/dashboard.html', sprite: [3, 2], i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
   { key: 'recipes',   href: '/app/studio/recipes.html',   sprite: [1, 2], i18n: 'studio.m_builder',  fallback: 'Recipes' },
@@ -31,6 +39,15 @@ const MODULES = [
   { key: 'surface',   href: '/app/studio/surface.html',   sprite: [4, 0], i18n: 'studio.m_surface',  fallback: 'Surface' },
 ];
 
+const MOBILE_TAB_KEYS = new Set(MOBILE_TABS.map((tab) => tab.key));
+
+function moduleTitleFor(active) {
+  if (active === 'overview') return { i18n: 'studio.overview', fallback: 'Overview' };
+  const mod = MODULES.find((m) => m.key === active);
+  if (mod) return { i18n: mod.i18n, fallback: mod.fallback };
+  return { i18n: 'studio.overview', fallback: 'Studio' };
+}
+
 export async function mountStudioShell({ active = 'overview', main } = {}) {
   // Auth + workspace guard
   const session = await getSessionAfterUrlAuth();
@@ -39,6 +56,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   if (!ws) { window.location.href = '/app/'; return null; }
   const role = await getMyRole(ws.id);
   const canSwitchProperty = can(role, 'property_switch');
+  const pageTitle = moduleTitleFor(active);
 
   onAuthChange((event) => {
     if (event === 'SIGNED_OUT') invalidateRoleCache();
@@ -52,9 +70,14 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   sidebar.setAttribute('aria-label', 'Studio navigation');
   sidebar.innerHTML = `
     <div class="sidebar__head">
+      <div class="sidebar__head-row">
       <a href="/app/studio.html" class="logo" aria-label="Carta studio home">
         <img src="/assets/carta-brand-vertical.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1536" height="1024" decoding="async">
       </a>
+      <button type="button" class="sidebar__drawer-close" id="sidebarDrawerClose" data-i18n-aria-label="studio.mobile_drawer_close" aria-label="">
+        ${cartaIcon('close', { size: 24 })}
+      </button>
+      </div>
       <div class="sidebar__context" id="sidebarContextStrip" role="group" title="${escapeHTML([ws.organization_name, ws.name].filter(Boolean).join(' · '))}">
         ${ws.organization_name ? `<span class="sidebar__org" id="sidebarOrgName">${escapeHTML(ws.organization_name)}</span>` : ''}
         <span class="sidebar__facility role" id="sidebarWsName">${escapeHTML(ws.name)}</span>
@@ -98,32 +121,26 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   mobileTop.className = 'studio-mobile-top';
   mobileTop.setAttribute('aria-label', 'Studio top bar');
   mobileTop.innerHTML = `
-    <a href="/app/studio.html" class="site-logo studio-mobile-top__brand" aria-label="Carta studio home">
-      <img src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024">
-    </a>
-    <div class="studio-mobile-top__context" id="mobileContextStrip" role="group" title="${escapeHTML([ws.organization_name, ws.name].filter(Boolean).join(' · '))}">
-      ${ws.organization_name ? `<span class="studio-mobile-top__crumb studio-mobile-top__crumb--org">${escapeHTML(ws.organization_name)}</span><span class="studio-mobile-top__sep" aria-hidden="true">·</span>` : ''}
-      <span class="studio-mobile-top__crumb">${escapeHTML(ws.name)}</span>
+    <button type="button" id="mobileMenuBtn"
+      class="btn btn-sm btn-ghost studio-mobile-top__menu"
+      data-i18n-aria-label="studio.mobile_menu_open"
+      aria-label=""
+      aria-controls="studioSidebar"
+      aria-expanded="false">
+      ${cartaIcon('menu', { size: 24 })}
+    </button>
+    <div class="studio-mobile-top__titles">
+      <span class="studio-mobile-top__module" data-i18n="${pageTitle.i18n}">${escapeHTML(pageTitle.fallback)}</span>
+      <span class="studio-mobile-top__facility" id="mobileFacilityName">${escapeHTML(ws.name)}</span>
     </div>
-    <span class="studio-mobile-top__spacer" aria-hidden="true"></span>
-    <span class="studio-mobile-top__rule" aria-hidden="true"></span>
-    <div class="studio-mobile-top__actions">
-      <button type="button" id="mobileMenuBtn"
-        class="btn btn-sm btn-ghost studio-mobile-top__menu"
-        aria-label="Open navigation"
-        aria-controls="studioSidebar"
-        aria-expanded="false"
-        style="padding:8px 12px;min-height:44px;min-width:44px">
-        ${cartaIcon('menu', { size: 22 })}
-      </button>
-      ${canSwitchProperty
-        ? `<a href="/app/" class="btn btn-sm btn-ghost studio-mobile-top__ws" aria-label="Switch workspace" style="padding:8px 12px;min-height:44px;min-width:44px">
-          ${cartaIcon('swap_horiz', { size: 20 })}
+    ${canSwitchProperty
+      ? `<a href="/app/" class="btn btn-sm btn-ghost studio-mobile-top__ws" data-i18n-aria-label="studio.switch_ws" aria-label="">
+          ${cartaIcon('swap_horiz', { size: 22 })}
         </a>`
-        : `<button type="button" class="btn btn-sm btn-ghost studio-mobile-top__ws" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}" style="padding:8px 12px;min-height:44px;min-width:44px">
-          ${cartaIcon('lock', { size: 20 })}
+      : `<button type="button" class="btn btn-sm btn-ghost studio-mobile-top__ws" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}">
+          ${cartaIcon('lock', { size: 22 })}
         </button>`}
-    </div>
+    <div class="studio-mobile-top__context" id="mobileContextStrip" hidden aria-hidden="true"></div>
   `;
 
   // Backdrop for drawer
@@ -152,6 +169,39 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     });
   }
   document.body.appendChild(mainWrap);
+
+  const mobileTabs = document.createElement('nav');
+  mobileTabs.className = 'studio-mobile-tabs';
+  mobileTabs.id = 'studioMobileTabs';
+  mobileTabs.setAttribute('data-i18n-aria-label', 'studio.mobile_nav_label');
+  mobileTabs.setAttribute('aria-label', '');
+  const moreTabActive = !MOBILE_TAB_KEYS.has(active);
+  mobileTabs.innerHTML = `
+    <div class="studio-mobile-tabs__inner">
+      <a class="studio-mobile-tabs__item${active === 'overview' ? ' is-active' : ''}" href="/app/studio.html" data-tab-key="overview">
+        ${cartaIcon('dashboard', { size: 22 })}
+        <span data-i18n="studio.overview">Overview</span>
+      </a>
+      <a class="studio-mobile-tabs__item${active === 'dashboard' ? ' is-active' : ''}" href="/app/studio/dashboard.html" data-tab-key="dashboard">
+        ${cartaIcon('query_stats', { size: 22 })}
+        <span data-i18n="studio.m_dashboard">Dashboard</span>
+      </a>
+      <a class="studio-mobile-tabs__item${active === 'recipes' ? ' is-active' : ''}" href="/app/studio/recipes.html" data-tab-key="recipes">
+        ${cartaIcon('temp_preferences_eco', { size: 22 })}
+        <span data-i18n="studio.m_builder">Recipes</span>
+      </a>
+      <a class="studio-mobile-tabs__item${active === 'menus' ? ' is-active' : ''}" href="/app/studio/menus.html" data-tab-key="menus">
+        ${cartaIcon('restaurant_menu', { size: 22 })}
+        <span data-i18n="studio.m_menus">Menus</span>
+      </a>
+      <button type="button" class="studio-mobile-tabs__item studio-mobile-tabs__item--more${moreTabActive ? ' is-active' : ''}" id="mobileTabMore" data-i18n-aria-label="studio.mobile_nav_more" aria-label="" aria-expanded="false" aria-controls="studioSidebar">
+        ${cartaIcon('grid_view', { size: 22 })}
+        <span data-i18n="studio.mobile_nav_more">More</span>
+      </button>
+    </div>
+  `;
+  document.body.appendChild(mobileTabs);
+
 
   // Wire up controls
   document.getElementById('sidebarSignOut').addEventListener('click', signOut);
@@ -187,6 +237,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     syncWorkspaceContextAria(ws);
     syncSidebarRailUi();
     syncSidebarThemeBtn();
+    syncMobileMenuAria();
   });
 
   applyTranslations();
@@ -262,13 +313,22 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   // ============================================================
   const menuBtn = document.getElementById('mobileMenuBtn');
   const drawerBackdrop = document.getElementById('sidebarBackdrop');
+  const drawerCloseBtn = document.getElementById('sidebarDrawerClose');
 
+  function isDrawerOpen() {
+    return sidebar.classList.contains('is-open');
+  }
+  function syncMobileMenuAria() {
+    const open = isDrawerOpen();
+    menuBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
+    menuBtn?.setAttribute('aria-label', open ? t('studio.mobile_menu_close') : t('studio.mobile_menu_open'));
+    document.getElementById('mobileTabMore')?.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
   function openDrawer() {
     sidebar.classList.add('is-open');
     drawerBackdrop?.classList.add('is-open');
     document.body.classList.add('drawer-open');
-    menuBtn?.setAttribute('aria-expanded', 'true');
-    // Focus first link in sidebar for keyboard users
+    syncMobileMenuAria();
     const firstLink = sidebar.querySelector('.sidebar__link');
     if (firstLink) setTimeout(() => firstLink.focus(), 50);
   }
@@ -276,16 +336,17 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     sidebar.classList.remove('is-open');
     drawerBackdrop?.classList.remove('is-open');
     document.body.classList.remove('drawer-open');
-    menuBtn?.setAttribute('aria-expanded', 'false');
+    syncMobileMenuAria();
   }
-  function isDrawerOpen() {
-    return sidebar.classList.contains('is-open');
-  }
-
   menuBtn?.addEventListener('click', () => {
     isDrawerOpen() ? closeDrawer() : openDrawer();
   });
+  drawerCloseBtn?.addEventListener('click', closeDrawer);
+  document.getElementById('mobileTabMore')?.addEventListener('click', () => {
+    isDrawerOpen() ? closeDrawer() : openDrawer();
+  });
   drawerBackdrop?.addEventListener('click', closeDrawer);
+  syncMobileMenuAria();
 
   // Close on Escape; basic focus trap while open
   document.addEventListener('keydown', (e) => {
