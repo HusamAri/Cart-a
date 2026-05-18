@@ -187,7 +187,7 @@ import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { formatNumber, formatMoney } from '/src/recipe-compute.js';
-import { getMyRole, applyRoleGates } from '/src/permissions.js';
+import { applyRoleGates } from '/src/permissions.js';
 import { cartaIcon } from '/src/carta-icon.js';
 
 const main = document.createElement('main');
@@ -199,7 +199,7 @@ if (!ctx) throw new Error('No session/workspace');
 const ws = ctx.workspace;
 const wsId = ws.id;
 const currency = ws.currency || '₺';
-const role = await getMyRole(wsId);
+const { role } = ctx;
 
 main.innerHTML = `
   <div class="page-head">

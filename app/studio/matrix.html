@@ -199,7 +199,7 @@ import { applyTranslations, t } from '/src/i18n.js';
 import {
   computeDishCost, marginCurrency, buildCostMap, formatNumber, formatMoney
 } from '/src/recipe-compute.js';
-import { getMyRole, applyRoleGates } from '/src/permissions.js';
+import { applyRoleGates } from '/src/permissions.js';
 import { turkNorm } from '/src/nutrient-db.js';
 
 const main = document.createElement('main');
@@ -213,7 +213,7 @@ const wsId = ws.id;
 const currency = ws.currency || '₺';
 const vatPct  = Number(ws.vat_rate) || 10;
 const qFactor = Number(ws.q_factor) || 3;
-const role = await getMyRole(wsId);
+const { role } = ctx;
 
 main.innerHTML = `
   <div class="page-head">

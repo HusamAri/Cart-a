@@ -233,7 +233,7 @@ import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { computeRecipe, computeDishCost, buildCostMap, formatNumber, computeRecipeClimate, toGrams } from '/src/recipe-compute.js';
 import { emissionIntensityKgCo2ePerKg } from '/src/carbon-factors.js';
 import { ALLERGEN_LABELS } from '/src/nutrient-db.js';
-import { getMyRole, applyRoleGates } from '/src/permissions.js';
+import { applyRoleGates } from '/src/permissions.js';
 import { cartaIcon } from '/src/carta-icon.js';
 
 const main = document.createElement('main');
@@ -245,7 +245,7 @@ if (!ctx) throw new Error('No session/workspace');
 const ws = ctx.workspace;
 const wsId = ws.id;
 const qFactor = Number(ws.q_factor) || 3;
-const role = await getMyRole(wsId);
+const { role } = ctx;
 
 let allDishes = [];
 let clusters = [];
