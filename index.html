@@ -524,6 +524,69 @@
     text-align: center;
   }
 
+  /* ===== USAGE FLOW (task-oriented IA) ===== */
+  .usage-flow {
+    padding: var(--sp-11) 0 var(--sp-10);
+    background: var(--surface-container-lowest);
+    border-block: 1px solid rgb(var(--ink-rgb) / 0.06);
+  }
+  .usage-flow__head { max-width: 62ch; margin-bottom: var(--sp-9); }
+  .usage-flow__lead { margin-top: var(--sp-4); max-width: 54ch; }
+  .usage-flow__steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--sp-5);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+  .usage-flow__step {
+    display: flex;
+    gap: var(--sp-4);
+    align-items: flex-start;
+    padding: var(--sp-5) var(--sp-6);
+    background: var(--surface);
+    border-radius: var(--r-xl);
+    border: 1px solid rgb(var(--ink-rgb) / 0.08);
+    box-shadow: var(--shadow-1);
+  }
+  .usage-flow__n {
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--primary);
+    border: 1px solid rgb(var(--primary-rgb) / 0.35);
+    border-radius: var(--r-pill);
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+  .usage-flow__step-title {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: var(--type-label);
+    margin: 0 0 var(--sp-2);
+    letter-spacing: var(--track-tight);
+    color: var(--on-surface);
+  }
+  .usage-flow__body p {
+    margin: 0;
+    font-size: var(--type-body-sm);
+    line-height: 1.55;
+    color: var(--on-surface-variant);
+  }
+  .usage-flow__cta {
+    margin: var(--sp-9) 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    align-items: center;
+  }
+
 </style>
 </head>
 <body class="carta-landing">
@@ -535,6 +598,7 @@
     <a href="/" class="site-logo site-logo--crop-y" aria-label="Carta"><img class="site-logo__img--landing" src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024" decoding="async"></a>
     <nav class="site-nav" aria-label="Primary">
       <a href="#manifesto" data-i18n="nav.method">Method</a>
+      <a href="#usage-flow" data-i18n="nav.usage">How it works</a>
       <a href="#chapters" data-i18n="nav.index">Index</a>
       <a href="#plans" data-i18n="nav.plans">Plans</a>
       <a href="/app/login.html" data-i18n="nav.signin">Sign in</a>
@@ -570,7 +634,7 @@
       </p>
       <div class="hero__cta">
         <a href="/app/signup.html" class="btn btn-primary"><span data-i18n="hero.cta_begin">Begin</span> <span class="arrow">→</span></a>
-        <a href="#chapters" class="btn btn-ghost" data-i18n="hero.cta_see">See the system</a>
+        <a href="#usage-flow" class="btn btn-ghost" data-i18n="hero.cta_see">See the system</a>
       </div>
       <div class="hero__compliance">
         <span class="chip" data-i18n="hero.meta_codex">TGK Ek-10 / Ek-13 compliant</span>
@@ -591,6 +655,53 @@
   <span class="section-ornament__jewel"></span>
   <span class="section-ornament__arm"></span>
 </div>
+
+<!-- ============ USAGE FLOW ============ -->
+<section class="usage-flow" id="usage-flow" aria-labelledby="usage-flow-h">
+  <div class="container">
+    <div class="usage-flow__head">
+      <span class="eyebrow eyebrow-accent" data-i18n="usage.eyebrow">Usage</span>
+      <h2 class="h1" id="usage-flow-h"><em data-i18n="usage.title">A clear path from signup to export.</em></h2>
+      <p class="lead usage-flow__lead" data-i18n="usage.lead">
+        Carta is one workspace. Most teams move through the same sequence.
+      </p>
+    </div>
+    <ol class="usage-flow__steps">
+      <li class="usage-flow__step">
+        <span class="usage-flow__n" aria-hidden="true">1</span>
+        <div class="usage-flow__body">
+          <h3 class="usage-flow__step-title" data-i18n="usage.step1">Open your workspace</h3>
+          <p data-i18n="usage.step1_desc">Sign in with a magic link. Name your first property; recipes, cost, and menus stay scoped to that workspace.</p>
+        </div>
+      </li>
+      <li class="usage-flow__step">
+        <span class="usage-flow__n" aria-hidden="true">2</span>
+        <div class="usage-flow__body">
+          <h3 class="usage-flow__step-title" data-i18n="usage.step2">Recipes meet the ledger</h3>
+          <p data-i18n="usage.step2_desc">Define dishes and drinks with allergens and nutrition. Map ingredients to moving-average costs and yield.</p>
+        </div>
+      </li>
+      <li class="usage-flow__step">
+        <span class="usage-flow__n" aria-hidden="true">3</span>
+        <div class="usage-flow__body">
+          <h3 class="usage-flow__step-title" data-i18n="usage.step3">Price and engineer</h3>
+          <p data-i18n="usage.step3_desc">Refresh list prices in one grid. Watch food cost %, margin, and suggested price. Classify each dish on the engineering matrix.</p>
+        </div>
+      </li>
+      <li class="usage-flow__step">
+        <span class="usage-flow__n" aria-hidden="true">4</span>
+        <div class="usage-flow__body">
+          <h3 class="usage-flow__step-title" data-i18n="usage.step4">Export and snap costs</h3>
+          <p data-i18n="usage.step4_desc">Send tables to Excel or print cards. Capture a cost snapshot when finance or audit needs a frozen view.</p>
+        </div>
+      </li>
+    </ol>
+    <div class="usage-flow__cta">
+      <a href="#chapters" class="btn btn-ghost" data-i18n="usage.cta_modules">Explore all modules</a>
+      <a href="/app/signup.html" class="btn btn-primary btn-sm"><span data-i18n="nav.begin">Begin</span> <span class="arrow">→</span></a>
+    </div>
+  </div>
+</section>
 
 <!-- ============ MANIFESTO ============ -->
 <section class="manifesto" id="manifesto" aria-labelledby="manifesto-h">
@@ -841,6 +952,7 @@
         <h5 data-i18n="foot.product">Product</h5>
         <ul>
           <li><a href="#manifesto" data-i18n="nav.method">Method</a></li>
+          <li><a href="#usage-flow" data-i18n="nav.usage">How it works</a></li>
           <li><a href="#chapters" data-i18n="nav.index">Index</a></li>
           <li><a href="#plans" data-i18n="nav.plans">Plans</a></li>
           <li><a href="/app/signup.html" data-i18n="nav.begin">Begin</a></li>
