@@ -1,5 +1,6 @@
 // Carta — Recipe compute (Atwater, unit conversion, allergens, diet tags)
 import { NUTRIENT_DB, lookupNutrient, turkNorm } from './nutrient-db.js';
+import { normalizeRecipeUnit } from './recipe-units.js';
 import { emissionIntensityKgCo2ePerKg } from './carbon-factors.js';
 
 // ---- Atwater general factors (TGK Ek-10 §3.3) -----------------
@@ -13,7 +14,7 @@ export function atwaterKcal({ P=0, F=0, C=0, Fi=0, ethanol=0 } = {}) {
 // `name` lets us special-case density (oils, eggs, water).
 export function toGrams(amount, unit, name = '') {
   const a = Number(amount) || 0;
-  const u = String(unit||'').trim().toLowerCase();
+  const u = normalizeRecipeUnit(unit);
   const n = turkNorm(name);
 
   // Direct mass
@@ -30,6 +31,8 @@ export function toGrams(amount, unit, name = '') {
   if (n.includes('krema'))  densityGperMl = 0.99;
 
   if (u === 'ml' || u === 'mililitre') return a * densityGperMl;
+  if (u === 'cl') return a * 10 * densityGperMl;
+  if (u === 'dl') return a * 100 * densityGperMl;
   if (u === 'l' || u === 'lt' || u === 'litre') return a * 1000 * densityGperMl;
 
   // Kitchen units (Turkish)

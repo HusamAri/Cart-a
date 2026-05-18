@@ -201,16 +201,25 @@
   .ing-list { display: flex; flex-direction: column; gap: var(--sp-3); }
   .ing-row {
     display: grid;
-    grid-template-columns: 2fr 100px 110px 40px;
+    grid-template-columns: minmax(0, 2fr) 88px minmax(120px, 1fr) 44px;
     gap: 8px; align-items: start;
     position: relative;
   }
+  .ing-row .col-unit .input { padding-right: 28px; }
   @media (max-width: 600px) {
-    .ing-row { grid-template-columns: 1fr 1fr 40px; }
+    .ing-row {
+      grid-template-columns: 1fr 1fr 44px;
+      gap: 10px;
+    }
+    .ing-row .col-name { grid-column: 1 / -1; }
     .ing-row .col-amount { grid-column: 1; }
     .ing-row .col-unit { grid-column: 2; }
-    .ing-row .col-rm { grid-column: 3; }
-    .ing-row .col-name { grid-column: 1 / -1; order: -1; }
+    .ing-row .col-rm { grid-column: 3; grid-row: 2; align-self: center; }
+    .ing-row .input,
+    .ing-row select.input {
+      font-size: 16px;
+      min-height: 44px;
+    }
   }
   .ing-row .input { padding: 10px 14px; font-size: var(--type-body); }
   .ing-row .rm-btn {
@@ -232,11 +241,13 @@
     border: var(--glass-border);
     border-radius: var(--r-lg);
     box-shadow: var(--shadow-2);
-    max-height: 200px; overflow-y: auto;
+    max-height: min(280px, 42vh); overflow-y: auto;
     z-index: 10050;
+    -webkit-overflow-scrolling: touch;
   }
   .ac-item {
-    padding: 10px 14px;
+    padding: 12px 14px;
+    min-height: 44px;
     cursor: pointer;
     font-size: var(--type-caption);
     color: var(--on-surface);
@@ -353,8 +364,10 @@
 import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
-import { ALLERGEN_LABELS, suggestNutrients, lookupNutrient, NUTRIENT_EN } from '/src/nutrient-db.js';
+import { ALLERGEN_LABELS, lookupNutrient, NUTRIENT_EN } from '/src/nutrient-db.js';
 import { computeRecipe, formatNumber } from '/src/recipe-compute.js';
+import { normalizeRecipeUnit, PASTE_RECIPE_UNITS, recipeUnitSelectHtml } from '/src/recipe-units.js';
+import { mountIngredientAutocomplete } from '/src/ingredient-autocomplete.js';
 import { applyRoleGates, requireCan } from '/src/permissions.js';
 import { cartaIcon } from '/src/carta-icon.js';
 import { canAddRecipes, planLimitMessageKey } from '/src/plan-limits.js';
@@ -372,6 +385,19 @@ const wsId = ctx.workspace.id;
 const wsPlan = ctx.workspace.plan;
 const orgId = ctx.workspace.organization_id ?? null;
 const { role } = ctx;
+
+let pantryIngredientNames = [];
+let pantryNamesLoaded = false;
+async function loadPantryNames() {
+  if (pantryNamesLoaded) return pantryIngredientNames;
+  pantryNamesLoaded = true;
+  const { data } = await supabase
+    .from('cost_db')
+    .select('ingredient_name')
+    .eq('workspace_id', wsId);
+  pantryIngredientNames = [...new Set((data || []).map((r) => r.ingredient_name).filter(Boolean))];
+  return pantryIngredientNames;
+}
 
 function localRecipes() {
   return allRecipes.filter(r => r.workspace_id === wsId);
@@ -581,15 +607,8 @@ function escapeHTML(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-const PASTE_UNITS = new Set(['g','kg','ml','l','mg','yk','tk','ck','sb','cb','sis','kd','ad']);
-
-function normalizePasteUnit(u) {
-  const x = String(u || 'g').toLowerCase().trim();
-  if (x === 'gr' || x === 'gram' || x === 'grams') return 'g';
-  if (x === 'şişe' || x === 'sise' || x === 'sis' || x === 'şişeler' || x === 'bottle') return 'sis';
-  if (x === 'kadeh') return 'kd';
-  return x;
-}
+const PASTE_UNITS = PASTE_RECIPE_UNITS;
+const normalizePasteUnit = normalizeRecipeUnit;
 
 function normPasteAmount(s) {
   return String(s ?? '').trim().replace(',', '.');
@@ -630,12 +649,12 @@ function parsePastedIngredients(text) {
       rows.push({ amount: normPasteAmount(m[1]), unit: 'sis', name: m[3].trim() });
       continue;
     }
-    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|mg|yk|tk|ck|sb|cb|sis|kd|ad)\s+(.+)$/i);
+    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|mg|ml|cl|dl|l|yk|tk|ck|sb|cb|sis|kd|ad)\s+(.+)$/i);
     if (m && m[3].trim()) {
       rows.push({ amount: normPasteAmount(m[1]), unit: normalizePasteUnit(m[2]), name: m[3].trim() });
       continue;
     }
-    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|mg|yk|tk|ck|sb|cb|sis|kd|ad)([^\s\d].*)$/i);
+    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|mg|ml|cl|dl|l|yk|tk|ck|sb|cb|sis|kd|ad)([^\s\d].*)$/i);
     if (m && m[3].trim()) {
       rows.push({ amount: normPasteAmount(m[1]), unit: normalizePasteUnit(m[2]), name: m[3].trim() });
       continue;
@@ -793,7 +812,8 @@ function suggestRecipeNameFromForm(wrap) {
 // ============================================================
 let currentRecipe = null; // null = creating, else = editing
 
-function openEditor(recipe) {
+async function openEditor(recipe) {
+  await loadPantryNames();
   currentRecipe = recipe;
   const data = recipe?.data || { servings: 1, ingredients: [{ name:'', amount:'', unit:'g' }] };
   if (!data.ingredients?.length) data.ingredients = [{ name:'', amount:'', unit:'g' }];
@@ -1231,24 +1251,19 @@ function buildEditorEl({ recipe, data }) {
   return wrap;
 }
 
-const ING_UNITS = ['g','kg','ml','l','yk','tk','ck','sb','cb','sis','kd','ad'];
-
 function buildIngRow(ing, editAction) {
   const row = document.createElement('div');
   row.className = 'ing-row';
   row.innerHTML = `
     <div class="col-name" style="position:relative">
-      <input class="input ing-name" type="text" placeholder="${escapeHTML(t('recipes.col_name'))}" value="${escapeHTML(ing.name || '')}" autocomplete="off" data-require-disable="${editAction}">
+      <input class="input ing-name" type="text" placeholder="${escapeHTML(t('recipes.col_name'))}" value="${escapeHTML(ing.name || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" data-require-disable="${editAction}">
     </div>
     <div class="col-amount">
-      <input class="input ing-amount" type="number" min="0" step="0.1" placeholder="${escapeHTML(t('recipes.col_amount'))}" value="${ing.amount ?? ''}" data-require-disable="${editAction}">
+      <input class="input ing-amount" type="text" inputmode="decimal" placeholder="${escapeHTML(t('recipes.col_amount'))}" value="${ing.amount ?? ''}" data-require-disable="${editAction}">
     </div>
     <div class="col-unit">
       <select class="input ing-unit" aria-label="${escapeHTML(t('recipes.col_unit'))}" data-require-disable="${editAction}">
-        ${ING_UNITS.map(u => {
-          const sel = normalizePasteUnit(ing.unit || 'g') === u ? 'selected' : '';
-          return `<option value="${u}" data-i18n="recipes.unit_${u}" ${sel}>${escapeHTML(t(`recipes.unit_${u}`))}</option>`;
-        }).join('')}
+        ${recipeUnitSelectHtml(ing.unit, t)}
       </select>
     </div>
     <div class="col-rm">
@@ -1257,67 +1272,18 @@ function buildIngRow(ing, editAction) {
       </button>
     </div>
   `;
-  // Wire autocomplete (fixed layer: avoids .modal__form overflow clipping)
-  const nameInput = row.querySelector('.ing-name');
-  let dropdown;
-  let acOnScrollOrResize;
-  function syncACPosition() {
-    if (!dropdown) return;
-    const r = nameInput.getBoundingClientRect();
-    dropdown.style.left = `${Math.max(8, r.left)}px`;
-    dropdown.style.top = `${r.bottom + 4}px`;
-    dropdown.style.width = `${Math.min(r.width, window.innerWidth - 16)}px`;
-  }
-  nameInput.addEventListener('input', () => {
-    const q = nameInput.value.trim();
-    if (!q) { closeAC(); return; }
-    const suggestions = suggestNutrients(q, 8);
-    if (!suggestions.length) {
-      showAC([], t('recipes.no_match'));
-      return;
-    }
-    showAC(suggestions);
+  mountIngredientAutocomplete(row.querySelector('.ing-name'), {
+    pantryNames: pantryIngredientNames,
+    limit: 12,
+    emptyMessage: t('recipes.no_match'),
   });
-  nameInput.addEventListener('blur', () => setTimeout(closeAC, 150));
-  function showAC(items, emptyMsg) {
-    closeAC();
-    dropdown = document.createElement('div');
-    dropdown.className = 'ac-dropdown';
-    dropdown.setAttribute('role', 'listbox');
-    if (!items.length) {
-      dropdown.innerHTML = `<div class="ac-empty">${escapeHTML(emptyMsg)}</div>`;
-    } else {
-      dropdown.innerHTML = items.map(s => `<div class="ac-item" role="option" tabindex="-1">${escapeHTML(s)}</div>`).join('');
-      dropdown.querySelectorAll('.ac-item').forEach(item => {
-        item.addEventListener('mousedown', (e) => {
-          e.preventDefault();
-          nameInput.value = item.textContent;
-          closeAC();
-          nameInput.dispatchEvent(new Event('input', { bubbles: true }));
-        });
-      });
-    }
-    document.body.appendChild(dropdown);
-    syncACPosition();
-    acOnScrollOrResize = () => { closeAC(); };
-    window.addEventListener('scroll', acOnScrollOrResize, true);
-    window.addEventListener('resize', acOnScrollOrResize);
-  }
-  function closeAC() {
-    if (acOnScrollOrResize) {
-      window.removeEventListener('scroll', acOnScrollOrResize, true);
-      window.removeEventListener('resize', acOnScrollOrResize);
-      acOnScrollOrResize = null;
-    }
-    if (dropdown) { dropdown.remove(); dropdown = null; }
-  }
-  // Remove
   row.querySelector('.rm-btn').addEventListener('click', () => {
     row.remove();
     document.getElementById('recipeEditor')?.querySelector('.modal__form')?.dispatchEvent(new Event('input', { bubbles: true }));
   });
   return row;
 }
+
 
 await loadRecipes();
 const vh = document.createElement('style');
