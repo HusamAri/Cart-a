@@ -160,6 +160,7 @@ import { atwaterKcal, formatNumber } from '/src/recipe-compute.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { downloadWorkbook } from '/src/xlsx-export.js';
 import { cartaIcon } from '/src/carta-icon.js';
+import { applyRoleGates } from '/src/permissions.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -168,6 +169,7 @@ main.className = 'studio-page';
 const ctx = await mountStudioShell({ active: 'ingredients', main });
 if (!ctx) throw new Error('No session/workspace');
 const wsId = ctx.workspace.id;
+const { role } = ctx;
 const LS_KEY = `carta_ing_custom_${wsId}`;
 
 function escapeHTML(s) {
@@ -224,7 +226,7 @@ main.innerHTML = `
       <p class="lead" data-i18n="ingdb.intro">Codex Ek-10 style values per 100 g. Filter, audit export, add workspace-only custom rows.</p>
     </div>
     <div class="page-head__actions">
-      <button type="button" class="btn btn-primary btn-sm" id="exportAuditBtn">
+      <button type="button" class="btn btn-primary btn-sm" id="exportAuditBtn" data-require="export">
         ${cartaIcon('download', { size: 18 })}
         <span data-i18n="ingdb.export_audit">Audit Excel</span>
       </button>
@@ -313,6 +315,10 @@ document.head.appendChild(vh);
 applyTranslations();
 const searchEl = main.querySelector('#ingSearch');
 searchEl.placeholder = t('ingdb.search_ph');
+main.querySelectorAll('#customForm input, #customForm button[type="submit"]').forEach(el => {
+  el.setAttribute('data-require-disable', 'cost_create');
+});
+applyRoleGates(role, main);
 
 function catLabel(id) {
   return t(`ingdb.cat.${id}`) || id;
@@ -392,7 +398,7 @@ function render() {
     return `<tr>
       <td>${escapeHTML(r.name)}</td>
       <td class="col-num">${formatNumber(kk, 0)}</td>
-      <td><button type="button" class="btn btn-sm btn-ghost" data-rm="${i}" data-i18n="ingdb.custom_remove">Remove</button></td>
+      <td><button type="button" class="btn btn-sm btn-ghost" data-rm="${i}" data-require="cost_delete" data-i18n="ingdb.custom_remove">Remove</button></td>
     </tr>`;
   }).join('') : `<tr><td colspan="3" class="text-muted" data-i18n="ingdb.custom_empty">No custom rows yet.</td></tr>`;
   applyTranslations();
@@ -404,6 +410,7 @@ function render() {
       render();
     });
   });
+  applyRoleGates(role, main);
 }
 
 main.querySelector('#customForm').addEventListener('submit', (e) => {

@@ -355,7 +355,7 @@ import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { ALLERGEN_LABELS, suggestNutrients, lookupNutrient, NUTRIENT_EN } from '/src/nutrient-db.js';
 import { computeRecipe, formatNumber } from '/src/recipe-compute.js';
-import { getMyRole, applyRoleGates } from '/src/permissions.js';
+import { applyRoleGates } from '/src/permissions.js';
 import { cartaIcon } from '/src/carta-icon.js';
 import { canAddRecipes, planLimitMessageKey } from '/src/plan-limits.js';
 
@@ -370,7 +370,7 @@ const ctx = await mountStudioShell({ active: 'recipes', main });
 if (!ctx) throw new Error('No session/workspace');
 const wsId = ctx.workspace.id;
 const wsPlan = ctx.workspace.plan;
-const role = await getMyRole(wsId);
+const { role } = ctx;
 
 // ============================================================
 // 2. Build top + grid markup

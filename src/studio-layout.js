@@ -231,36 +231,38 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
 
   function openDrawer() {
     sidebar.classList.add('is-open');
-    drawerBackdrop.classList.add('is-open');
+    drawerBackdrop?.classList.add('is-open');
     document.body.classList.add('drawer-open');
-    menuBtn.setAttribute('aria-expanded', 'true');
+    menuBtn?.setAttribute('aria-expanded', 'true');
     // Focus first link in sidebar for keyboard users
     const firstLink = sidebar.querySelector('.sidebar__link');
     if (firstLink) setTimeout(() => firstLink.focus(), 50);
   }
   function closeDrawer() {
     sidebar.classList.remove('is-open');
-    drawerBackdrop.classList.remove('is-open');
+    drawerBackdrop?.classList.remove('is-open');
     document.body.classList.remove('drawer-open');
-    menuBtn.setAttribute('aria-expanded', 'false');
+    menuBtn?.setAttribute('aria-expanded', 'false');
   }
   function isDrawerOpen() {
     return sidebar.classList.contains('is-open');
   }
 
-  menuBtn.addEventListener('click', () => {
+  menuBtn?.addEventListener('click', () => {
     isDrawerOpen() ? closeDrawer() : openDrawer();
   });
-  drawerBackdrop.addEventListener('click', closeDrawer);
+  drawerBackdrop?.addEventListener('click', closeDrawer);
 
   // Close on Escape; basic focus trap while open
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isDrawerOpen()) { closeDrawer(); menuBtn.focus(); return; }
+    if (e.key === 'Escape' && isDrawerOpen()) { closeDrawer(); menuBtn?.focus(); return; }
     if (e.key === 'Tab' && isDrawerOpen()) {
-      const focusables = sidebar.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
+      const focusables = sidebar.querySelectorAll('a, button, select, textarea, [tabindex]:not([tabindex="-1"])');
       if (!focusables.length) return;
-      const first = focusables[0];
-      const last  = focusables[focusables.length - 1];
+      const list = [...focusables].filter(el => !el.disabled && el.offsetParent !== null);
+      if (!list.length) return;
+      const first = list[0];
+      const last  = list[list.length - 1];
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
@@ -288,7 +290,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     { keyHtml: 'Tab', labelKey: 'ui.shortcuts.skip_tip' },
   ]);
 
-  return { session, workspace: ws };
+  return { session, workspace: ws, role };
 }
 
 function escapeHTML(s) {

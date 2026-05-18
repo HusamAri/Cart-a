@@ -91,6 +91,7 @@ import {
   getModuleById,
 } from '/src/capability-map.js';
 import { applyTranslations, t } from '/src/i18n.js';
+import { applyRoleGates } from '/src/permissions.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -98,6 +99,7 @@ main.className = 'studio-page';
 
 const ctx = await mountStudioShell({ active: 'capabilities', main });
 if (!ctx) throw new Error('No session/workspace');
+const { role } = ctx;
 
 main.innerHTML = `
   <div class="page-head">
@@ -116,7 +118,7 @@ main.innerHTML = `
       <select id="capModFilter" aria-label="Filter by module"></select>
     </div>
     <div class="grow"></div>
-    <button type="button" class="btn btn-accent btn-sm" id="capDlJson" data-i18n="cap.download_json">Download JSON</button>
+    <button type="button" class="btn btn-accent btn-sm" id="capDlJson" data-require="export" data-i18n="cap.download_json">Download JSON</button>
   </div>
 
   <div class="cap-card">
@@ -194,6 +196,8 @@ function renderRows() {
 applyTranslations();
 syncModuleOptionLabels();
 renderRows();
+
+applyRoleGates(role, main);
 
 modSelect.addEventListener('change', renderRows);
 

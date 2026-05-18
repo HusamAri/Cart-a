@@ -144,7 +144,7 @@ const STRINGS = {
     'legal.privacy_intro':
       'This notice describes how Carta ("we", "us") processes personal data when you use the Carta F&B Operations Studio websites and application at cart-a.live. It is a summary; it is not legal advice. For contractual terms see the Terms of Service.',
     'legal.privacy_p1':
-      'Controller: Artifact Studio / Carta product team, reachable at hello@carta.app for privacy requests.',
+      'Controller: Artifact Studio / Carta product team, reachable at istanbul@artifact-studio.com for privacy requests.',
     'legal.privacy_p2':
       'We process account data (email, authentication identifiers), workspace and facility names you provide, operational data you enter (recipes, costs, menu structures, audit events), and technical logs needed to secure the service.',
     'legal.privacy_p3':
@@ -152,7 +152,7 @@ const STRINGS = {
     'legal.privacy_p4':
       'Hosting and database processing may use infrastructure in regions selected for your Supabase project. Retention follows active subscription and backup policies; you may request export or deletion subject to law and legitimate interests.',
     'legal.privacy_p5':
-      'You may have rights to access, rectify, erase, restrict, or object to certain processing, and to lodge a complaint with a supervisory authority. Contact hello@carta.app to exercise these rights.',
+      'You may have rights to access, rectify, erase, restrict, or object to certain processing, and to lodge a complaint with a supervisory authority. Contact istanbul@artifact-studio.com to exercise these rights.',
     'legal.terms_h1': 'Terms of service',
     'legal.terms_intro':
       'By using Carta you agree to these terms. If you disagree, do not use the service.',
@@ -174,7 +174,7 @@ const STRINGS = {
     'legal.kvkk_p3':
       'Transfers: processors such as Supabase (database/auth) and Vercel (hosting) may process data under agreements. International transfers use appropriate safeguards where required.',
     'legal.kvkk_p4':
-      'Data subjects may contact hello@carta.app for access, correction, deletion, or objections. Turkish residents may apply to the Personal Data Protection Authority.',
+      'Data subjects may contact istanbul@artifact-studio.com for access, correction, deletion, or objections. Turkish residents may apply to the Personal Data Protection Authority.',
     'legal.kvkk_p5':
       'Recipe and allergen calculations in Carta are decision-support tools for professionals. Printed menus and guest-facing declarations remain your responsibility.',
     // auth
@@ -831,7 +831,7 @@ const STRINGS = {
     'hero.cta_see': 'Nasıl işliyor?',
     'hero.meta_codex': 'TGK Ek-10 / Ek-13 uyumlu',
     'hero.meta_law': 'KVKK · VUK · HACCP',
-    'hero.meta_offline': 'Bulutta güvenli kayıt; bazı görünümler önbellekle çevrimdışı okunur',
+    'hero.meta_offline': 'Verilerin bulutta güvenle saklanır; bazı ekranlar önbellek sayesinde çevrimdışı da okunabilir.',
     'hero.figure_alt':
       'Natürmorta görseli: F&B operasyon stüdyosu için zanaat ve servis düzenini çağrıştıran tabak ve bardak kompozisyonu.',
     'hero.quote': 'Süslemeyiz; inşa ederiz. Mutfağın ekonomisi sadece arka ofisten ibaret değildir; ustanın işinin parçasıdır.',
@@ -862,7 +862,8 @@ const STRINGS = {
     'index.05_num': '05 — Sapma analizi',
     'index.05_title_l1': 'Sapma',
     'index.05_title_em': 'analizi',
-    'index.05_desc': 'Maliyet defterinin anlık kaydı; en çok oynayan kalemler, anomaliler ve yönetici özeti tek bakışta.',
+    'index.05_desc':
+      'İstediğin anda maliyet defterinin görüntüsünü al; en çok oynayan kalemler, sapmalar ve yönetici özeti tek bakışta.',
     'index.06_num': '06 — Raporlama',
     'index.06_title_l1': 'Rapor',
     'index.06_title_em': 've dışa aktarım',
@@ -882,7 +883,7 @@ const STRINGS = {
     'editorial.cap_3': 'Mermer · pirinç ve defter',
     'editorial.cap_4': 'Şarap · dekant ve not',
     'editorial.cap_5': 'Menü · folyo, mühür, işçilik',
-    'editorial.cap_6': 'Servis · tepsi ve linen',
+    'editorial.cap_6': 'Servis · tepsi ve örtü',
     'editorial.cap_7': 'Servis hattı · sakin ritim',
     'editorial.cap_8': 'Buhar · tavada kısık ateş',
     'editorial.cap_9': 'Sunum · ilk eskiz',
@@ -890,7 +891,8 @@ const STRINGS = {
     'pricing.section': 'Bölüm 03 — Planlar',
     'pricing.title_l1': 'Net',
     'pricing.title_em': 'fiyatlandırma.',
-    'pricing.lead': 'Tek tesiste ücretsiz başlayın. Çok şubeli raporlama, SAP bağlantısı ve ekip özelliklerinde üst paketlere geçin.',
+    'pricing.lead':
+      'Tek tesiste ücretsiz başlayın. Birden fazla tesis raporu, SAP entegrasyonu ve ekiple çalışmaya ihtiyaç duyduğunuzda üst paketlere geçebilirsiniz.',
     'pricing.popular': 'EN ÇOK TERCİH EDİLEN',
     'pricing.free_name': 'Ücretsiz',
     'pricing.free_desc': 'Tek mutfak veya deneme için.',
@@ -924,7 +926,8 @@ const STRINGS = {
     // cta band
     'cta.title_l1': 'Birkaç dakikada',
     'cta.title_em': 'ilk çalışma alanın hazır.',
-    'cta.lead': 'E-postana gelen tek kullanımlık bağlantı ile giriş; şifre ezberine gerek yok. İlk tesis kaydını kahveniz soğumadan açabilirsin.',
+    'cta.lead':
+      'E-postana gelen tek kullanımlık bağlantıyla giriş yap; şifre ezberlemen gerekmez. İlk tesis kaydını birkaç dakika içinde oluşturabilirsin.',
     // footer
     'foot.tagline': 'Hem tabağa hem rakamlara önem veren mutfaklar için; sakin, disiplinli bir operasyon stüdyosu.',
     'foot.product': 'Ürün',
@@ -940,7 +943,7 @@ const STRINGS = {
     'foot.made': 'İstanbul’da tasarlandı',
     'cookie.region': 'Çerezler ve depolama',
     'cookie.banner':
-      'Oturum açma, dil, tema ve aktif çalışma alanı için gerekli çerezler ile tarayıcı depolaması kullanıyoruz. Sayım çerezleri varsayılan olarak kapalıdır. Ayrıntılar Gizlilik Politikasında.',
+      'Oturum açma, dil, tema ve seçili çalışma alanı için gerekli çerezler ile tarayıcıda yerel depolama kullanıyoruz. Analitik çerezler varsayılan olarak kapalıdır. Ayrıntılar için Gizlilik Politikasına bakın.',
     'cookie.privacy_link': 'Gizlilik',
     'cookie.accept': 'Anladım',
     'plan.err_recipe_limit':
@@ -958,22 +961,22 @@ const STRINGS = {
     'legal.privacy_intro':
       'Bu metin, cart-a.live üzerindeki Carta F&B Operasyon Stüdyosu web ve uygulamasını kullanırken kişisel verilerin nasıl işlendiğini özetler. Hukuki tavsiye değildir; sözleşme için Kullanım Koşullarına bakın.',
     'legal.privacy_p1':
-      'Veri sorumlusu: Artifact Studio / Carta ürün ekibi; talepler için hello@carta.app.',
+      'Veri sorumlusu: Artifact Studio / Carta ürün ekibi; talepler için istanbul@artifact-studio.com.',
     'legal.privacy_p2':
       'Hesap verileri (e-posta, kimlik doğrulama bilgileri), sizin girdiğiniz tesis adları, operasyonel içerik (reçete, maliyet, menü, denetim kayıtları) ve hizmet güvenliği için teknik günlükler işlenebilir.',
     'legal.privacy_p3':
-      'Amaçlar: ürünü sunmak ve geliştirmek, kimlik doğrulama, güvenlik ve kötüye kullanımı önlemek, destek ve yasal uyum. Otomatik alerjen ve besin hesapları mutfak planına yardımcıdır; mevzuat uyumlu etiketin yerini almaz.',
+      'Amaçlar: ürünü sunmak ve geliştirmek, kimlik doğrulama, güvenlik ve kötüye kullanımı önlemek, destek ve yasal uyum. Otomatik alerjen ve besin hesapları mutfak planlamasına yardımcı olur; mevzuata uygun etiketlemenin yerini tutmaz.',
     'legal.privacy_p4':
       'Barındırma ve veritabanı işleme, Supabase projesi için seçilen bölgelerde gerçekleşebilir. Saklama; abonelik ve yedekleme politikalarına tabidir. Yasal çerçevede veri aktarımı veya silme talebinde bulunabilirsiniz.',
     'legal.privacy_p5':
-      'Erişim, düzeltme, silme, işlemeyi kısıtlama veya itiraz hakları yasanın öngördüğü ölçüde geçerlidir. Talepler için hello@carta.app.',
+      'Erişim, düzeltme, silme, işlemeyi sınırlama veya itiraz gibi hakların kapsamı ilgili mevzuata bağlıdır. Bu hakları kullanmak için istanbul@artifact-studio.com adresine yazabilirsiniz.',
     'legal.terms_h1': 'Kullanım koşulları',
     'legal.terms_intro':
       'Carta’yı kullanarak bu koşulları kabul edersiniz. Kabul etmiyorsanız hizmeti kullanmayın.',
     'legal.terms_p1':
       'Carta, yiyecek-içecek operasyonları için yazılım sunar. Özellikler değişebilir. Girdiğiniz verilerin doğruluğu ve dışa aktarımları işinizde nasıl kullandığınız sizin sorumluluğunuzdadır.',
     'legal.terms_p2':
-      'Hesaplarda geçerli iletişim bilgisi kullanılmalıdır. Yetkisiz erişim veya sistemi aşırı yüklemek yasaktır; ihlalde erişim askıya alınabilir.',
+      'Hesaplarda geçerli iletişim bilgisi kullanılmalıdır. Yetkisiz erişim veya sistemi kasıtlı olarak aşırı yüklemek yasaktır; ihlal halinde erişim askıya alınabilir.',
     'legal.terms_p3':
       'Ücretler satın alma anında açıklanır; vergiler uygulanabilir. Koşullar güncellenebilir; önemli değişiklikler mümkün olduğunca ürün içi veya e-posta ile duyurulur.',
     'legal.terms_p4':
@@ -988,19 +991,19 @@ const STRINGS = {
     'legal.kvkk_p3':
       'Aktarım: Supabase (veritabanı/kimlik doğrulama), Vercel (barındırma) gibi işleyenler sözleşmeye tabidir. Uluslararası aktarımda yasal güvenceler uygulanır.',
     'legal.kvkk_p4':
-      'İlgili kişiler hello@carta.app üzerinden başvurabilir; Türkiye’de Kişisel Verileri Koruma Kurulu’na başvuru hakkı saklıdır.',
+      'İlgili kişiler taleplerini istanbul@artifact-studio.com adresine e-posta iletebilir; Türkiye’de Kişisel Verileri Koruma Kurulu’na başvuru hakkı saklıdır.',
     'legal.kvkk_p5':
       'Carta’daki reçete ve alerjen çıktıları profesyonellere karar destek içindir; basılı menü ve misafir bilgilendirmesi işletmenin sorumluluğundadır.',
     // auth
     'auth.welcome': 'Yeniden hoş geldin.',
-    'auth.welcome_intro': 'Kurumsal e-postanı yaz; tek kullanımlık güvenli giriş bağlantısını gönderelim.',
+    'auth.welcome_intro': 'İş e-postanı yaz; sana tek kullanımlık güvenli giriş bağlantısı gönderelim.',
     'auth.signup_title': 'İlk çalışma alanını aç',
-    'auth.signup_intro': 'Tek e-posta, tek bağlantı; mutfağının dijital stüdyosunu dakikalar içinde kur.',
+    'auth.signup_intro': 'Tek e-posta, tek bağlantı; mutfağının dijital stüdyosunu birkaç dakikada kur.',
     'auth.label_email': 'Kurumsal e-posta',
     'auth.label_password': 'Şifre',
     'auth.send_link': 'Bağlantıyı gönder',
     'auth.signin_btn': 'Giriş yap',
-    'auth.signin_intro': 'E-posta ve şifrenle oturum aç.',
+    'auth.signin_intro': 'E-posta ve şifrenle giriş yap.',
     'auth.tab_magic': 'E-posta ile giriş',
     'auth.tab_password': 'Şifre ile giriş',
     'auth.sending': 'Gönderiliyor…',
@@ -1023,7 +1026,7 @@ const STRINGS = {
     // chapter details
     'ch.01_detail1': 'Atwater yöntemiyle enerji',
     'ch.01_detail2': '14 alerjen sınıfı',
-    'ch.01_detail3': 'Vegan · Helal · Glütensiz etiketleri',
+    'ch.01_detail3': 'Vegan · Helal · Glutensiz etiketleri',
     'ch.02_detail1': 'SAP · Excel · CSV',
     'ch.02_detail2': 'Fire ve verim düzeltmeli',
     'ch.02_detail3': 'VUK saklama referansı',
@@ -1043,7 +1046,8 @@ const STRINGS = {
     'plans.section': 'Bölüm 03 — Planlar',
     'plans.title_l1': 'Net',
     'plans.title_em': 'fiyatlandırma.',
-    'plans.lead': 'Tek tesiste ücretsiz dene. Çoklu tesis raporları ve ekip çalışması için planını yükselt.',
+    'plans.lead':
+      'Tek tesiste ücretsiz dene. Birden fazla tesis raporu ve ekiple çalışmak için planını yükselt.',
     'plans.unit_free': 'Deneme sürümü',
     'plans.unit_ent': 'Teklif üzerine',
     'plans.start_free': 'Ücretsiz başla →',
@@ -1052,7 +1056,8 @@ const STRINGS = {
     // closing
     'closing.eyebrow': 'Bölüm 04 — Başlangıç',
     'closing.title': 'Hazırsan, ilk adımı at.',
-    'closing.lead': 'Gelen kutundaki tek kullanımlık bağlantı yeter. Şifre ezberleme. İlk çalışma alanın birkaç dakika içinde açılır.',
+    'closing.lead':
+      'Gelen kutuna düşen tek kullanımlık bağlantı yeter; şifreyi ezberlemen gerekmez. İlk çalışma alanını birkaç dakikada açarsın.',
     // login/signup
     'login.eyebrow': 'Giriş',
     'signup.eyebrow': 'Kayıt · Çalışma alanı',
@@ -1077,7 +1082,8 @@ const STRINGS = {
     'ws.invite_hint': 'Davet bağlantısını paylaş. Alıcı ilk açılışta hesabını oluşturup doğrudan bu çalışma alanına katılabilir.',
     'ws.invite_send': 'Davet gönder',
     'ws.invite_success': 'Davet tamam.',
-    'ws.invite_success_note': 'Carta ayrıca davet e-postası göndermez. Bağlantıyı paylaşın; alıcı sayfadan tek kullanımlık giriş isteğinde bulunur. Gelen kutusu ve spam klasörünü kontrol etmelerini söyleyin.',
+    'ws.invite_success_note':
+      'Carta davet için ayrı bir e-posta göndermez. Bağlantıyı güvenli bir kanaldan paylaşın; alıcı sayfada tek kullanımlık giriş isteğinde bulunur. Gelen kutusu ve gerekirse önemsiz klasörünü kontrol etmesini hatırlatın.',
     'ws.invite_link': 'Davet bağlantısı',
     'ws.copy_link': 'Kopyala',
     'ws.copied': 'Panoya kopyalandı',
@@ -1108,9 +1114,9 @@ const STRINGS = {
     'studio.overview': 'Genel bakış',
     'studio.open': 'Aç',
     'studio.switch_ws': 'Çalışma alanını değiştir',
-    'studio.welcome': 'Carta stüdyona hoş geldin.',
+    'studio.welcome': 'Carta stüdyosuna hoş geldin.',
     'studio.welcome_intro':
-      'Menü, maliyet ve çıktı tek stüdyoda toplanmış durumda. Önce panoyu aç ya da aşağıdan bir modül seç.',
+      'Menü, maliyet ve raporlar aynı stüdyoda. Önce panoyu aç ya da aşağıdan bir modül seç.',
     'studio.modules': 'Modüller',
     'studio.coming_soon': 'Çok yakında',
     'studio.card_num_dash': 'Menü özeti',
@@ -1190,7 +1196,7 @@ const STRINGS = {
     'menus.field_type': 'Tür',
     'menus.field_icon': 'Menü simgesi',
     'menus.icon_hint': 'Bu menü kümesi için bir mutfak simgesi seçin.',
-    'menus.icon_utensils': 'Genel dining',
+    'menus.icon_utensils': 'Genel restoran',
     'menus.icon_breakfast': 'Kahvaltı · brunch',
     'menus.icon_coffee': 'Kahve bar',
     'menus.icon_wine': 'Şarap · mahzen',
@@ -1235,7 +1241,7 @@ const STRINGS = {
     'activity.title': 'Etkinlik',
     'activity.title_em': 'günlüğü',
     'activity.intro':
-      'Çalışma alanına özgü bir zaman çizelgesi: olay kodu, serbest not, isteğe bağlı sayaç ve işlemi yürüten kullanıcı. Satırlar denetime yazılmaya başlayınca dolar.',
+      'Yalnızca bu çalışma alanına ait kronoloji: olay türü, serbest metin not, isteğe bağlı sayaç ve işlemi yapan kişi. Modüller denetim kaydına yazdıkça satırlar burada birikir.',
     'activity.filter_type': 'Olay türü',
     'activity.filter_all': 'Tüm türler',
     'activity.refresh': 'Yenile',
@@ -1374,7 +1380,8 @@ const STRINGS = {
     'dash.carbon_ing_note': 'Seçili kapsamda birikimli g CO₂e',
     'dash.gap_high_carbon': 'Porsiyon başına sera gazı vektörü yüksek. Kırmızı et ağırlıklı tabakları veya porsiyonları gözden geçirin.',
     'dash.gap_plant': 'Bitki bazlı veya vegan etiketi az — vejetaryen veya vegan seçenekleri netleştirin.',
-    'dash.gap_gf': 'Glütensiz etiketli reçete yok — glutensiz sunum varsa en az bir net seçenek düşünün.',
+    'dash.gap_gf':
+      'Glutensiz etiketli reçete yok; glutensiz sunum hedefliyorsanız en az bir net seçenek eklemeyi düşünün.',
     'dash.gap_high_kcal': 'Ortalama kalori yüksek — porsiyon veya pişirme yöntemini gözden geçirin.',
     'dash.gap_low_kcal': 'Ortalama kalori çok düşük — porsiyon ve malzeme tamlığını kontrol edin.',
     'dash.gap_allergen_dense': '{a} birçok reçetede geçiyor — bildirim ve çapraz bulaşma metnini gözden geçirin.',
@@ -1383,7 +1390,8 @@ const STRINGS = {
     'dash.method_gaps': 'Uyarılar kodda tanımlı hızlı sezgisel kontrollerdir, denetim değildir: bitki bazlı etiket eksikliği, geniş menüde glutensiz seçenek olmaması, ortalama kalorinin olağan dışı yüksek veya düşük olması, porsiyon başına yüksek sera gazı vektörü veya bir alerjenin çoğu reçetede görünmesi. Ürün içinde eşikleri güncelleyebilirsiniz.',
     'dash.method_health': 'Makro enerji payları Atwater genel katsayılarını kullanır: protein 4, karbonhidrat 4, yağ 9 kcal/g. Reçeteler arası porsiyon başına makroların ortalaması alınır; her pay = (o makrodan gelen kcal) ÷ (makrolardan toplam kcal). kcal grupları, porsiyon enerjisine göre reçete sayar.',
     'dash.method_diet': 'Her çubuk, o diyet etiketini taşıyan reçete sayısının kapsamdaki reçetelere oranıdır. Etiketler malzeme ve meta kurallarıyla üretilir; dışa aktarımla aynıdır.',
-    'dash.method_allergen': 'Her satır, hesaplanan alerjen listesinde o alerjenin geçtiği reçetelerin kapsamdaki payıdır (malzeme adları Kodeks alerjen eşlemesine göre). Basılı menü metninizin yerine geçmez.',
+    'dash.method_allergen':
+      'Her satır, hesaplanan alerjen listesinde o alerjenin geçtiği reçetelerin kapsamdaki payını gösterir (malzeme adları Kodeks alerjen eşlemesine göre). Basılı menü veya misafir bilgilendirmenizin yerine geçmez.',
     'dash.method_ingredients': 'Kapsamdaki reçetelerde her malzeme adı (trim sonrası) kaç kez geçiyor sayılır. Sıklık satınalma harcaması değil, reçeteler arası yoğunluğu gösterir.',
     'dash.method_cost': 'Reçete başına malzemeler çalışma alanı defterinize ve Q faktörünüze göre eşlenir. Tam: her satırın fiyatı var; kısmi: bazı satırlar eksik; eksik: fiyat yok veya malzeme satırı yok.',
     'dash.method_carbon': 'Her malzeme satırı gramaj ve katmanlı kg CO₂e/kg emisyon katsayısı ile çarpılır, reçetede toplanır ve porsiyona bölünür. Çalışma alanı ortalamaları bu porsiyon değerlerinin aritmetik ortalamasıdır. 1000 kcal başına g CO₂e, en az 40 kcal porsiyonlu reçetelerde hesaplanır (aşırı büyük oranları azaltmak için).',
@@ -1393,7 +1401,8 @@ const STRINGS = {
     'ui.shortcuts.title': 'Klavye kısayolları',
     'ui.shortcuts.help_open': 'Bu yardım panelini aç veya kapat',
     'ui.shortcuts.esc_close': 'Açık pencereleri kapatır',
-    'ui.shortcuts.skip_tip': 'Sayfa açılışında ilk Tab ile görünmez “ana içeriğe atla” bağlantısı odaklanır',
+    'ui.shortcuts.skip_tip':
+      'İlk Tab tuşunda odak, görünmez “ana içeriğe atla” bağlantısına gider',
     'ui.shortcuts.esc_overlay': 'Katmanları kapatır: mobil yan menü, diyaloglar, kısayol yardımı',
     'ui.shortcuts.rail_toggle': 'Kenar çubuğunu masaüstünde dar veya geniş yapar',
     'ui.shortcuts.footer': 'Bir yazı alanı içinde yazarken kısayollar devre dışıdır.',
@@ -1439,7 +1448,7 @@ const STRINGS = {
     'recipes.delete_confirm': 'Bu reçeteyi kalıcı olarak silmek istediğine emin misin?',
     'recipes.edit_title': 'Reçeteyi düzenle',
     'recipes.new_title': 'Yeni reçete',
-    'recipes.no_match': 'Listede yok — özel malzeme (önce Maliyet defterine ekleyin).',
+    'recipes.no_match': 'Listede yok. Özel malzeme kullanmak için önce Maliyet defterine ekleyin.',
     'recipes.no_results': 'Aramanla eşleşen reçete yok.',
     'recipes.name_placeholder': 'ör. Çupra · portakallı rezene',
     'recipes.allergens_none': 'Bildirilen alerjen yok.',
@@ -1461,7 +1470,7 @@ const STRINGS = {
     'diet.vegan': 'Vegan',
     'diet.vegetarian': 'Vejetaryen',
     'diet.halal': 'Helal',
-    'diet.gluten_free': 'Glütensiz',
+    'diet.gluten_free': 'Glutensiz',
     // Maliyet defteri
     'cost.title': 'Maliyet',
     'cost.title_em': 'defteri',
@@ -1500,7 +1509,7 @@ const STRINGS = {
     'cost.import_template_hint': 'SAP dışa aktarma ile hizalanacak sütun düzenini indir',
     'cost.import_help': '.xlsx, .xls veya .csv (noktalı virgül ya da virgül) yükleyin. Başlıklar malzeme adı, SAP maddesi, hareketli ortalama fiyat, isteğe bağlı fiyat birimi (kg), verim % ve tarih ile eşleştirilir. Sütun zaten yenilebilir 100 g fiyat ise adında “100g” veya “per 100g” geçsin. Aksi halde fiyat, N kg için toplam fiyat kabul edilip 100 g’ye çevrilir. Mevcut satırlar malzeme adına göre güncellenir.',
     'cost.import_denied': 'Maliyet içe aktarmak için yetki gerekir.',
-    'cost.import_confirm': 'Bu dosyadan {n} malzeme kaydı güncellensın veya eklensin mi? ({s} satır boş veya geçersiz olduğu için atlandı.)',
+    'cost.import_confirm': 'Bu dosyadan {n} malzeme kaydı güncellensin veya eklensin mi? ({s} satır boş veya geçersiz olduğu için atlandı.)',
     'cost.import_done': '{n} maliyet satırı kaydedildi. {s} satır atlandı.',
     'cost.import_partial': '{n} satırdan sonra durdu: {e}',
     'cost.import_err_no_rows': 'Geçerli fiyat içeren satır bulunamadı.',

@@ -197,7 +197,7 @@ import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { formatNumber } from '/src/recipe-compute.js';
 import { suggestNutrients } from '/src/nutrient-db.js';
-import { getMyRole, applyRoleGates, requireCan } from '/src/permissions.js';
+import { applyRoleGates, requireCan } from '/src/permissions.js';
 import { parseSapCostFile } from '/src/sap-cost-import.js';
 import { downloadWorkbook } from '/src/xlsx-export.js';
 import { cartaIcon } from '/src/carta-icon.js';
@@ -210,7 +210,7 @@ const ctx = await mountStudioShell({ active: 'cost', main });
 if (!ctx) throw new Error('No session/workspace');
 const wsId = ctx.workspace.id;
 const currency = ctx.workspace.currency || '₺';
-const role = await getMyRole(wsId);
+const { role } = ctx;
 
 main.innerHTML = `
   <div class="page-head">

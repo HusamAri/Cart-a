@@ -80,7 +80,7 @@ import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t } from '/src/i18n.js';
 import { MENU_PRESET_PACKS } from '/src/menu-presets.js';
 import { computeRecipe } from '/src/recipe-compute.js';
-import { getMyRole, applyRoleGates, requireCan } from '/src/permissions.js';
+import { applyRoleGates, requireCan } from '/src/permissions.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -89,7 +89,7 @@ main.className = 'studio-page';
 const ctx = await mountStudioShell({ active: 'presets', main });
 if (!ctx) throw new Error('No session/workspace');
 const wsId = ctx.workspace.id;
-const role = await getMyRole(wsId);
+const { role } = ctx;
 
 function escapeHTML(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
