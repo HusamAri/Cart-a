@@ -802,27 +802,89 @@ html[data-color-scheme="dark"] .site-header.scrolled {
 
 /* Landing header: horizontal lockups sit on square canvases; never shrink/crop the anchor in the flex row. */
 body.carta-landing {
-  --topbar-h: 96px;
+  /* Slightly shorter bar: logo slot is visually cropped (square PNG transparent padding). */
+  --topbar-h: 80px;
 }
 html:has(body.carta-landing) {
-  scroll-padding-top: calc(96px + 16px);
+  scroll-padding-top: calc(80px + 16px);
 }
 @media (max-width: 640px) {
   body.carta-landing {
-    --topbar-h: 84px;
+    --topbar-h: 72px;
   }
   html:has(body.carta-landing) {
-    scroll-padding-top: calc(84px + 16px);
+    scroll-padding-top: calc(72px + 16px);
   }
 }
 
-body.carta-landing .site-header .site-logo {
+/* Landing: clip empty alpha above/below wordmark — img draws taller than this slot, centered. */
+body.carta-landing .site-header .site-logo.site-logo--crop-y {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-block: 0;
+  height: clamp(26px, 3vw, 34px);
+  max-height: calc(var(--topbar-h) - 36px);
+  overflow: hidden;
+  line-height: 0;
+}
+
+body.carta-landing .site-header .site-logo.site-logo--crop-y .site-logo__img--landing {
+  display: block;
+  width: auto;
+  height: clamp(52px, 6.4vw, 76px);
+  max-width: min(320px, 44vw);
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (max-width: 640px) {
+  body.carta-landing .site-header .site-logo.site-logo--crop-y {
+    height: clamp(24px, 6.5vw, 30px);
+    max-height: calc(var(--topbar-h) - 32px);
+  }
+  body.carta-landing .site-header .site-logo.site-logo--crop-y .site-logo__img--landing {
+    height: clamp(46px, 13vw, 64px);
+    max-width: min(300px, 58vw);
+  }
+}
+
+body.carta-landing .site-header .site-logo:not(.site-logo--crop-y) {
   flex: 0 0 auto;
   padding-block: 4px;
   overflow: visible;
 }
 
-body.carta-landing .site-header .site-logo img[src*='carta-brand-lockup-horizontal'] {
+body.carta-landing .site-header .site-logo:not(.site-logo--crop-y) img.site-logo__img--landing {
+  width: auto;
+  height: clamp(50px, 5.5vw, 66px);
+  max-height: calc(var(--topbar-h) - 20px);
+  max-width: min(320px, 44vw);
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: left center;
+}
+@media (max-width: 640px) {
+  body.carta-landing .site-header .site-logo:not(.site-logo--crop-y) img.site-logo__img--landing {
+    height: clamp(44px, 11vw, 56px);
+    max-height: calc(var(--topbar-h) - 18px);
+    max-width: min(300px, 58vw);
+    object-fit: contain;
+    object-position: left center;
+  }
+}
+
+/* Landing header: extra contrast for thin script + sublines on gradient chrome */
+html[data-color-scheme="dark"] body.carta-landing .site-header .site-logo img.site-logo__img--landing {
+  filter: brightness(0) invert(1) sepia(8%) saturate(0.5) hue-rotate(330deg) brightness(1.1) contrast(1.22);
+}
+html[data-color-scheme="light"] body.carta-landing .site-header .site-logo img.site-logo__img--landing {
+  filter: contrast(1.14) brightness(0.97);
+}
+
+/* Legacy: horizontal lockup without utility class (keeps older HTML working) */
+body.carta-landing .site-header .site-logo img[src*='carta-brand-lockup-horizontal']:not(.site-logo__img--landing) {
   width: auto;
   height: clamp(42px, 4.8vw, 54px);
   max-height: calc(var(--topbar-h) - 24px);
@@ -832,7 +894,7 @@ body.carta-landing .site-header .site-logo img[src*='carta-brand-lockup-horizont
   object-position: left center;
 }
 @media (max-width: 640px) {
-  body.carta-landing .site-header .site-logo img[src*='carta-brand-lockup-horizontal'] {
+  body.carta-landing .site-header .site-logo img[src*='carta-brand-lockup-horizontal']:not(.site-logo__img--landing) {
     height: clamp(38px, 10vw, 48px);
     max-height: calc(var(--topbar-h) - 20px);
     max-width: min(280px, 92vw);
@@ -880,6 +942,15 @@ html[data-color-scheme="light"] .hero__brand-seal {
 html[data-color-scheme="dark"] .hero__brand-seal {
   opacity: 1;
   filter: var(--carta-logo-mono-on-dark);
+}
+
+html[data-color-scheme="dark"] body.carta-landing .hero__brand-seal {
+  filter: brightness(0) invert(1) sepia(8%) saturate(0.5) hue-rotate(330deg) brightness(1.08) contrast(1.2);
+}
+
+html[data-color-scheme="light"] body.carta-landing .hero__brand-seal {
+  filter: contrast(1.12) brightness(0.98);
+  opacity: 1;
 }
 
 body.carta-landing .closing__brand-mark img {

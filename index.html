@@ -101,13 +101,23 @@
   }
   .hero__inner { max-width: 80ch; position: relative; }
   .hero__eyebrow-row {
-    display: flex; align-items: center; gap: var(--sp-3);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    row-gap: var(--sp-2);
     margin-bottom: var(--sp-6);
   }
   .hero__brand-seal {
-    height: clamp(20px, 3.2vw, 28px);
+    height: clamp(72px, 13vw, 128px);
     width: auto;
     flex-shrink: 0;
+    vertical-align: middle;
+  }
+  @media (max-width: 640px) {
+    .hero__brand-seal {
+      height: clamp(56px, 20vw, 96px);
+    }
   }
   .hero .display { margin-bottom: var(--sp-6); }
   .hero__lead { margin-bottom: var(--sp-7); max-width: 58ch; }
@@ -522,7 +532,7 @@
 
 <header class="site-header" id="siteHeader">
   <div class="container site-header__inner">
-    <a href="/" class="site-logo" aria-label="Carta"><img src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024"></a>
+    <a href="/" class="site-logo site-logo--crop-y" aria-label="Carta"><img class="site-logo__img--landing" src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024" decoding="async"></a>
     <nav class="site-nav" aria-label="Primary">
       <a href="#manifesto" data-i18n="nav.method">Method</a>
       <a href="#chapters" data-i18n="nav.index">Index</a>
