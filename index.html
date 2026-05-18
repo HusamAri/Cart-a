@@ -502,6 +502,10 @@
     justify-content: center;
     box-shadow: var(--shadow-2);
   }
+  /* Author `display:flex` beats UA `[hidden]{display:none}` at equal specificity; force dismiss. */
+  .carta-cookie-bar[hidden] {
+    display: none !important;
+  }
   .carta-cookie-bar__text {
     margin: 0;
     max-width: 52ch;

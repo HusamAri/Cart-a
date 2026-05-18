@@ -1,12 +1,13 @@
 // Carta — Authentication (magic link + password)
 import { supabase } from './supabase-client.js';
+import { getPublicAppOrigin } from './config.js';
 
-const APP_HOME = `${window.location.origin}/app/`;
+const APP_HOME = `${getPublicAppOrigin()}/app/`;
 
 /**
  * Magic link landing URL. Include ?invite= when present so the token survives
  * email clients that open the link in a fresh context (no prior localStorage).
- * Add matching redirect URLs in Supabase Auth (e.g. https://your.domain/app/).
+ * Add matching redirect URLs in Supabase Auth (e.g. https://cart-a.live/app/).
  */
 export function buildMagicLinkRedirectUrl(inviteToken = '') {
   const t = (inviteToken || '').trim();
