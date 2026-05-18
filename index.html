@@ -485,6 +485,31 @@
   .closing .btn-primary { background: var(--on-primary); color: var(--primary); }
   .closing .btn-primary:hover { background: rgb(255 255 255 / 0.92); color: var(--primary-hover); }
 
+  .carta-cookie-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 14px 18px;
+    background: var(--surface-container-highest);
+    color: var(--on-surface);
+    border-top: 1px solid var(--outline-variant);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    box-shadow: var(--shadow-2);
+  }
+  .carta-cookie-bar__text {
+    margin: 0;
+    max-width: 52ch;
+    font-size: var(--type-caption);
+    line-height: 1.5;
+    text-align: center;
+  }
+
 </style>
 </head>
 <body class="carta-landing">
@@ -793,10 +818,10 @@
   <div class="container">
     <div class="site-footer__top">
       <div>
-        <img class="site-footer__mark" src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024">
+        <img class="site-footer__mark" src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta horizontal wordmark on the site footer." width="1024" height="1024" data-i18n-alt="foot.mark_alt">
         <p style="font-size:14px;color:rgba(255,255,255,0.7);max-width:36ch;line-height:var(--lh-body)" data-i18n="foot.tagline">A luxury F&B operating system for kitchens that take their craft and their numbers seriously.</p>
-        <img class="site-footer__badges" src="/assets/carta-brand-stickers.png?v=7" alt="TGK Ek-10, HACCP, KVKK compliance" width="1024" height="764" loading="lazy" decoding="async">
-        <img class="site-footer__palette" src="/assets/carta-brand-palette.png?v=7" alt="Carta color palette: bone cream, sand linen, eucalyptus, antique gold, pale sage, ink graphite" width="1024" height="764" loading="lazy" decoding="async">
+        <img class="site-footer__badges" src="/assets/carta-brand-stickers.png?v=7" alt="Compliance badge artwork: TGK Ek-10 nutrition tables, HACCP, and KVKK references." width="1024" height="764" loading="lazy" decoding="async" data-i18n-alt="foot.badges_alt">
+        <img class="site-footer__palette" src="/assets/carta-brand-palette.png?v=7" alt="Carta brand color palette swatches: bone cream, sand linen, eucalyptus green, antique gold, pale sage, and ink graphite." width="1024" height="764" loading="lazy" decoding="async" data-i18n-alt="foot.palette_alt">
       </div>
       <div>
         <h5 data-i18n="foot.product">Product</h5>
@@ -818,9 +843,9 @@
       <div>
         <h5 data-i18n="foot.legal">Legal</h5>
         <ul>
-          <li><a href="#" data-i18n="foot.privacy">Privacy</a></li>
-          <li><a href="#" data-i18n="foot.terms">Terms</a></li>
-          <li><a href="#" data-i18n="foot.kvkk">KVKK · GDPR</a></li>
+          <li><a href="/legal/privacy" data-i18n="foot.privacy">Privacy</a></li>
+          <li><a href="/legal/terms" data-i18n="foot.terms">Terms</a></li>
+          <li><a href="/legal/kvkk" data-i18n="foot.kvkk">KVKK · GDPR</a></li>
         </ul>
       </div>
     </div>
@@ -830,6 +855,12 @@
     </div>
   </div>
 </footer>
+
+<div id="cartaCookieBar" class="carta-cookie-bar" role="region" data-i18n-aria-label="cookie.region" aria-label="" hidden>
+  <p class="carta-cookie-bar__text" data-i18n="cookie.banner">Cookie notice</p>
+  <a href="/legal/privacy" class="btn btn-ghost btn-sm" data-i18n="cookie.privacy_link">Privacy</a>
+  <button type="button" class="btn btn-primary btn-sm" id="cartaCookieAccept" data-i18n="cookie.accept">OK</button>
+</div>
 
 <script type="module">
 import { setLang, applyTranslations, getLang, t } from '/src/i18n.js';
@@ -880,6 +911,20 @@ const header = document.getElementById('siteHeader');
 const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 12);
 window.addEventListener('scroll', onScroll, { passive: true });
 onScroll();
+
+(function initCookieBar() {
+  const bar = document.getElementById('cartaCookieBar');
+  const acc = document.getElementById('cartaCookieAccept');
+  if (!bar || !acc) return;
+  try {
+    if (localStorage.getItem('carta_cookie_consent') === '1') return;
+  } catch (_) {}
+  bar.hidden = false;
+  acc.addEventListener('click', () => {
+    try { localStorage.setItem('carta_cookie_consent', '1'); } catch (_) {}
+    bar.hidden = true;
+  });
+})();
 </script>
 <script type="module" src="/src/page-motion.js"></script>
 </body>

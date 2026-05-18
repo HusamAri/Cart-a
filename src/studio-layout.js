@@ -11,19 +11,24 @@ import { initTheme, cycleThemePref, getThemePref, themePrefGlyph } from './theme
 
 const RAIL_SESSION_KEY = 'carta_sidebar_rail';
 
+/** Left rail: `assets/left-side-icon-set.png` — 5 cols × 4 rows; [col, row] is 0-based. */
+function sidebarNavSprite(col, row) {
+  return `<span class="sidebar__icon sidebar__icon--sheet" style="--s-col:${col};--s-row:${row}" aria-hidden="true"></span>`;
+}
+
 const MODULES = [
-  { key: 'dashboard', href: '/app/studio/dashboard.html', icon: 'query_stats',       i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
-  { key: 'recipes',   href: '/app/studio/recipes.html',   icon: 'temp_preferences_eco', i18n: 'studio.m_builder',  fallback: 'Recipes' },
-  { key: 'menus',     href: '/app/studio/menus.html',     icon: 'restaurant_menu',       i18n: 'studio.m_menus',    fallback: 'My menus' },
-  { key: 'ingredients', href: '/app/studio/ingredients.html', icon: 'nutrition', i18n: 'studio.m_ing_db', fallback: 'Ingredient DB' },
-  { key: 'presets',   href: '/app/studio/presets.html',   icon: 'collections_bookmark', i18n: 'studio.m_presets', fallback: 'Presets' },
-  { key: 'cost',      href: '/app/studio/cost.html',      icon: 'account_balance_wallet', i18n: 'studio.m_ledger',   fallback: 'Cost' },
-  { key: 'pricing',   href: '/app/studio/pricing.html',   icon: 'sell',                 i18n: 'studio.m_pricing',  fallback: 'Pricing' },
-  { key: 'matrix',    href: '/app/studio/matrix.html',    icon: 'grid_view',            i18n: 'studio.m_matrix',   fallback: 'Engineering' },
-  { key: 'variance',  href: '/app/studio/variance.html',  icon: 'analytics',            i18n: 'studio.m_audit',    fallback: 'Variance' },
-  { key: 'audit',     href: '/app/studio/audit.html',      icon: 'history',              i18n: 'studio.m_activity',  fallback: 'Activity log' },
-  { key: 'capabilities', href: '/app/studio/capabilities.html', icon: 'table_chart', i18n: 'studio.m_capabilities', fallback: 'Capability map' },
-  { key: 'surface',   href: '/app/studio/surface.html',   icon: 'ios_share',            i18n: 'studio.m_surface',  fallback: 'Surface' },
+  { key: 'dashboard', href: '/app/studio/dashboard.html', sprite: [3, 2], i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
+  { key: 'recipes',   href: '/app/studio/recipes.html',   sprite: [1, 2], i18n: 'studio.m_builder',  fallback: 'Recipes' },
+  { key: 'menus',     href: '/app/studio/menus.html',     sprite: [0, 2], i18n: 'studio.m_menus',    fallback: 'My menus' },
+  { key: 'ingredients', href: '/app/studio/ingredients.html', sprite: [2, 2], i18n: 'studio.m_ing_db', fallback: 'Ingredient DB' },
+  { key: 'presets',   href: '/app/studio/presets.html',   sprite: [2, 0], i18n: 'studio.m_presets', fallback: 'Presets' },
+  { key: 'cost',      href: '/app/studio/cost.html',      sprite: [3, 0], i18n: 'studio.m_ledger',   fallback: 'Cost' },
+  { key: 'pricing',   href: '/app/studio/pricing.html',   sprite: [0, 1], i18n: 'studio.m_pricing',  fallback: 'Pricing' },
+  { key: 'matrix',    href: '/app/studio/matrix.html',    sprite: [1, 1], i18n: 'studio.m_matrix',   fallback: 'Engineering' },
+  { key: 'variance',  href: '/app/studio/variance.html',  sprite: [4, 2], i18n: 'studio.m_audit',    fallback: 'Variance' },
+  { key: 'audit',     href: '/app/studio/audit.html',      sprite: [2, 1], i18n: 'studio.m_activity',  fallback: 'Activity log' },
+  { key: 'capabilities', href: '/app/studio/capabilities.html', sprite: [3, 3], i18n: 'studio.m_capabilities', fallback: 'Capability map' },
+  { key: 'surface',   href: '/app/studio/surface.html',   sprite: [4, 0], i18n: 'studio.m_surface',  fallback: 'Surface' },
 ];
 
 export async function mountStudioShell({ active = 'overview', main } = {}) {
@@ -52,12 +57,12 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     </div>
     <nav class="sidebar__nav" aria-label="Modules">
       <a class="sidebar__link ${active==='overview'?'active':''}" href="/app/studio.html" ${active==='overview'?'aria-current="page"':''}>
-        <span class="sidebar__icon">${cartaIcon('dashboard', { size: 22 })}</span>
+        ${sidebarNavSprite(0, 0)}
         <span class="sidebar__label" data-i18n="studio.overview">Overview</span>
       </a>
       ${MODULES.map(m => `
         <a class="sidebar__link ${active===m.key?'active':''}" href="${m.href}" ${active===m.key?'aria-current="page"':''}>
-          <span class="sidebar__icon">${cartaIcon(m.icon, { size: 22 })}</span>
+          ${sidebarNavSprite(m.sprite[0], m.sprite[1])}
           <span class="sidebar__label" data-i18n="${m.i18n}">${m.fallback}</span>
         </a>
       `).join('')}

@@ -1232,6 +1232,15 @@ html.motion-reduce .sidebar__link:hover { transform: none; }
   width: 22px;
   height: 22px;
 }
+/* Studio left nav: custom sprite (5×4 grid on 1536×1024 asset). --s-col / --s-row = 0-based cell index. */
+.sidebar__icon--sheet {
+  background-image: url('/assets/left-side-icon-set.png?v=1');
+  background-repeat: no-repeat;
+  background-size: calc(22px * 5) calc(22px * 4);
+  background-position: calc(-22px * var(--s-col, 0)) calc(-22px * var(--s-row, 0));
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
 .sidebar__foot {
   margin-top: auto;
   padding: 0 var(--glass-padding);
@@ -1594,36 +1603,57 @@ html[data-color-scheme="dark"] .data-table tbody tr[role="button"]:hover {
 .eyebrow-gold { color: var(--tertiary); }
 
 /* ============================================================
-   STUDIO MODULE — optional stills under page head
+   STUDIO MODULE — single editorial frame under page head
+   Set --ar-w/--ar-h (image intrinsic px) inline on each
+   .studio-panel-visual__cell so the frame matches orientation.
+   Rails: --vv-narrow · --vv-wide · --vv-bleed-right (+max width tweaks)
    ============================================================ */
 .studio-panel-visual {
-  max-width: 1120px;
+  max-width: min(920px, 94vw);
   margin: 0 auto var(--sp-7);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sp-4);
+  width: 100%;
 }
-.studio-panel-visual--single {
-  grid-template-columns: 1fr;
+.studio-panel-visual--vv-narrow {
   max-width: min(720px, 92vw);
 }
-@media (max-width: 640px) {
-  .studio-panel-visual { grid-template-columns: 1fr; }
+.studio-panel-visual--vv-wide {
+  max-width: min(1040px, 96vw);
+}
+.studio-panel-visual--vv-bleed-right {
+  max-width: min(1100px, 98vw);
 }
 .studio-panel-visual__cell {
-  margin: 0;
-  border-radius: var(--r-xl);
+  --studio-v-max-h: min(52vh, 420px);
+  margin: 0 auto;
+  position: relative;
   overflow: hidden;
+  border-radius: var(--r-xl);
   border: var(--glass-border);
   box-shadow: var(--shadow-inner-glow), var(--shadow-1);
-  background: var(--surface-container-lowest);
+  background: rgb(var(--ink-rgb) / 0.04);
+  padding: 0;
+  min-height: 0;
+  max-width: min(
+    100%,
+    calc((var(--ar-w, 16) / max(var(--ar-h, 10), 1)) * var(--studio-v-max-h))
+  );
+  max-height: var(--studio-v-max-h);
+  aspect-ratio: var(--ar-w, 16) / var(--ar-h, 10);
 }
 .studio-panel-visual__cell img {
   display: block;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: clamp(112px, 18vw, 200px);
+  height: 100%;
   object-fit: cover;
   object-position: center;
+}
+
+@media (max-width: 640px) {
+  .studio-panel-visual__cell {
+    --studio-v-max-h: min(48vh, 360px);
+  }
 }
 
 /* ============================================================

@@ -357,6 +357,7 @@ import { ALLERGEN_LABELS, suggestNutrients, lookupNutrient, NUTRIENT_EN } from '
 import { computeRecipe, formatNumber } from '/src/recipe-compute.js';
 import { getMyRole, applyRoleGates } from '/src/permissions.js';
 import { cartaIcon } from '/src/carta-icon.js';
+import { canAddRecipes, planLimitMessageKey } from '/src/plan-limits.js';
 
 // ============================================================
 // 1. Mount sidebar shell + get workspace context
@@ -368,6 +369,7 @@ main.className = 'studio-page';
 const ctx = await mountStudioShell({ active: 'recipes', main });
 if (!ctx) throw new Error('No session/workspace');
 const wsId = ctx.workspace.id;
+const wsPlan = ctx.workspace.plan;
 const role = await getMyRole(wsId);
 
 // ============================================================
@@ -395,9 +397,8 @@ main.innerHTML = `
     </div>
   </div>
 
-  <div class="studio-panel-visual" aria-hidden="true">
-    <figure class="studio-panel-visual__cell"><img class="is-brand-visual" src="/assets/carta-editorial-breakfast.png" alt="" width="824" height="1024" loading="lazy" decoding="async"></figure>
-    <figure class="studio-panel-visual__cell"><img class="is-brand-visual" src="/assets/carta-hero-bar.png" alt="" width="1024" height="824" loading="lazy" decoding="async"></figure>
+  <div class="studio-panel-visual">
+    <figure class="studio-panel-visual__cell" style="--ar-w:824; --ar-h:1024;"><img class="is-brand-visual" src="/assets/carta-editorial-breakfast.png" alt="Breakfast table with bread, preserves, butter, and porcelain." data-i18n-alt="img.alt.breakfast_spread" width="824" height="1024" loading="lazy" decoding="async"></figure>
   </div>
 
   <div id="listOrEmpty"></div>
@@ -898,6 +899,12 @@ function buildEditorEl({ recipe, data }) {
         const { error } = await supabase.from('saved_dishes').update({ name, kind: editorKind, data }).eq('id', recipe.id);
         if (error) throw error;
       } else {
+        const q = canAddRecipes(wsPlan, allRecipes.length, 1);
+        if (!q.ok) {
+          alert(t('plan.err_recipe_limit'));
+          saveBtn.disabled = false;
+          return;
+        }
         const { error } = await supabase.from('saved_dishes').insert({ workspace_id: wsId, name, kind: editorKind, data });
         if (error) throw error;
       }
@@ -905,7 +912,8 @@ function buildEditorEl({ recipe, data }) {
       await loadRecipes();
     } catch (err) {
       console.error('save', err);
-      alert((err && err.message) || 'Save failed');
+      const pk = planLimitMessageKey(err);
+      alert(pk ? t(pk) : ((err && err.message) || 'Save failed'));
       saveBtn.disabled = false;
     }
   });
@@ -923,6 +931,11 @@ function buildEditorEl({ recipe, data }) {
     // Duplicate — clones the recipe into a new row with " (copy)" suffix
     wrap.querySelector('#duplicateBtn').addEventListener('click', async () => {
       const dupBtn = wrap.querySelector('#duplicateBtn');
+      const q = canAddRecipes(wsPlan, allRecipes.length, 1);
+      if (!q.ok) {
+        alert(t('plan.err_recipe_limit'));
+        return;
+      }
       dupBtn.disabled = true;
       const newName = `${recipe.name} ${t('recipes.copy_suffix')}`;
       // Capture current form state (in case the user has edited but not saved)
@@ -936,7 +949,11 @@ function buildEditorEl({ recipe, data }) {
         .select()
         .single();
       dupBtn.disabled = false;
-      if (error) { alert(error.message); return; }
+      if (error) {
+        const pk = planLimitMessageKey(error);
+        alert(pk ? t(pk) : error.message);
+        return;
+      }
       closeEditor();
       await loadRecipes();
       // Open the new dish for immediate editing

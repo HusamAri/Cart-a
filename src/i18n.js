@@ -17,18 +17,18 @@ const STRINGS = {
     'hero.cta_see': 'See the system',
     'hero.meta_codex': 'TGK Ek-10 / Ek-13 compliant',
     'hero.meta_law': 'KVKK · VUK · HACCP',
-    'hero.meta_offline': 'Offline-capable',
+    'hero.meta_offline': 'Secure cloud · offline-friendly views',
     'hero.figure_alt':
       'Editorial still life: composed plate and glassware suggesting craft and mise en place for an F&B operations studio.',
     'hero.quote': 'We do not decorate. We construct. A kitchen\'s economics are not a back-office matter — they are part of the craft.',
     'hero.quote_cite': '— Carta principle 01',
     // index
     'index.section': 'Section 02 — Index',
-    'index.title': 'Six instruments. One studio.',
+    'index.title': 'One studio. Full F&B operations.',
     'index.title_l1': 'A complete',
     'index.title_em': 'system',
     'index.title_l2': ', not a stack of tools.',
-    'index.caption': 'Six instruments. One workspace. One mental model.',
+    'index.caption': 'Recipe through export: one workspace, one mental model.',
     'index.01_num': '01 — Recipe',
     'index.01_title_l1': 'The',
     'index.01_title_em': 'builder',
@@ -83,7 +83,7 @@ const STRINGS = {
     'pricing.free_li1': '1 property',
     'pricing.free_li2': '20 recipes',
     'pricing.free_li3': 'Single user',
-    'pricing.free_li4': 'Local-only (no sync)',
+    'pricing.free_li4': 'Secure cloud sync · capped at 20 recipes',
     'pricing.starter_name': 'Starter',
     'pricing.starter_desc': 'For single-property operators.',
     'pricing.starter_li1': '1 property',
@@ -124,6 +124,59 @@ const STRINGS = {
     'foot.kvkk': 'KVKK · GDPR',
     'foot.copyright': '© MMXXVI Carta · F&B Operations Studio',
     'foot.made': 'Made in İstanbul',
+    'cookie.region': 'Cookies and storage',
+    'cookie.banner':
+      'We use essential cookies and browser storage for sign-in, language, theme, and your active workspace. Analytics cookies are off by default. Details are in the Privacy Policy.',
+    'cookie.privacy_link': 'Privacy',
+    'cookie.accept': 'Understood',
+    'plan.err_recipe_limit':
+      'This workspace is on the Free plan and already has the maximum of 20 recipes. Remove a recipe or upgrade your plan.',
+    'plan.err_member_limit':
+      'The Free plan supports a single user per workspace. Upgrade to invite teammates.',
+    'ws.invite_blocked_free':
+      'Team invites are available on paid plans. Free includes one user with secure cloud sync for up to 20 recipes.',
+    'legal.back_home': '← Home',
+    'legal.privacy_page_title': 'Privacy · Carta',
+    'legal.terms_page_title': 'Terms · Carta',
+    'legal.kvkk_page_title': 'KVKK · GDPR · Carta',
+    'legal.updated': 'Last updated: May 2026.',
+    'legal.privacy_h1': 'Privacy policy',
+    'legal.privacy_intro':
+      'This notice describes how Carta ("we", "us") processes personal data when you use the Carta F&B Operations Studio websites and application at cart-a.live. It is a summary; it is not legal advice. For contractual terms see the Terms of Service.',
+    'legal.privacy_p1':
+      'Controller: Artifact Studio / Carta product team, reachable at hello@carta.app for privacy requests.',
+    'legal.privacy_p2':
+      'We process account data (email, authentication identifiers), workspace and facility names you provide, operational data you enter (recipes, costs, menu structures, audit events), and technical logs needed to secure the service.',
+    'legal.privacy_p3':
+      'Purposes include providing and improving the product, authentication, security and abuse prevention, support, and legal compliance. Automated allergen and nutrition outputs support kitchen planning only; they do not replace statutory food information obligations.',
+    'legal.privacy_p4':
+      'Hosting and database processing may use infrastructure in regions selected for your Supabase project. Retention follows active subscription and backup policies; you may request export or deletion subject to law and legitimate interests.',
+    'legal.privacy_p5':
+      'You may have rights to access, rectify, erase, restrict, or object to certain processing, and to lodge a complaint with a supervisory authority. Contact hello@carta.app to exercise these rights.',
+    'legal.terms_h1': 'Terms of service',
+    'legal.terms_intro':
+      'By using Carta you agree to these terms. If you disagree, do not use the service.',
+    'legal.terms_p1':
+      'Carta provides software for F&B operations. Features and availability may change. You are responsible for the accuracy of data you enter and for how you use exports in your business.',
+    'legal.terms_p2':
+      'Accounts must use valid contact information. You must not misuse the service, attempt unauthorized access, or overload systems. We may suspend access for violations.',
+    'legal.terms_p3':
+      'Fees, if any, are described at purchase. Taxes may apply. We may update these terms; material changes will be communicated in product or by email when practical.',
+    'legal.terms_p4':
+      'The service is provided "as is" to the extent permitted by law. Liability is limited to the maximum extent permitted for your jurisdiction.',
+    'legal.kvkk_h1': 'Personal data protection (KVKK & GDPR)',
+    'legal.kvkk_intro':
+      'Under Turkish KVKK and EU GDPR (where applicable), we act with purpose limitation, data minimization, and security measures appropriate to hospitality and food-service operational data.',
+    'legal.kvkk_p1':
+      'Processed categories: identity and contact (email), usage and device data, and content you create in workspaces (recipes, costs, menus, exports).',
+    'legal.kvkk_p2':
+      'Legal bases: performance of a contract, legitimate interests (security and product improvement), and consent where required (for example marketing, if ever offered).',
+    'legal.kvkk_p3':
+      'Transfers: processors such as Supabase (database/auth) and Vercel (hosting) may process data under agreements. International transfers use appropriate safeguards where required.',
+    'legal.kvkk_p4':
+      'Data subjects may contact hello@carta.app for access, correction, deletion, or objections. Turkish residents may apply to the Personal Data Protection Authority.',
+    'legal.kvkk_p5':
+      'Recipe and allergen calculations in Carta are decision-support tools for professionals. Printed menus and guest-facing declarations remain your responsibility.',
     // auth
     'auth.welcome': 'Welcome back.',
     'auth.welcome_intro': "Enter your email and we'll send a one-time link to sign in.",
@@ -148,7 +201,7 @@ const STRINGS = {
     'manifesto.01_title': 'Construct, do not decorate.',
     'manifesto.01_body': "A kitchen's economics are not a back-office matter. They are part of the craft. Carta is a construction tool, not a dashboard.",
     'manifesto.02_title': 'Simplicity is power.',
-    'manifesto.02_body': 'Six instruments. One workspace. One mental model. No bloat. No vanity charts. Every screen earns its place.',
+    'manifesto.02_body': 'Recipes, cost, pricing, menu engineering, exports, dashboards, and compliance views share one workspace and one mental model. No vanity charts. Every screen earns its place.',
     'manifesto.03_title': 'Negative space produces meaning.',
     'manifesto.03_body': 'The page breathes. The numbers breathe. The chef breathes. Reduction is more valuable than addition.',
     'manifesto.04_title': 'Discipline over decoration.',
@@ -242,7 +295,8 @@ const STRINGS = {
     'studio.section': 'Studio',
     'studio.switch_ws': 'Switch workspace',
     'studio.welcome': 'Welcome to your studio.',
-    'studio.welcome_intro': 'Menu intelligence in one studio. Start with the dashboard or open any module below.',
+    'studio.welcome_intro':
+      'One composed workspace for menu logic, costing, and guest-ready output. Begin with the dashboard or pick a module below.',
     'studio.modules': 'Modules',
     'studio.coming_soon': 'Coming soon',
     'studio.card_num_dash': 'Menu overview',
@@ -273,7 +327,8 @@ const STRINGS = {
     'presets.eyebrow': 'Starter packs',
     'presets.title': 'Menu',
     'presets.title_em': 'presets',
-    'presets.intro': 'Curated mini-menus for demos and new properties. Adds Codex-ready recipes to this workspace (skips duplicates by name and kind).',
+    'presets.intro':
+      'Curated bundles for onboarding and tastings. Drops Codex-ready recipes and skips duplicates by name and kind.',
     'presets.apply': 'Add pack to workspace',
     'presets.denied': 'You need recipe edit access to import packs.',
     'presets.result': 'Added {a} recipes. Skipped {s} (same name and kind already in workspace).',
@@ -286,9 +341,32 @@ const STRINGS = {
     'presets.pack.grill_hotel_plate.desc': 'Grilled chicken, roast potatoes, ayran — simple à la carte anchor.',
     'studio.m_menus': 'My menus',
     'studio.d_menus': 'Group recipes into menus for dashboards and reporting.',
+    'studio.overview_mast_alt':
+      'Editorial photograph: composed plate and glassware representing craft and mise en place in a hotel F&B studio.',
+    // Brand / module photography — shared asset alts (WCAG 1.1.1)
+    'img.alt.kitchen_operational':
+      'Bright hotel kitchen lit for service prep with chefs tending stations.',
+    'img.alt.marble_ledger':
+      'Brass-accented marble with notebooks and stationery like a meticulous ledger desk.',
+    'img.alt.menu_card':
+      'Folded linen, polished flatware, and a wax-sealed tasting menu beside the place setting.',
+    'img.alt.notebook_compliance':
+      'Open notebook with binder clips and a fountain pen implying traceable approvals.',
+    'img.alt.divided_tasting':
+      'Divided porcelain plate arranging tiny composed bites on tonal linen.',
+    'img.alt.bar_craft':
+      'Hotel bar mise en place with citrus garnish, chilled glassware, and layered spirits.',
+    'img.alt.breakfast_spread':
+      'Morning table with seeded bread, preserves, cultured butter, and porcelain service.',
+    'foot.mark_alt': 'Carta horizontal wordmark on the site footer.',
+    'foot.badges_alt':
+      'Compliance badge artwork: TGK Ek-10 nutrition tables, HACCP, and KVKK references.',
+    'foot.palette_alt':
+      'Carta brand color palette swatches: bone cream, sand linen, eucalyptus green, antique gold, pale sage, and ink graphite.',
     'menus.eyebrow': 'Menu grouping',
     'menus.title_full': 'My menus',
-    'menus.intro': 'Build menu clusters (breakfast, banquet, terrace) and attach saved recipes. Dashboard reads the same clusters. Import a dish list from CSV or compare two menus side by side.',
+    'menus.intro':
+      'Compose breakfast, banquet, terrace, bar sets. Hook in saved dishes, move dish lists through CSV, compare two menus cleanly.',
     'menus.list_title': 'Menus in this workspace',
     'menus.list_empty': 'No menus yet. Create one to group recipes.',
     'menus.list_count': '{n} recipes linked',
@@ -344,7 +422,8 @@ const STRINGS = {
     'activity.eyebrow': 'Compliance',
     'activity.title': 'Activity',
     'activity.title_em': 'log',
-    'activity.intro': 'Workspace-scoped audit rows: event type, free-text note, optional count, and actor. Entries appear when features write to the audit log.',
+    'activity.intro':
+      'Scoped audit timeline: typed events, prose notes, optional counters, actors. Rows accumulate whenever modules persist to audit storage.',
     'activity.filter_type': 'Event type',
     'activity.filter_all': 'All types',
     'activity.refresh': 'Refresh',
@@ -360,7 +439,8 @@ const STRINGS = {
     'cap.eyebrow': 'Agents',
     'cap.title': 'Capability',
     'cap.title_em': 'map',
-    'cap.intro': 'UI actions mapped to planned agent primitives. The studio is browser + Supabase; tools are not live here yet. Export JSON for MCP prompts or parity reviews.',
+    'cap.intro':
+      'Maps UI intents to forthcoming agent primitives. Ships browser-first backed by Supabase; export JSON to rehearse MCP parity.',
     'cap.filter_module': 'Module',
     'cap.all_modules': 'All modules',
     'cap.download_json': 'Download JSON',
@@ -393,7 +473,8 @@ const STRINGS = {
     'ingdb.eyebrow': 'Reference data',
     'ingdb.title': 'Ingredient',
     'ingdb.title_em': 'database',
-    'ingdb.intro': 'Codex Ek-10 style values per 100 g edible portion. Filter, export an audit workbook, add custom rows for this workspace.',
+    'ingdb.intro':
+      'Codex Ek-10 nutrients per 100 g edible portion. Filter, export an audit workbook, add bespoke pantry lines for this workspace.',
     'ingdb.export_audit': 'Audit Excel',
     'ingdb.search_ph': 'Search ingredients…',
     'ingdb.bev_label': 'Show',
@@ -432,7 +513,8 @@ const STRINGS = {
     'dash.page_eyebrow': 'Menu intelligence',
     'dash.page_title': 'Kitchen',
     'dash.page_title_em': 'dashboard',
-    'dash.page_intro': 'Workspace-wide signals from saved recipes: nutrition mix, allergens, diet coverage, a greenhouse-gas proxy, and cost completeness.',
+    'dash.page_intro':
+      'A quiet read across whatever is saved: macros, allergens, diet coverage, greenhouse-gas proxy, and how complete your cost map is.',
     'dash.disclaimer': 'These views support kitchen planning. They are not medical nutrition advice, statutory allergen labelling, or certified carbon accounting.',
     'dash.scope_label': 'Scope',
     'dash.scope_all': 'All recipes in workspace',
@@ -517,7 +599,7 @@ const STRINGS = {
     // Recipe builder
     'recipes.title': 'Recipe',
     'recipes.title_em': 'library',
-    'recipes.intro': 'Build, edit, compute. Codex-compliant kcal, macros, allergens.',
+    'recipes.intro': 'Author once. Kcal, macros, allergens, and diet tags update with each edit under Codex-aligned rules.',
     'recipes.search_ph': 'Search recipes…',
     'recipes.new': 'New recipe',
     'recipes.empty_eyebrow': 'First recipe',
@@ -572,7 +654,7 @@ const STRINGS = {
     // Cost ledger
     'cost.title': 'Cost',
     'cost.title_em': 'ledger',
-    'cost.intro': 'Per-ingredient cost. Yield-aware. SAP-compatible.',
+    'cost.intro': 'Ingredient truths with yields you recognise. Harmonises SAP MAP rows and handwritten references.',
     'cost.search_ph': 'Search ingredients…',
     'cost.new': 'New entry',
     'cost.empty_eyebrow': 'First entry',
@@ -619,7 +701,8 @@ const STRINGS = {
     // Pricing workspace
     'pricing.title': 'Price',
     'pricing.title_em': 'workspace',
-    'pricing.intro': 'Cost, margin, suggested price — recipe by recipe. Edit in place.',
+    'pricing.intro':
+      'Serving cost, gross-profit band, and shelf price lined up dish by dish. Inline edits ripple through adjacent columns.',
     'pricing.search_ph': 'Search dishes…',
     'pricing.kind_all': 'All',
     'pricing.kind_food': 'Food',
@@ -646,7 +729,8 @@ const STRINGS = {
     // Engineering matrix (Smith-Kasavana 1982)
     'matrix.title': 'Engineering',
     'matrix.title_em': 'matrix',
-    'matrix.intro': 'Smith-Kasavana 1982. Classify dishes by margin and popularity.',
+    'matrix.intro':
+      'Smith–Kasavana 1982. Plot popularity against contribution margin to see Stars, anchors, mysteries, and laggards.',
     'matrix.period_label': 'Period',
     'matrix.col_dish': 'Dish',
     'matrix.col_sold': 'Sold',
@@ -685,7 +769,8 @@ const STRINGS = {
     // Variance audit
     'variance.title': 'Variance',
     'variance.title_em': 'audit',
-    'variance.intro': 'Snapshot your cost ledger. Compare. See what moved, what flipped.',
+    'variance.intro':
+      'Capture ledger snapshots you trust. Diff across dates and spotlight what swung.',
     'variance.no_snapshots': 'No snapshots yet.',
     'variance.no_snapshots_intro': 'Take a snapshot of your current cost ledger. Each upload from SAP can capture one automatically — but you can also save them manually here.',
     'variance.no_costs': 'Your cost ledger is empty. Add ingredients first to compare against.',
@@ -715,7 +800,8 @@ const STRINGS = {
     // Surface / Export
     'surface.title': 'Surface',
     'surface.title_em': 'output',
-    'surface.intro': 'Export your data — Excel, print, share. Bilingual, offline-ready.',
+    'surface.intro':
+      'Structured exports to Excel and print. Turkish and English stay aligned for quiet offline review.',
     'surface.recipes_title': 'Recipes',
     'surface.recipes_desc': 'Every dish with kcal, macros, allergens, diet tags, current menu price.',
     'surface.cost_title': 'Cost ledger',
@@ -745,18 +831,18 @@ const STRINGS = {
     'hero.cta_see': 'Nasıl işliyor?',
     'hero.meta_codex': 'TGK Ek-10 / Ek-13 uyumlu',
     'hero.meta_law': 'KVKK · VUK · HACCP',
-    'hero.meta_offline': 'İnternet olmasa da çalışır',
+    'hero.meta_offline': 'Bulutta güvenli kayıt; bazı görünümler önbellekle çevrimdışı okunur',
     'hero.figure_alt':
       'Natürmorta görseli: F&B operasyon stüdyosu için zanaat ve servis düzenini çağrıştıran tabak ve bardak kompozisyonu.',
     'hero.quote': 'Süslemeyiz; inşa ederiz. Mutfağın ekonomisi sadece arka ofisten ibaret değildir; ustanın işinin parçasıdır.',
     'hero.quote_cite': '— Carta, birinci ilke',
     // index
     'index.section': 'Bölüm 02 — Modüller',
-    'index.title': 'Altı modül. Tek çatı.',
+    'index.title': 'Tek stüdyo. Tam F&B operasyonu.',
     'index.title_l1': 'Parçalı araç yığını değil,',
     'index.title_em': 'bütünleşik bir sistem',
     'index.title_l2': '.',
-    'index.caption': 'Altı modül, bir çalışma alanı, tek bir zihinsel model.',
+    'index.caption': 'Reçeteden dışa aktarıma tek çalışma alanı, tek zihinsel model.',
     'index.01_num': '01 — Reçete',
     'index.01_title_l1': 'Reçete',
     'index.01_title_em': 'stüdyosu',
@@ -811,7 +897,7 @@ const STRINGS = {
     'pricing.free_li1': '1 işletme (tesis)',
     'pricing.free_li2': '20 reçeteye kadar',
     'pricing.free_li3': 'Tek kullanıcı',
-    'pricing.free_li4': 'Yalnızca cihazda (bulut senkronu yok)',
+    'pricing.free_li4': 'Güvenli bulut senkronu · en fazla 20 reçete',
     'pricing.starter_name': 'Başlangıç',
     'pricing.starter_desc': 'Tek tesisi olan işletmeler için.',
     'pricing.starter_li1': '1 işletme',
@@ -852,6 +938,59 @@ const STRINGS = {
     'foot.kvkk': 'KVKK · GDPR',
     'foot.copyright': '© MMXXVI Carta · F&B Operasyon Stüdyosu',
     'foot.made': 'İstanbul’da tasarlandı',
+    'cookie.region': 'Çerezler ve depolama',
+    'cookie.banner':
+      'Oturum açma, dil, tema ve aktif çalışma alanı için gerekli çerezler ile tarayıcı depolaması kullanıyoruz. Sayım çerezleri varsayılan olarak kapalıdır. Ayrıntılar Gizlilik Politikasında.',
+    'cookie.privacy_link': 'Gizlilik',
+    'cookie.accept': 'Anladım',
+    'plan.err_recipe_limit':
+      'Bu çalışma alanı Ücretsiz planda ve en fazla 20 reçete sınırına ulaşıldı. Bir reçeteyi silin veya planı yükseltin.',
+    'plan.err_member_limit':
+      'Ücretsiz plan çalışma alanı başına tek kullanıcı içerir. Ekip daveti için planı yükseltin.',
+    'ws.invite_blocked_free':
+      'Ekip davetleri ücretli planlarda açıktır. Ücretsiz planda güvenli bulut senkronu ile tek kullanıcı ve en fazla 20 reçete vardır.',
+    'legal.back_home': '← Ana sayfa',
+    'legal.privacy_page_title': 'Gizlilik · Carta',
+    'legal.terms_page_title': 'Koşullar · Carta',
+    'legal.kvkk_page_title': 'KVKK · GDPR · Carta',
+    'legal.updated': 'Son güncelleme: Mayıs 2026.',
+    'legal.privacy_h1': 'Gizlilik politikası',
+    'legal.privacy_intro':
+      'Bu metin, cart-a.live üzerindeki Carta F&B Operasyon Stüdyosu web ve uygulamasını kullanırken kişisel verilerin nasıl işlendiğini özetler. Hukuki tavsiye değildir; sözleşme için Kullanım Koşullarına bakın.',
+    'legal.privacy_p1':
+      'Veri sorumlusu: Artifact Studio / Carta ürün ekibi; talepler için hello@carta.app.',
+    'legal.privacy_p2':
+      'Hesap verileri (e-posta, kimlik doğrulama bilgileri), sizin girdiğiniz tesis adları, operasyonel içerik (reçete, maliyet, menü, denetim kayıtları) ve hizmet güvenliği için teknik günlükler işlenebilir.',
+    'legal.privacy_p3':
+      'Amaçlar: ürünü sunmak ve geliştirmek, kimlik doğrulama, güvenlik ve kötüye kullanımı önlemek, destek ve yasal uyum. Otomatik alerjen ve besin hesapları mutfak planına yardımcıdır; mevzuat uyumlu etiketin yerini almaz.',
+    'legal.privacy_p4':
+      'Barındırma ve veritabanı işleme, Supabase projesi için seçilen bölgelerde gerçekleşebilir. Saklama; abonelik ve yedekleme politikalarına tabidir. Yasal çerçevede veri aktarımı veya silme talebinde bulunabilirsiniz.',
+    'legal.privacy_p5':
+      'Erişim, düzeltme, silme, işlemeyi kısıtlama veya itiraz hakları yasanın öngördüğü ölçüde geçerlidir. Talepler için hello@carta.app.',
+    'legal.terms_h1': 'Kullanım koşulları',
+    'legal.terms_intro':
+      'Carta’yı kullanarak bu koşulları kabul edersiniz. Kabul etmiyorsanız hizmeti kullanmayın.',
+    'legal.terms_p1':
+      'Carta, yiyecek-içecek operasyonları için yazılım sunar. Özellikler değişebilir. Girdiğiniz verilerin doğruluğu ve dışa aktarımları işinizde nasıl kullandığınız sizin sorumluluğunuzdadır.',
+    'legal.terms_p2':
+      'Hesaplarda geçerli iletişim bilgisi kullanılmalıdır. Yetkisiz erişim veya sistemi aşırı yüklemek yasaktır; ihlalde erişim askıya alınabilir.',
+    'legal.terms_p3':
+      'Ücretler satın alma anında açıklanır; vergiler uygulanabilir. Koşullar güncellenebilir; önemli değişiklikler mümkün olduğunca ürün içi veya e-posta ile duyurulur.',
+    'legal.terms_p4':
+      'Hizmet yasal olarak izin verilen azami ölçüde "olduğu gibi" sunulur; sorumluluk yargı bölgenizdeki zorunlu düzenlemelerle sınırlıdır.',
+    'legal.kvkk_h1': 'Kişisel verilerin korunması (KVKK ve GDPR)',
+    'legal.kvkk_intro':
+      '6698 sayılı KVKK ile AB GDPR (uygulanabildiği ölçüde) kapsamında amaçla sınırlılık, veri minimizasyonu ve otel-mutfak operasyonuna uygun teknik-idari tedbirler hedeflenir.',
+    'legal.kvkk_p1':
+      'İşlenen veriler: kimlik ve iletişim (e-posta), kullanım ve cihaz verileri, çalışma alanında oluşturduğunuz içerik (reçete, maliyet, menü, dışa aktarım).',
+    'legal.kvkk_p2':
+      'Hukuki sebepler: sözleşmenin ifası, meşru menfaat (güvenlik ve geliştirme), gerektiğinde açık rıza (örneğin pazarlama sunulursa).',
+    'legal.kvkk_p3':
+      'Aktarım: Supabase (veritabanı/kimlik doğrulama), Vercel (barındırma) gibi işleyenler sözleşmeye tabidir. Uluslararası aktarımda yasal güvenceler uygulanır.',
+    'legal.kvkk_p4':
+      'İlgili kişiler hello@carta.app üzerinden başvurabilir; Türkiye’de Kişisel Verileri Koruma Kurulu’na başvuru hakkı saklıdır.',
+    'legal.kvkk_p5':
+      'Carta’daki reçete ve alerjen çıktıları profesyonellere karar destek içindir; basılı menü ve misafir bilgilendirmesi işletmenin sorumluluğundadır.',
     // auth
     'auth.welcome': 'Yeniden hoş geldin.',
     'auth.welcome_intro': 'Kurumsal e-postanı yaz; tek kullanımlık güvenli giriş bağlantısını gönderelim.',
@@ -876,7 +1015,7 @@ const STRINGS = {
     'manifesto.01_title': 'Somut iş; süs değil.',
     'manifesto.01_body': 'Mutfağın ekonomisi yalnızca muhasebede çözülmez; tabağın ve malzemenin devamıdır. Carta bir kurulum aracıdır; gösteriş panosu değil.',
     'manifesto.02_title': 'Sadelik güçtür.',
-    'manifesto.02_body': 'Altı modül, tek çalışma alanı, tek model. Gereksiz ekran yok; her metrik bir kararı destekler.',
+    'manifesto.02_body': 'Reçete, maliyet, fiyat, menü mühendisliği, dışa aktarım, pano ve uyum görünümleri tek çalışma alanında birleşir. Gereksiz grafik yok; her ekranın yeri var.',
     'manifesto.03_title': 'Boşluk da anlatır.',
     'manifesto.03_body': 'Sayfa ve rakamlar nefes alır; ekip de. Azaltmak çoğu zaman eklemekten daha çok şey söyler.',
     'manifesto.04_title': 'Disiplin, süslemenin önündedir.',
@@ -969,8 +1108,9 @@ const STRINGS = {
     'studio.overview': 'Genel bakış',
     'studio.open': 'Aç',
     'studio.switch_ws': 'Çalışma alanını değiştir',
-    'studio.welcome': 'Stüdyona hoş geldin.',
-    'studio.welcome_intro': 'Menü zekâsı ve tüm araçlar tek stüdyoda. Önce panoyu açın veya aşağıdan bir modül seçin.',
+    'studio.welcome': 'Carta stüdyona hoş geldin.',
+    'studio.welcome_intro':
+      'Menü, maliyet ve çıktı tek stüdyoda toplanmış durumda. Önce panoyu aç ya da aşağıdan bir modül seç.',
     'studio.modules': 'Modüller',
     'studio.coming_soon': 'Çok yakında',
     'studio.card_num_dash': 'Menü özeti',
@@ -1000,7 +1140,8 @@ const STRINGS = {
     'presets.eyebrow': 'Başlangıç paketleri',
     'presets.title': 'Menü',
     'presets.title_em': 'hazır setleri',
-    'presets.intro': 'Demo ve yeni tesisler için seçilmiş mini menüler. Bu çalışma alanına Kodeks uyumlu reçeteler ekler (aynı ad ve tür varsa atlar).',
+    'presets.intro':
+      'Demo ve onboarding için seçilmiş paketler. Kodeks uyumlu reçeteler ekler; aynı ada ve türe düşeni atlar.',
     'presets.apply': 'Paketi çalışma alanına ekle',
     'presets.denied': 'Paket içe aktarmak için reçete düzenleme yetkisi gerekir.',
     'presets.result': '{a} reçete eklendi. {s} tanesi atlandı (aynı ad ve tür zaten var).',
@@ -1013,9 +1154,31 @@ const STRINGS = {
     'presets.pack.grill_hotel_plate.desc': 'Izgara tavuk, fırın patates, ayran — sade à la carte omurgası.',
     'studio.m_menus': 'Menülerim',
     'studio.d_menus': 'Reçeteleri pano ve raporlar için menü kümelerinde topla.',
+    'studio.overview_mast_alt':
+      'Editoryal fotoğraf: otel F&B stüdyosunda zanaat ve mise en place çağrışımı veren tabak ve bardak kompozisyonu.',
+    'img.alt.kitchen_operational':
+      'Servis için aydınlatılmış profesyonel otel mutfağında istasyonlarını yöneten şef tablosu.',
+    'img.alt.marble_ledger':
+      'Metal detaylı mermer masa ve zarif kırtasiye; titiz bir defter masasını çağrıştırır.',
+    'img.alt.menu_card':
+      'Ketendir peçete, cilalı çatal bıçak ve sızdırmaz mühürlü tadım kartı yan yana.',
+    'img.alt.notebook_compliance':
+      'Klipsli defter üzerinde kalem ile iz süren onay günlüklerini ima eden fotoğraf.',
+    'img.alt.divided_tasting':
+      'Ton sütlü keten üzerinde minik tadım porsiyonlarını taşıyan bölündürülmüş porselen tabak.',
+    'img.alt.bar_craft':
+      'Turunçgil, soğuk cam ve katmanlı şişeler ile otel barının hazırlı tezgâh sahnesi.',
+    'img.alt.breakfast_spread':
+      'Taneli ekmek, reçeller, tereyağı ve zarif servis için porselenle sabah masası düzeni.',
+    'foot.mark_alt': 'Sitenin alt bilgisinde Carta yatay wordmark.',
+    'foot.badges_alt':
+      'Uyumluluk rozet illüstrasyonu: TGK Ek-10 besin tabloları, HACCP ve KVKK vurguları.',
+    'foot.palette_alt':
+      'Carta marka renk paleti örnekleri: kemik kremi, kum keteni, okçun üstü yeşil, antik altın, soluk adaçayı ve mürekkep grafit.',
     'menus.eyebrow': 'Menü grupları',
     'menus.title_full': 'Menülerim',
-    'menus.intro': 'Kahvaltı, banket, teras gibi menü kümeleri oluşturup kayıtlı reçeteleri bağla. Pano aynı kümeleri okur. CSV ile ürün listesi içe aktar veya iki menüyü yan yana karşılaştır.',
+    'menus.intro':
+      'Kahvaltı, banket, teras ya da bar kümeleri kur. Kayıtlı reçeteleri bağla. Ürün listesini CSV ile taşı veya iki menüyü yan yana seçerek kıyasla.',
     'menus.list_title': 'Bu çalışma alanındaki menüler',
     'menus.list_empty': 'Henüz menü yok. Reçeteleri gruplamak için bir menü oluştur.',
     'menus.list_count': '{n} reçete bağlı',
@@ -1071,7 +1234,8 @@ const STRINGS = {
     'activity.eyebrow': 'Uyumluluk',
     'activity.title': 'Etkinlik',
     'activity.title_em': 'günlüğü',
-    'activity.intro': 'Çalışma alanına özel denetim satırları: olay türü, serbest metin not, isteğe bağlı adet ve işlemi yapan. Kayıtlar, özellikler denetim günlüğüne yazdığında görünür.',
+    'activity.intro':
+      'Çalışma alanına özgü bir zaman çizelgesi: olay kodu, serbest not, isteğe bağlı sayaç ve işlemi yürüten kullanıcı. Satırlar denetime yazılmaya başlayınca dolar.',
     'activity.filter_type': 'Olay türü',
     'activity.filter_all': 'Tüm türler',
     'activity.refresh': 'Yenile',
@@ -1087,7 +1251,8 @@ const STRINGS = {
     'cap.eyebrow': 'Ajanlar',
     'cap.title': 'Yetenek',
     'cap.title_em': 'haritası',
-    'cap.intro': 'Arayüz aksiyonlarının planlanan ajan primitive’leri ile eşlemesi. Stüdyo bugün tarayıcı + Supabase; canlı ajan aracı yok. MCP istemleri veya parity incelemesi için JSON indirin.',
+    'cap.intro':
+      'Arayüzde görünür her aksiyonun yakın gelecekteki ajan işleviyle ilişkisini gör. Bugün tarayıcı ve Supabase; MCP provası için JSON indir.',
     'cap.filter_module': 'Modül',
     'cap.all_modules': 'Tüm modüller',
     'cap.download_json': 'JSON indir',
@@ -1119,7 +1284,8 @@ const STRINGS = {
     // Malzeme veritabanı
     'ingdb.title': 'Malzeme',
     'ingdb.title_em': 'veritabanı',
-    'ingdb.intro': '100 g yenilebilir kısım için Ek-10 tarzı değerler. Süzgeç, denetim çalışma kitabı, çalışma alanına özel satırlar.',
+    'ingdb.intro':
+      '100 g yenilebilir için Ek-10 tarzı besin kimliği. Süzgeçle daralt, denetime Excel çıkar, çalışma alanı için özgü satırları ekle.',
     'ingdb.export_audit': 'Denetim Excel’i',
     'ingdb.search_ph': 'Malzeme ara…',
     'ingdb.bev_label': 'Göster',
@@ -1158,7 +1324,8 @@ const STRINGS = {
     'dash.page_eyebrow': 'Menü analitiği',
     'dash.page_title': 'Mutfak',
     'dash.page_title_em': 'panosu',
-    'dash.page_intro': 'Kayıtlı reçetelerden çalışma alanı genelinde sinyaller: besin dengesi, alerjenler, diyet kapsaması, sera gazı vektörü (yaklaşık) ve maliyet tamlığı.',
+    'dash.page_intro':
+      'Kayıtlı reçetelerden ölçülü bir tablo: makrolar, alerjenler, diyet etiketleri, yaklaşık sera gazı iması ve maliyet tamlığı.',
     'dash.disclaimer': 'Bu görünümler mutfak planına yardımcıdır. Tıbbi beslenme tavsiyesi, mevzuat alerjen etiketi veya sertifikalı karbon muhasebesi değildir.',
     'dash.scope_label': 'Kapsam',
     'dash.scope_all': 'Çalışma alanındaki tüm reçeteler',
@@ -1242,7 +1409,8 @@ const STRINGS = {
     // Reçete editörü
     'recipes.title': 'Reçete',
     'recipes.title_em': 'kütüphanesi',
-    'recipes.intro': 'Oluştur, düzenle, hesapla. Türk Gıda Kodeksi ile uyumlu enerji, makro ve alerjen çıktıları.',
+    'recipes.intro':
+      'Ürün ve içeceği bir kez tanımla. Kodeks ile uyumlu enerji makro ve alerjenleri her düzenlemede güncelleriz.',
     'recipes.search_ph': 'Reçete adı veya ürün ara…',
     'recipes.new': 'Yeni reçete',
     'recipes.empty_eyebrow': 'İlk adım',
@@ -1297,7 +1465,8 @@ const STRINGS = {
     // Maliyet defteri
     'cost.title': 'Maliyet',
     'cost.title_em': 'defteri',
-    'cost.intro': 'Malzeme bazlı birim maliyet. Fire ve verim ile düzeltilmiş; SAP ve manuel kaynakları bir arada tutar.',
+    'cost.intro':
+      'Her malzemede net gramaj ve verdiğin fire ile birim doğrusu. SAP hareketli ortalamalar ile elle tutulan rakamlar aynı satırda buluşur.',
     'cost.search_ph': 'Malzeme adı ara…',
     'cost.new': 'Yeni satır',
     'cost.empty_eyebrow': 'İlk kayıt',
@@ -1344,7 +1513,8 @@ const STRINGS = {
     // Fiyat masası
     'pricing.title': 'Fiyat',
     'pricing.title_em': 'masası',
-    'pricing.intro': 'Porsiyon maliyeti, marj ve önerilen liste fiyatı — ürün ürün, tek tabloda.',
+    'pricing.intro':
+      'Porsiyon maliyeti, brüt pay bandı ve raf ücreti yan yana. Satır düzenleri anında birbirini besler.',
     'pricing.search_ph': 'Ürün veya reçete ara…',
     'pricing.kind_all': 'Tümü',
     'pricing.kind_food': 'Yemek',
@@ -1371,7 +1541,8 @@ const STRINGS = {
     // Menü mühendisliği matrisi
     'matrix.title': 'Menü',
     'matrix.title_em': 'mühendisliği',
-    'matrix.intro': 'Smith–Kasavana (1982): ürünleri marj ve talep gücüne göre dört kadrana yerleştir.',
+    'matrix.intro':
+      'Smith–Kasavana 1982: talep payını katkı marjı ile kesiştir; Yıldız, omurga, yapboz ve zayıf ürün kadranı netleşir.',
     'matrix.period_label': 'Dönem',
     'matrix.col_dish': 'Ürün',
     'matrix.col_sold': 'Satış adedi',
@@ -1410,7 +1581,8 @@ const STRINGS = {
     // Sapma analizi
     'variance.title': 'Sapma',
     'variance.title_em': 'analizi',
-    'variance.intro': 'Maliyet defterinin anlık görüntüsünü al; tarihler arasında farkları ve sapmaları incele.',
+    'variance.intro':
+      'Maliyet defterinin güvendiğin anlık görüntüsünü al. Tarihler arası farkları aç ve oynayan kalemleri işaretle.',
     'variance.no_snapshots': 'Kayıtlı anlık görüntü yok.',
     'variance.no_snapshots_intro': 'Şu anki maliyet defterinden bir anlık görüntü kaydet. SAP verisi yüklendiğinde otomatik de alınabilir; gerektiğinde bu ekrandan manuel de ekleyebilirsin.',
     'variance.no_costs': 'Maliyet defterin boş. Önce malzeme satırlarını ekle.',
@@ -1440,7 +1612,8 @@ const STRINGS = {
     // Rapor ve dışa aktarım
     'surface.title': 'Rapor',
     'surface.title_em': 've dışa aktarım',
-    'surface.intro': 'Tablolarını Excel veya yazdırmaya uygun çıktı olarak al. Türkçe ve İngilizce, çevrimdışı da okunur.',
+    'surface.intro':
+      'Tabloları Excel ve temiz baskıya aktar. Türkçe ve İngilizce aynı düzende gider çevrimdışı incelemeye de uyar.',
     'surface.recipes_title': 'Reçete dökümü',
     'surface.recipes_desc': 'Her ürün: enerji, makrolar, alerjenler, diyet etiketi ve güncel liste fiyatı.',
     'surface.cost_title': 'Maliyet defteri',
