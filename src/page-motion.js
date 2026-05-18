@@ -29,7 +29,13 @@ function wireViewTransitionNav() {
 
     const raw = a.getAttribute('href');
     if (!raw || raw.startsWith('#')) return;
-    if (raw.startsWith('mailto:') || raw.startsWith('tel:') || raw.startsWith('javascript:')) return;
+    if (
+      raw.startsWith('mailto:') ||
+      raw.startsWith('tel:') ||
+      raw.startsWith('javascript:') ||
+      raw.startsWith('data:') ||
+      raw.startsWith('vbscript:')
+    ) return;
 
     let url;
     try {
