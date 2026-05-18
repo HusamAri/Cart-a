@@ -55,7 +55,10 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
       <a href="/app/studio.html" class="logo" aria-label="Carta studio home">
         <img src="/assets/carta-brand-vertical.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1536" height="1024" decoding="async">
       </a>
-      <span class="role" id="sidebarWsName">${escapeHTML(ws.name)}</span>
+      <div class="sidebar__context" id="sidebarContextStrip" role="group" title="${escapeHTML([ws.organization_name, ws.name].filter(Boolean).join(' · '))}">
+        ${ws.organization_name ? `<span class="sidebar__org" id="sidebarOrgName">${escapeHTML(ws.organization_name)}</span>` : ''}
+        <span class="sidebar__facility role" id="sidebarWsName">${escapeHTML(ws.name)}</span>
+      </div>
       <button type="button" id="sidebarRailToggle" class="sidebar-rail-toggle" aria-pressed="false" aria-label="">
         <span class="sidebar-rail-toggle__glyph" aria-hidden="true">‹</span>
       </button>
@@ -98,6 +101,10 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     <a href="/app/studio.html" class="site-logo studio-mobile-top__brand" aria-label="Carta studio home">
       <img src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024">
     </a>
+    <div class="studio-mobile-top__context" id="mobileContextStrip" role="group" title="${escapeHTML([ws.organization_name, ws.name].filter(Boolean).join(' · '))}">
+      ${ws.organization_name ? `<span class="studio-mobile-top__crumb studio-mobile-top__crumb--org">${escapeHTML(ws.organization_name)}</span><span class="studio-mobile-top__sep" aria-hidden="true">·</span>` : ''}
+      <span class="studio-mobile-top__crumb">${escapeHTML(ws.name)}</span>
+    </div>
     <span class="studio-mobile-top__spacer" aria-hidden="true"></span>
     <span class="studio-mobile-top__rule" aria-hidden="true"></span>
     <div class="studio-mobile-top__actions">
@@ -177,11 +184,30 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     setLang(getLang()==='en' ? 'tr' : 'en');
     syncLang();
     applyTranslations();
+    syncWorkspaceContextAria(ws);
     syncSidebarRailUi();
     syncSidebarThemeBtn();
   });
 
   applyTranslations();
+
+  function workspaceContextAria(activeWs) {
+    const facility = String(activeWs?.name || '').trim();
+    const org = (activeWs?.organization_name && String(activeWs.organization_name).trim()) || '';
+    if (org && facility) {
+      return t('studio.context_aria_both').replaceAll('{org}', org).replaceAll('{facility}', facility);
+    }
+    if (facility) {
+      return t('studio.context_aria_facility').replaceAll('{facility}', facility);
+    }
+    return t('studio.context_aria_unknown');
+  }
+  function syncWorkspaceContextAria(activeWs) {
+    const label = workspaceContextAria(activeWs);
+    document.getElementById('sidebarContextStrip')?.setAttribute('aria-label', label);
+    document.getElementById('mobileContextStrip')?.setAttribute('aria-label', label);
+  }
+  syncWorkspaceContextAria(ws);
 
   const mqDesktop = window.matchMedia('(min-width: 901px)');
 

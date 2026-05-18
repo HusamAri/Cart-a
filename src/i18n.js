@@ -3,18 +3,37 @@
 
 const STRINGS = {
   en: {
-    'nav.index': 'Index',
+    'nav.index': 'Modules',
     'nav.method': 'Method',
     'nav.plans': 'Plans',
     'nav.signin': 'Sign in',
     'nav.begin': 'Begin',
+    'nav.usage': 'How it works',
+    // usage journey (landing)
+    'usage.eyebrow': 'Usage',
+    'usage.title': 'A clear path from signup to export.',
+    'usage.lead':
+      'Carta is one workspace. Most teams move through the same sequence before they trust the numbers on the pass.',
+    'usage.step1': 'Open your workspace',
+    'usage.step1_desc':
+      'Sign in with a magic link. Name your first property; recipes, cost, and menus stay scoped to that workspace.',
+    'usage.step2': 'Recipes meet the ledger',
+    'usage.step2_desc':
+      'Define dishes and drinks with allergens and nutrition. Map ingredients to moving-average costs and yield.',
+    'usage.step3': 'Price and engineer',
+    'usage.step3_desc':
+      'Refresh list prices in one grid. Watch food cost %, margin, and suggested price. Classify each dish on the engineering matrix.',
+    'usage.step4': 'Export and snap costs',
+    'usage.step4_desc':
+      'Send tables to Excel or print cards. Capture a cost snapshot when finance or audit needs a frozen view.',
+    'usage.cta_modules': 'Explore all modules',
     // hero
     'hero.eyebrow': 'Carta · F&B Operations Studio',
     'hero.title_l1': 'The studio',
     'hero.title_l2': 'for the considered kitchen.',
     'hero.lead': "Recipes, cost control, menu engineering, compliance. Measured, considered, complete — in one editorial workspace. For hotel and restaurant teams that take their kitchen seriously.",
     'hero.cta_begin': 'Begin',
-    'hero.cta_see': 'See the system',
+    'hero.cta_see': 'How it works',
     'hero.meta_codex': 'TGK Ek-10 / Ek-13 compliant',
     'hero.meta_law': 'KVKK · VUK · HACCP',
     'hero.meta_offline': 'Secure cloud · offline-friendly views',
@@ -294,6 +313,9 @@ const STRINGS = {
     // studio
     'studio.section': 'Studio',
     'studio.switch_ws': 'Switch workspace',
+    'studio.context_aria_both': 'Active context: {org} · {facility}',
+    'studio.context_aria_facility': 'Active context: {facility}',
+    'studio.context_aria_unknown': 'Active workspace context',
     'studio.welcome': 'Welcome to your studio.',
     'studio.welcome_intro':
       'One composed workspace for menu logic, costing, and guest-ready output. Begin with the dashboard or pick a module below.',
@@ -854,13 +876,32 @@ const STRINGS = {
     'nav.plans': 'Planlar',
     'nav.signin': 'Giriş yap',
     'nav.begin': 'Başlayın',
+    'nav.usage': 'Nasıl kullanılır',
+    // usage journey (landing)
+    'usage.eyebrow': 'Kullanım',
+    'usage.title': 'Kayıttan dışa aktarıma net bir yol.',
+    'usage.lead':
+      'Carta tek çalışma alanıdır. Ekipler genelde aynı sırayı izler; rakamlar servis hattında güven kazanmadan önce bu düzen oturur.',
+    'usage.step1': 'Çalışma alanını aç',
+    'usage.step1_desc':
+      'Tek kullanımlık bağlantıyla giriş yap. İlk tesisini adlandır; reçete, maliyet ve menüler bu alana bağlı kalır.',
+    'usage.step2': 'Reçeteler defterle buluşur',
+    'usage.step2_desc':
+      'Yemek ve içecekleri alerjen ve besinle tanımla. Malzemeleri hareketli ortalama maliyet ve fire ile eşle.',
+    'usage.step3': 'Fiyatla ve mühendislik yap',
+    'usage.step3_desc':
+      'Liste fiyatlarını tek tabloda güncelle. Yemek maliyeti yüzdesi, marj ve önerilen fiyatı izle. Ürünleri mühendislik matrisinde sınıflandır.',
+    'usage.step4': 'Dışa aktar, maliyeti dondur',
+    'usage.step4_desc':
+      'Tabloları Excel’e aktar veya kart bas. Finans veya denetim sabit görünüm istediğinde maliyet anlık görüntüsü al.',
+    'usage.cta_modules': 'Tüm modülleri incele',
     // hero
     'hero.eyebrow': 'Carta · F&B Operasyon Stüdyosu',
     'hero.title_l1': 'Ciddiye aldığın mutfak için',
     'hero.title_l2': 'tek bir stüdyo.',
     'hero.lead': 'Reçete, maliyet, menü mühendisliği ve mevzuata uyum: hepsi aynı düzende. Ölçülü, sade, eksiksiz; otel ve restoran ekipleri için tasarlandı.',
     'hero.cta_begin': 'Ücretsiz dene',
-    'hero.cta_see': 'Nasıl işliyor?',
+    'hero.cta_see': 'Nasıl kullanılır',
     'hero.meta_codex': 'TGK Ek-10 / Ek-13 uyumlu',
     'hero.meta_law': 'KVKK · VUK · HACCP',
     'hero.meta_offline': 'Verilerin bulutta güvenle saklanır; bazı ekranlar önbellek sayesinde çevrimdışı da okunabilir.',
@@ -1146,6 +1187,9 @@ const STRINGS = {
     'studio.overview': 'Genel bakış',
     'studio.open': 'Aç',
     'studio.switch_ws': 'Çalışma alanını değiştir',
+    'studio.context_aria_both': 'Aktif bağlam: {org} · {facility}',
+    'studio.context_aria_facility': 'Aktif bağlam: {facility}',
+    'studio.context_aria_unknown': 'Aktif çalışma alanı bağlamı',
     'studio.welcome': 'Carta stüdyosuna hoş geldin.',
     'studio.welcome_intro':
       'Menü, maliyet ve raporlar aynı stüdyoda. Önce panoyu aç ya da aşağıdan bir modül seç.',

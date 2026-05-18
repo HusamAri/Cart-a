@@ -144,11 +144,12 @@ export async function getActiveWorkspace() {
   if (!id) return null;
   const { data, error } = await supabase
     .from('workspaces')
-    .select('*')
+    .select('*, organizations(name)')
     .eq('id', id)
     .maybeSingle();
   if (error) { console.warn(error); return null; }
-  return data;
+  if (!data) return null;
+  return normalizeWorkspaceRow(data);
 }
 
 export async function updateWorkspace(id, patch) {
