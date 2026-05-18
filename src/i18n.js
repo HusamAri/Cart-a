@@ -313,6 +313,9 @@ const STRINGS = {
     // studio
     'studio.section': 'Studio',
     'studio.switch_ws': 'Switch workspace',
+    'studio.context_aria_both': 'Active context: {org} · {facility}',
+    'studio.context_aria_facility': 'Active context: {facility}',
+    'studio.context_aria_unknown': 'Active workspace context',
     'studio.welcome': 'Welcome to your studio.',
     'studio.welcome_intro':
       'One composed workspace for menu logic, costing, and guest-ready output. Begin with the dashboard or pick a module below.',
@@ -1184,6 +1187,9 @@ const STRINGS = {
     'studio.overview': 'Genel bakış',
     'studio.open': 'Aç',
     'studio.switch_ws': 'Çalışma alanını değiştir',
+    'studio.context_aria_both': 'Aktif bağlam: {org} · {facility}',
+    'studio.context_aria_facility': 'Aktif bağlam: {facility}',
+    'studio.context_aria_unknown': 'Aktif çalışma alanı bağlamı',
     'studio.welcome': 'Carta stüdyosuna hoş geldin.',
     'studio.welcome_intro':
       'Menü, maliyet ve raporlar aynı stüdyoda. Önce panoyu aç ya da aşağıdan bir modül seç.',

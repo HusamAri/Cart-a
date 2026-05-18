@@ -15,7 +15,7 @@ Pure-static frontend (HTML + ESM JS, no build step) on Vercel + Supabase Postgre
 - **Tenant:** `husamaris-projects` on Vercel · project id `prj_TQrD1WDAFgN59y6kPjvK4gGvBCg5`
 - **DB:** Supabase project `hfjgthwaucrfhwkrehxw` (region `ap-northeast-2`)
 - **Domain registrar:** Squarespace Domains (`cart-a.live`)
-- **Anchor user:** `husam.ari@artifact-studio.com` (password `Carta-Lumina-2026!`)
+- **Anchor user:** `husam.ari@artifact-studio.com` (password only in your vault / Supabase Auth; never commit or paste credentials here)
 
 ---
 
@@ -85,9 +85,9 @@ Repo root **is** the static site root. Vercel deploys the working tree as-is.
 │   ├── carta-apple-touch-icon.png          # iOS homescreen (generated from seal)
 │   └── carta-logo.png                      # Legacy raster; prefer carta-brand-lockup-horizontal.png
 │
-└── supabase/                   Migration history (for reference; live migrations applied via MCP)
+└── supabase/                   Migration history (for reference; live DB may differ)
     ├── config.toml
-    ├── schema.sql
+    ├── schema.sql                (may lag behind `migrations/`; prefer migrations + Dashboard for truth)
     └── migrations/
         └── 20260514182927_initial_schema.sql
 ```
@@ -252,7 +252,7 @@ Single-page SPA (`showPage()`), embedded `DEFAULT_DB`, local `localStorage`, her
 ### Sellable-to-first-customer
 
 1. **Per-module UI role gates** — DB enforces; UI should mirror. Tag destructive buttons in `recipes/cost/pricing/matrix/variance.html` with `data-require="<action>"` and call `applyRoleGates(role)` after mount. Pattern is set in `permissions.js`.
-2. **Studio top bar org · facility context** — currently sidebar shows only workspace name. Should show `Org → Facility` breadcrumb + facility switcher dropdown for users with multiple facilities.
+2. **Facility switcher (next)** — sidebar + mobile top already show **organization · facility** when `organizations(name)` is visible under RLS (`src/workspaces.js` + `src/studio-layout.js`). Still TODO: in-shell dropdown to jump between accessible facilities (vs. full-page selector at `/app/`).
 3. **Plan tier enforcement** — `workspaces.plan` exists (`free|starter|pro|enterprise`) but nothing enforces limits. Free should cap at 20 recipes, 1 user, no team invites.
 4. **Billing integration**
   - **iyzico** (TR primary): hosted checkout, webhook → updates `workspaces.plan`
@@ -303,14 +303,10 @@ Single-page SPA (`showPage()`), embedded `DEFAULT_DB`, local `localStorage`, her
 - Vercel token: not committed. Stored in user's password manager
 - Domain registrar: Squarespace Domains (manual login)
 
-**Seeded test users** (Barceló org, May 2026):
+**Pilot / QA accounts** (Barceló-style fixtures in Supabase Auth, not password lists in git):
 
-- `mm.tr@barcelo.com` / `Barcelo-Admin-2026!` — org admin
-- `istanbul.acc4@barcelo.com` / `Istanbul-Acc-2026!` — cost_controller @ Istanbul
-- `istanbul.pm@barcelo.com` / `Istanbul-PM-2026!` — cost_controller @ Istanbul
-- `istanbul.fb4@barcelo.com` / `Istanbul-FB-2026!` — manager @ Istanbul
-- `cappadocia.fb2@barcelo.com` / `Cappadocia-FB-2026!` — manager @ Cappadocia
-- `taksim.fb2@barcelo.com` / `Taksim-FB-2026!` — manager @ Occidental Taksim
+- Maintain org admin, cost_controller, and manager profiles in **Supabase Dashboard → Authentication** or your team vault.
+- Example logins to recreate if needed: `mm.tr@barcelo.com`, `istanbul.acc4@barcelo.com`, `istanbul.pm@barcelo.com`, `istanbul.fb4@barcelo.com`, `cappadocia.fb2@barcelo.com`, `taksim.fb2@barcelo.com` (roles per workspace/org as in your seed data).
 
 ---
 
@@ -325,7 +321,7 @@ Single-page SPA (`showPage()`), embedded `DEFAULT_DB`, local `localStorage`, her
 
 ## Where I'd start if you're picking this up cold
 
-1. Log in as `husam.ari@artifact-studio.com` and create a recipe in one of the seeded Barceló workspaces — confirm the full flow works
+1. Log in with your pilot account (for example `husam.ari@artifact-studio.com`) and create a recipe in a Barceló workspace — confirm the full flow works
 2. Read `src/permissions.js` end-to-end (it's the brain of the access model)
 3. Skim a module page (`app/studio/recipes.html`) to see the conventions
 4. Look at the most recent Supabase migrations via `mcp__08b93852-465e-49da-8d69-514f63f5703e__list_migrations`
