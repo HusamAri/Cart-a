@@ -201,7 +201,6 @@
   .menus-branding__logos img {
     max-height: 48px; width: auto; object-fit: contain;
   }
-  .menus-branding__logos img.carta-mark { max-height: 36px; opacity: 0.92; }
   .menus-branding__logos .ws-logo-slot {
     min-width: 80px; min-height: 48px; display: flex; align-items: center;
     border: 1px dashed var(--outline-variant); border-radius: var(--r-lg);
@@ -433,7 +432,7 @@ import {
   emptySections,
 } from '/src/menu-structure.js';
 import { guestMenuUrl, newGuestToken } from '/src/menu-guest.js';
-import { uploadWorkspaceLogo, clearWorkspaceLogo } from '/src/workspace-logo.js';
+import { uploadWorkspaceLogo, clearWorkspaceLogo, fetchWorkspaceLogoUrl } from '/src/workspace-logo.js';
 import { downloadGuestMenuQrCard } from '/src/qr-menu.js';
 
 const main = document.createElement('main');
@@ -489,16 +488,42 @@ function renderBranding() {
   applyTranslations();
 }
 
+function brandingFailMessage(res) {
+  if (res.error === 'invalid_type') return t('menus.branding_type');
+  if (res.error === 'too_large') return t('menus.branding_size');
+  if (res.error === 'schema_missing') return t('menus.branding_schema');
+  if (res.detail) return `${t('menus.branding_fail')}\n${res.detail}`;
+  return t('menus.branding_fail');
+}
+
+async function refreshWorkspaceLogo() {
+  const res = await fetchWorkspaceLogoUrl(wsId);
+  if (res.ok) workspaceLogoUrl = res.logoUrl;
+}
+
 async function onLogoPicked(ev) {
   if (!requireCan(role, 'workspace_update', t('menus.branding_denied'))) return;
   const f = ev.target.files?.[0];
   ev.target.value = '';
   if (!f) return;
+
+  const btn = main.querySelector('#btnUploadLogo');
+  const prevLabel = btn?.textContent;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = t('menus.branding_uploading');
+  }
+
   const res = await uploadWorkspaceLogo(supabase, wsId, f);
+
+  if (btn) {
+    btn.disabled = false;
+    if (prevLabel) btn.textContent = prevLabel;
+    applyTranslations();
+  }
+
   if (!res.ok) {
-    const key = res.error === 'invalid_type' ? 'menus.branding_type'
-      : res.error === 'too_large' ? 'menus.branding_size' : 'menus.branding_fail';
-    alert(t(key));
+    alert(brandingFailMessage(res));
     return;
   }
   workspaceLogoUrl = res.logoUrl;
@@ -769,6 +794,7 @@ async function load() {
   }
   clusters = cRes.data || [];
   dishes = dRes.data || [];
+  await refreshWorkspaceLogo();
   if (selectedId && !clusters.some(c => c.id === selectedId)) selectedId = null;
   draftSections = null;
   renderList();
