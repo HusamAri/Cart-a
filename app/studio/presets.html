@@ -192,7 +192,7 @@ applyTranslations();
 applyRoleGates(role, main);
 renderCards();
 
-document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+window.addEventListener('carta-lang-change', () => {
   setTimeout(() => { applyTranslations(); renderCards(); applyRoleGates(role, main); }, 0);
 });
 </script>

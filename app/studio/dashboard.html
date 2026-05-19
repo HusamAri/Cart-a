@@ -646,7 +646,7 @@ window.addEventListener('afterprint', () => {
   main.querySelectorAll('.dash-calc').forEach(d => d.removeAttribute('open'));
 });
 
-document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+window.addEventListener('carta-lang-change', () => {
   setTimeout(() => {
     fillClusterSelect();
     renderDash(lastCostMap);

@@ -210,7 +210,7 @@ main.querySelector('#capDlJson').addEventListener('click', () => {
   URL.revokeObjectURL(a.href);
 });
 
-document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+window.addEventListener('carta-lang-change', () => {
   setTimeout(() => {
     applyTranslations();
     syncModuleOptionLabels();

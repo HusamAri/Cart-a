@@ -470,7 +470,7 @@ function escapeHTML(s) {
 
 await loadAll();
 
-document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+window.addEventListener('carta-lang-change', () => {
   setTimeout(() => { render(); applyRoleGates(role, main); }, 0);
 });
 </script>

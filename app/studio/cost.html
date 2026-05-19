@@ -642,7 +642,7 @@ function escapeHTML(s) {
 
 await loadEntries();
 
-document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+window.addEventListener('carta-lang-change', () => {
   setTimeout(() => {
     const q = main.querySelector('#searchInput')?.value || '';
     render(q);
