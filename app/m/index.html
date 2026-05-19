@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="/scripts/theme-boot.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>Menu · Carta</title>
+<meta name="theme-color" content="#1B2A22">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/assets/carta-favicon.png?v=7">
+<link rel="stylesheet" href="/styles/tokens.css">
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--surface);
+    color: var(--on-surface);
+  }
+  .guest-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: var(--sp-6) var(--margin-mobile) var(--sp-10);
+  }
+  .guest-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-6);
+  }
+  .guest-top img.carta-lockup {
+    height: 32px;
+    width: auto;
+    display: block;
+  }
+  .guest-top img.ws-logo {
+    max-height: 44px;
+    max-width: 140px;
+    width: auto;
+    object-fit: contain;
+  }
+  .guest-status {
+    text-align: center;
+    padding: var(--sp-8);
+    color: var(--on-surface-variant);
+  }
+  .guest-status.error { color: var(--error, #b3261e); }
+  .menu-print {
+    --menu-accent: #1b2a22;
+    --menu-paper-text: #1b2a22;
+    --menu-paper-text-muted: #4a5c54;
+    --menu-paper-rule: rgb(27 42 34 / 0.2);
+    color: var(--menu-paper-text);
+    background: linear-gradient(165deg, #fdfcfa 0%, #f8f5ef 48%, #eef3eb 100%);
+    border: 1px solid rgb(27 42 34 / 0.12);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-3);
+    padding: clamp(var(--sp-6), 4vw, var(--sp-9)) clamp(var(--sp-5), 3vw, var(--sp-8));
+    position: relative;
+    overflow: hidden;
+  }
+  .menu-print--navy { --menu-accent: #1b2a22; }
+  .menu-print--sage { --menu-accent: #2d4a3e; }
+  .menu-print--gold { --menu-accent: #9a7b1a; }
+  .menu-print--wine { --menu-accent: #6b2d3c; }
+  .menu-print--forest { --menu-accent: #2d4a3e; }
+  .menu-print__head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-4);
+    padding-bottom: var(--sp-5);
+    margin-bottom: var(--sp-5);
+    border-bottom: 2px solid var(--menu-accent);
+  }
+  .menu-print__title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.35rem);
+    line-height: 1.1;
+    color: var(--menu-paper-text);
+    margin: 0 0 6px;
+  }
+  .menu-print__meta {
+    margin: 0;
+    font-size: var(--type-caption);
+    color: var(--menu-paper-text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .menu-print__section { margin-bottom: var(--sp-6); }
+  .menu-print__section-title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--menu-accent);
+    margin: 0 0 var(--sp-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .menu-print__list { list-style: none; margin: 0; padding: 0; }
+  .menu-print__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, max-content);
+    gap: 8px;
+    align-items: baseline;
+    padding: 7px 0;
+    font-size: 15px;
+  }
+  .menu-print__dots {
+    border-bottom: 1px dotted var(--menu-paper-rule);
+    min-width: 24px;
+    margin-bottom: 4px;
+  }
+  .menu-print__kcal {
+    font-size: 11px;
+    color: var(--menu-paper-text-muted);
+    white-space: nowrap;
+  }
+  .menu-print .chip-mist { background: #e8efe6; color: #2d4538; font-size: 9px; padding: 2px 6px; border-radius: 999px; }
+  .menu-print .chip-gold { background: #f3ebce; color: #5c4f20; font-size: 9px; padding: 2px 6px; border-radius: 999px; }
+  .guest-foot {
+    margin-top: var(--sp-6);
+    text-align: center;
+    font-size: 11px;
+    color: var(--on-surface-variant);
+  }
+  .guest-foot a { color: var(--primary); }
+</style>
+</head>
+<body>
+<main id="main" class="guest-wrap">
+  <p class="guest-status" id="status">Loading menu…</p>
+</main>
+
+<script type="module">
+import { supabase } from '/src/supabase-client.js';
+import { fetchGuestMenu } from '/src/menu-guest.js';
+import { applyTranslations, t, getLang } from '/src/i18n.js';
+import { computeRecipe } from '/src/recipe-compute.js';
+import { menuSectionI18nKey, MENU_SECTION_KEYS } from '/src/menu-structure.js';
+import { menuClusterIconHtml, normalizeMenuClusterIcon } from '/src/menu-cluster-icon.js';
+
+const params = new URLSearchParams(window.location.search);
+const token = params.get('t') || params.get('token') || '';
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function kindLabel(kind) {
+  return kind === 'drink' ? t('recipes.kind_drink') : t('recipes.kind_food');
+}
+
+async function boot() {
+  const host = document.getElementById('main');
+  const status = document.getElementById('status');
+  if (!token || token.length < 16) {
+    status.textContent = t('guest.invalid_link');
+    status.classList.add('error');
+    applyTranslations();
+    return;
+  }
+
+  try {
+    const payload = await fetchGuestMenu(supabase, token);
+    if (!payload || payload.error) {
+      status.textContent = t('guest.not_found');
+      status.classList.add('error');
+      applyTranslations();
+      return;
+    }
+    renderMenu(host, payload);
+    applyTranslations();
+    document.title = `${payload.menu?.name || 'Menu'} · Carta`;
+  } catch (err) {
+    console.error(err);
+    status.textContent = t('guest.load_error');
+    status.classList.add('error');
+    applyTranslations();
+  }
+}
+
+function renderMenu(host, payload) {
+  const menu = payload.menu || {};
+  const ws = payload.workspace || {};
+  const sections = Array.isArray(payload.sections) ? payload.sections : [];
+  const dishes = Array.isArray(payload.dishes) ? payload.dishes : [];
+  const dm = new Map(dishes.map((d) => [d.id, d]));
+  const color = menu.color || 'navy';
+  const icon = normalizeMenuClusterIcon(menu.icon);
+  const cl = getLang();
+
+  const sectionHtml = sections
+    .filter((sec) => MENU_SECTION_KEYS.includes(sec.key) || sec.dish_ids?.length)
+    .filter((sec) => (sec.dish_ids || []).length > 0)
+    .map((sec) => {
+      const items = (sec.dish_ids || []).map((id) => {
+        const d = dm.get(id);
+        if (!d) return '';
+        const data = d.data || {};
+        const comp = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
+        const kcal = Math.round(comp.perServing?.kcal || 0);
+        return `<li class="menu-print__item">
+          <span class="menu-print__dish">${escapeHTML(d.name)}</span>
+          <span class="menu-print__dots" aria-hidden="true"></span>
+          <span class="menu-print__tail">
+            <span class="chip ${d.kind === 'drink' ? 'chip-gold' : 'chip-mist'}">${escapeHTML(kindLabel(d.kind))}</span>
+            ${kcal ? `<span class="menu-print__kcal">${kcal} kcal</span>` : ''}
+          </span>
+        </li>`;
+      }).filter(Boolean).join('');
+      if (!items) return '';
+      const secKey = sec.key || 'other';
+      return `<section class="menu-print__section">
+        <h2 class="menu-print__section-title">${escapeHTML(t(menuSectionI18nKey(secKey)))}</h2>
+        <ul class="menu-print__list">${items}</ul>
+      </section>`;
+    }).filter(Boolean).join('');
+
+  host.innerHTML = `
+    <header class="guest-top">
+      <img class="carta-lockup" src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta" width="876" height="294" decoding="async">
+      ${ws.logo_url ? `<img class="ws-logo" src="${escapeHTML(ws.logo_url)}" alt="${escapeHTML(ws.name || '')}" decoding="async">` : ''}
+    </header>
+    <article class="menu-print menu-print--${escapeHTML(color)}">
+      <header class="menu-print__head">
+        <span class="menu-print__mark">${menuClusterIconHtml(icon, { size: 28 })}</span>
+        <div>
+          <h1 class="menu-print__title">${escapeHTML(menu.name || t('guest.menu_fallback'))}</h1>
+          <p class="menu-print__meta">${escapeHTML(ws.name || '')}</p>
+        </div>
+      </header>
+      ${sectionHtml || `<p class="guest-status">${escapeHTML(t('guest.empty_menu'))}</p>`}
+    </article>
+    <p class="guest-foot">${escapeHTML(t('guest.powered'))} <a href="https://cart-a.live/">Carta</a></p>
+  `;
+}
+
+applyTranslations();
+boot();
+</script>
+</body>
+</html>

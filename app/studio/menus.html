@@ -182,6 +182,56 @@
 
   .editor-placeholder { padding: var(--sp-6); text-align: center; color: var(--on-surface-variant); font-size: var(--type-caption); }
 
+  .menus-branding {
+    max-width: 1280px; margin: 0 auto var(--sp-6);
+    background: var(--surface-container-lowest);
+    border: var(--glass-border); border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2); padding: var(--glass-padding);
+  }
+  .menus-branding h2 {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 1.15rem; color: var(--primary); margin: 0 0 var(--sp-3);
+  }
+  .menus-branding__row {
+    display: flex; flex-wrap: wrap; gap: var(--sp-5); align-items: center;
+  }
+  .menus-branding__logos {
+    display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap;
+  }
+  .menus-branding__logos img {
+    max-height: 48px; width: auto; object-fit: contain;
+  }
+  .menus-branding__logos img.carta-mark { max-height: 36px; opacity: 0.92; }
+  .menus-branding__logos .ws-logo-slot {
+    min-width: 80px; min-height: 48px; display: flex; align-items: center;
+    border: 1px dashed var(--outline-variant); border-radius: var(--r-lg);
+    padding: 8px 12px; color: var(--on-surface-variant); font-size: 11px;
+  }
+  .guest-qr-panel {
+    margin-top: var(--sp-5); padding-top: var(--sp-5);
+    border-top: 1px solid var(--outline-variant);
+  }
+  .guest-qr-panel h3 {
+    font-size: 13px; font-weight: 600; margin: 0 0 var(--sp-2); color: var(--primary);
+  }
+  .guest-qr-panel .hint {
+    font-size: 11px; color: var(--on-surface-variant); margin: 0 0 var(--sp-3); max-width: 52ch;
+  }
+  .guest-qr-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: var(--track-caps);
+    text-transform: uppercase; margin-bottom: var(--sp-3);
+  }
+  .guest-qr-status.is-live { color: var(--primary); }
+  .guest-qr-status.is-off { color: var(--on-surface-variant); }
+  .guest-qr-url {
+    font-size: 11px; word-break: break-all;
+    padding: 8px 10px; border-radius: var(--r-md);
+    background: rgb(var(--ink-rgb) / 0.04);
+    border: 1px solid var(--outline-variant);
+    margin-bottom: var(--sp-3);
+  }
+
   .menus-stage { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
   .menus-stage__toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
   .menus-stage__toolbar h2 {
@@ -382,6 +432,9 @@ import {
   defaultSectionForKind,
   emptySections,
 } from '/src/menu-structure.js';
+import { guestMenuUrl, newGuestToken } from '/src/menu-guest.js';
+import { uploadWorkspaceLogo, clearWorkspaceLogo } from '/src/workspace-logo.js';
+import { downloadGuestMenuQrCard } from '/src/qr-menu.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -392,15 +445,160 @@ if (!ctx) {
   // mountStudioShell already redirected
 } else {
 const wsId = ctx.workspace.id;
+const wsName = ctx.workspace.name || '';
 const { role } = ctx;
 
 let clusters = [];
 let dishes = [];
 let selectedId = null;
 let draftSections = null;
+let workspaceLogoUrl = ctx.workspace.logo_url || null;
 
 function escapeHTML(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderBranding() {
+  const host = main.querySelector('#menusBranding');
+  if (!host) return;
+  const canLogo = role === 'owner' || role === 'admin';
+  const logoSlot = workspaceLogoUrl
+    ? `<img class="ws-logo" src="${escapeHTML(workspaceLogoUrl)}" alt="${escapeHTML(wsName)}" decoding="async">`
+    : `<span class="ws-logo-slot" data-i18n="menus.branding_no_logo">No property logo yet</span>`;
+  host.innerHTML = `
+    <h2 id="menusBrandingTitle" data-i18n="menus.branding_title">QR menu branding</h2>
+    <p class="hint" style="font-size:11px;color:var(--on-surface-variant);margin:0 0 var(--sp-4);max-width:62ch" data-i18n="menus.branding_intro">Upload your property logo for guest QR cards and the public menu page. Carta lockup stays on every QR download.</p>
+    <div class="menus-branding__row">
+      <div class="menus-branding__logos">
+        <img class="carta-mark" src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta" width="876" height="294" decoding="async">
+        <span aria-hidden="true" style="opacity:0.35">+</span>
+        ${logoSlot}
+      </div>
+      ${canLogo ? `
+      <div style="display:flex;gap:8px;flex-wrap:wrap" data-require="workspace_update">
+        <button type="button" class="btn btn-outline btn-sm" id="btnUploadLogo" data-i18n="menus.branding_upload">Upload logo</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btnRemoveLogo" ${workspaceLogoUrl ? '' : 'disabled'} data-i18n="menus.branding_remove">Remove</button>
+        <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp" hidden>
+      </div>` : ''}
+    </div>
+  `;
+  host.querySelector('#btnUploadLogo')?.addEventListener('click', () => host.querySelector('#logoFile')?.click());
+  host.querySelector('#logoFile')?.addEventListener('change', onLogoPicked);
+  host.querySelector('#btnRemoveLogo')?.addEventListener('click', removeLogo);
+  applyRoleGates(role, host);
+  applyTranslations();
+}
+
+async function onLogoPicked(ev) {
+  if (!requireCan(role, 'workspace_update', t('menus.branding_denied'))) return;
+  const f = ev.target.files?.[0];
+  ev.target.value = '';
+  if (!f) return;
+  const res = await uploadWorkspaceLogo(supabase, wsId, f);
+  if (!res.ok) {
+    const key = res.error === 'invalid_type' ? 'menus.branding_type'
+      : res.error === 'too_large' ? 'menus.branding_size' : 'menus.branding_fail';
+    alert(t(key));
+    return;
+  }
+  workspaceLogoUrl = res.logoUrl;
+  renderBranding();
+  const cl = clusters.find((c) => c.id === selectedId);
+  if (cl) renderMenuPrint(cl, ensureDraft(cl));
+}
+
+async function removeLogo() {
+  if (!requireCan(role, 'workspace_update', t('menus.branding_denied'))) return;
+  if (!confirm(t('menus.branding_remove_confirm'))) return;
+  const res = await clearWorkspaceLogo(supabase, wsId);
+  if (!res.ok) {
+    alert(res.error || t('menus.branding_fail'));
+    return;
+  }
+  workspaceLogoUrl = null;
+  renderBranding();
+}
+
+function guestQrPanelHtml(cl) {
+  const published = Boolean(cl.guest_published_at && cl.guest_token);
+  const url = published ? guestMenuUrl(cl.guest_token) : '';
+  const statusClass = published ? 'is-live' : 'is-off';
+  const statusKey = published ? 'menus.qr_live' : 'menus.qr_off';
+  return `
+    <div class="guest-qr-panel">
+      <h3 data-i18n="menus.qr_title">Guest QR menu</h3>
+      <p class="hint" data-i18n="menus.qr_intro">Publish this menu for guests. They open a mobile page via QR; no login required.</p>
+      <p class="guest-qr-status ${statusClass}" data-i18n="${statusKey}">${escapeHTML(t(statusKey))}</p>
+      ${published ? `<p class="guest-qr-url" id="guestMenuUrl">${escapeHTML(url)}</p>` : ''}
+      <div class="toolbar-row" data-require="menu_cluster_edit">
+        ${published
+    ? `<button type="button" class="btn btn-outline btn-sm" id="btnUnpublishQr" data-i18n="menus.qr_unpublish">Unpublish</button>`
+    : `<button type="button" class="btn btn-primary btn-sm" id="btnPublishQr" data-i18n="menus.qr_publish">Publish guest menu</button>`}
+        <button type="button" class="btn btn-outline btn-sm" id="btnCopyGuestUrl" ${published ? '' : 'disabled'} data-i18n="menus.qr_copy">Copy link</button>
+        <button type="button" class="btn btn-outline btn-sm" id="btnDownloadQr" ${published ? '' : 'disabled'} data-i18n="menus.qr_download">Download QR card</button>
+      </div>
+    </div>
+  `;
+}
+
+async function publishGuestMenu() {
+  if (!requireCan(role, 'menu_cluster_edit', t('menus.denied_edit'))) return;
+  const cl = clusters.find((c) => c.id === selectedId);
+  if (!cl) return;
+  const token = cl.guest_token || newGuestToken();
+  const { error } = await supabase.from('menu_clusters').update({
+    guest_token: token,
+    guest_published_at: new Date().toISOString(),
+  }).eq('id', cl.id).eq('workspace_id', wsId);
+  if (error) {
+    alert(error.message);
+    return;
+  }
+  await load();
+}
+
+async function unpublishGuestMenu() {
+  if (!requireCan(role, 'menu_cluster_edit', t('menus.denied_edit'))) return;
+  const cl = clusters.find((c) => c.id === selectedId);
+  if (!cl) return;
+  if (!confirm(t('menus.qr_unpublish_confirm'))) return;
+  const { error } = await supabase.from('menu_clusters').update({
+    guest_published_at: null,
+  }).eq('id', cl.id).eq('workspace_id', wsId);
+  if (error) {
+    alert(error.message);
+    return;
+  }
+  await load();
+}
+
+function copyGuestLink() {
+  const cl = clusters.find((c) => c.id === selectedId);
+  if (!cl?.guest_token || !cl.guest_published_at) return;
+  const url = guestMenuUrl(cl.guest_token);
+  navigator.clipboard?.writeText(url).then(() => {
+    alert(t('menus.qr_copied'));
+  }).catch(() => {
+    prompt(t('menus.qr_copy_manual'), url);
+  });
+}
+
+async function downloadGuestQr() {
+  const cl = clusters.find((c) => c.id === selectedId);
+  if (!cl?.guest_token || !cl.guest_published_at) return;
+  const url = guestMenuUrl(cl.guest_token);
+  try {
+    await downloadGuestMenuQrCard({
+      url,
+      menuName: cl.name,
+      workspaceName: wsName,
+      logoUrl: workspaceLogoUrl || '',
+      filename: `carta-qr-${(cl.name || 'menu').replace(/[^\w\-]+/g, '-').slice(0, 40)}.png`,
+    });
+  } catch (err) {
+    console.error(err);
+    alert(t('menus.qr_download_fail'));
+  }
 }
 
 function ensureDraft(cl) {
@@ -445,6 +643,10 @@ function renderMenuPrint(cl, sections) {
     }).join('')
     : `<p class="menu-print__empty" data-i18n="menus.list_empty">No recipes yet</p>`;
 
+  const wsLogo = workspaceLogoUrl
+    ? `<img src="${escapeHTML(workspaceLogoUrl)}" alt="" class="menu-print__ws-logo" style="max-height:40px;max-width:120px;object-fit:contain;margin-left:auto" decoding="async">`
+    : '';
+
   host.innerHTML = `
     <article class="menu-print menu-print--${escapeHTML(color)}" id="menuPrintCard">
       <header class="menu-print__head">
@@ -453,6 +655,7 @@ function renderMenuPrint(cl, sections) {
           <h2 class="menu-print__title">${escapeHTML(cl.name)}</h2>
           <p class="menu-print__meta">${escapeHTML(t('menus.type.' + (cl.type || 'mixed')))} · ${escapeHTML(t('menus.list_count').replace('{n}', String(total)))}</p>
         </div>
+        ${wsLogo}
       </header>
       ${sectionHtml}
     </article>
@@ -505,6 +708,8 @@ main.innerHTML = `
   <div class="studio-panel-visual studio-panel-visual--vv-wide">
     <figure class="studio-panel-visual__cell" style="--ar-w:1024; --ar-h:824;"><img class="is-brand-visual" src="/assets/carta-editorial-divided.png" alt="Divided tasting plate holding small composed courses on linen." data-i18n-alt="img.alt.divided_tasting" width="1024" height="824" loading="lazy" decoding="async"></figure>
   </div>
+
+  <section class="menus-branding no-print" id="menusBranding" aria-labelledby="menusBrandingTitle"></section>
 
   <div class="menus-stack">
     <div class="menus-shell">
@@ -567,6 +772,7 @@ async function load() {
   if (selectedId && !clusters.some(c => c.id === selectedId)) selectedId = null;
   draftSections = null;
   renderList();
+  renderBranding();
   renderEditor();
   fillCompareSelects();
   applyTranslations();
@@ -689,6 +895,8 @@ function renderEditor() {
     <h3 style="font-size:13px;margin:0 0 var(--sp-3)" data-i18n="menus.assign_recipes">Assign recipes</h3>
     ${sectionBlocks}
 
+    ${guestQrPanelHtml(cl)}
+
     <div class="toolbar-row">
       <button type="button" class="btn btn-primary" id="btnSaveMenu" data-require="menu_cluster_edit"><span data-i18n="menus.save">Save menu</span></button>
       <button type="button" class="btn btn-outline" id="btnExportCsv"><span data-i18n="menus.export_csv">Export dish list (CSV)</span></button>
@@ -735,6 +943,11 @@ function renderEditor() {
       renderEditor();
     });
   });
+
+  body.querySelector('#btnPublishQr')?.addEventListener('click', publishGuestMenu);
+  body.querySelector('#btnUnpublishQr')?.addEventListener('click', unpublishGuestMenu);
+  body.querySelector('#btnCopyGuestUrl')?.addEventListener('click', copyGuestLink);
+  body.querySelector('#btnDownloadQr')?.addEventListener('click', downloadGuestQr);
 
   body.querySelector('#btnSaveMenu')?.addEventListener('click', saveSelected);
   body.querySelector('#btnDelMenu')?.addEventListener('click', deleteSelected);
@@ -988,6 +1201,7 @@ main.querySelector('#btnExportAllMenusXls').addEventListener('click', exportAllM
 main.querySelector('#cmpPrint').addEventListener('click', () => window.print());
 main.querySelector('#btnPrintMenu')?.addEventListener('click', () => window.print());
 
+renderBranding();
 applyTranslations();
 applyRoleGates(role, main);
 await load();
