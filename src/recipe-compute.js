@@ -66,9 +66,13 @@ export function toGrams(amount, unit, name = '') {
 // ---- Recipe-level compute -------------------------------------
 // recipe.ingredients = [{ name, amount, unit }]
 // Returns: { kcal, P, F, C, Fi, ethanol, perServing: {...}, allergens: [...], dietTags: [...] }
-export function computeRecipe(recipe) {
+export function computeRecipe(recipe, options = {}) {
   const ings = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
   const servings = Math.max(1, Number(recipe.servings) || 1);
+  const registry = options.registry;
+  const resolveOne = registry?.resolve
+    ? (ing) => registry.resolve(ing.name, { brand: ing.brand })
+    : (ing) => lookupNutrient(ing.name);
 
   let tot = { P:0, F:0, C:0, Fi:0, ethanol:0, mass:0 };
   const allergens = new Set();
@@ -76,7 +80,7 @@ export function computeRecipe(recipe) {
   for (const i of ings) {
     const grams = toGrams(i.amount, i.unit, i.name);
     if (!grams) continue;
-    const nut = lookupNutrient(i.name);
+    const nut = resolveOne(i);
     if (!nut) continue;
     const scale = grams / 100;
     tot.P  += (nut.P  || 0) * scale;
