@@ -41,14 +41,15 @@ for (const id of REQUIRED_SVG_IDS) {
 }
 
 const capSrc = fs.readFileSync(path.join(root, 'src/capability-map.js'), 'utf8');
-const capGaps = [
-  ['guest_menu_publish', /guest|qr_publish|publish_guest/],
-  ['workspace_logo', /logo|branding/],
-  ['menu_type_set', /menu_type|set_menu_type/],
+const capRequired = [
+  'menu_guest_publish',
+  'ws_logo_upload',
+  'menu_type_set',
+  'guest_menu_lang',
 ];
-for (const [id, re] of capGaps) {
-  if (re.test(capSrc)) pass(`cap:${id}`, 'Capability map mentions area');
-  else warn(`cap:${id}`, 'Not in capability-map.js — agent parity gap');
+for (const id of capRequired) {
+  if (capSrc.includes(id)) pass(`cap:${id}`, 'Capability row present');
+  else warn(`cap:${id}`, 'Missing capability row');
 }
 
 async function fetchStatus(url) {

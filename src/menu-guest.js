@@ -2,11 +2,18 @@
 
 import { getPublicAppOrigin } from './config.js';
 
-/** @param {string} token */
-export function guestMenuUrl(token) {
+/**
+ * @param {string} token
+ * @param {{ lang?: string }} [opts] — optional guest UI language (en, tr, es)
+ */
+export function guestMenuUrl(token, opts = {}) {
   const t = String(token || '').trim();
   const base = getPublicAppOrigin();
-  return `${base}/m?t=${encodeURIComponent(t)}`;
+  const url = new URL(`${base}/m`);
+  url.searchParams.set('t', t);
+  const lang = String(opts.lang || '').toLowerCase();
+  if (['en', 'tr', 'es'].includes(lang)) url.searchParams.set('lang', lang);
+  return url.toString();
 }
 
 /** 48-char hex token for menu_clusters.guest_token */
