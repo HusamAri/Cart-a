@@ -22,6 +22,7 @@
     <div class="lang-toggle" role="group" aria-label="Language">
       <button type="button" data-lang-btn="en" class="active">EN</button>
       <button type="button" data-lang-btn="tr">TR</button>
+      <button type="button" data-lang-btn="es">ES</button>
     </div>
   </div>
   <article class="legal-doc">
@@ -36,26 +37,12 @@
   </article>
 </div>
 <script type="module">
-import { applyTranslations, setLang, getLang } from '/src/i18n.js';
+import { applyTranslations, wireLangSwitchers } from '/src/i18n.js';
 import { initTheme } from '/src/theme.js';
 
 initTheme();
-function syncLangButtons() {
-  document.querySelectorAll('[data-lang-btn]').forEach(b => {
-    const on = b.dataset.langBtn === getLang();
-    b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    b.classList.toggle('active', on);
-  });
-}
-document.querySelectorAll('[data-lang-btn]').forEach(b => {
-  b.addEventListener('click', () => {
-    setLang(b.dataset.langBtn);
-    applyTranslations();
-    syncLangButtons();
-  });
-});
+wireLangSwitchers();
 applyTranslations();
-syncLangButtons();
 </script>
 </body>
 </html>

@@ -494,7 +494,7 @@ rebuildCategoryChips();
 setBeverageMode('all');
 render();
 
-document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+window.addEventListener('carta-lang-change', () => {
   setTimeout(() => {
     searchEl.placeholder = t('ingdb.search_ph');
     rebuildCategoryChips();

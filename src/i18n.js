@@ -465,6 +465,7 @@ const STRINGS = {
     'ui.lang.tr': 'Turkish',
     'ui.lang.es': 'Spanish',
     'ui.lang.cycle_aria': 'Change language',
+    'ui.lang.group_aria': 'Language',
     // Workspace activity log (audit_log table)
     'activity.eyebrow': 'Compliance',
     'activity.title': 'Activity',
@@ -1378,6 +1379,7 @@ const STRINGS = {
     'ui.lang.tr': 'Türkçe',
     'ui.lang.es': 'İspanyolca',
     'ui.lang.cycle_aria': 'Dili değiştir',
+    'ui.lang.group_aria': 'Dil',
     // Çalışma alanı etkinlik günlüğü (audit_log)
     'activity.eyebrow': 'Uyumluluk',
     'activity.title': 'Etkinlik',
@@ -1846,6 +1848,7 @@ const STRINGS_ES = {
   'ui.lang.tr': 'Turco',
   'ui.lang.es': 'Español',
   'ui.lang.cycle_aria': 'Cambiar idioma',
+  'ui.lang.group_aria': 'Idioma',
   'menus.eyebrow': 'Agrupación de menús',
   'menus.title_full': 'Mis menús',
   'menus.intro':
@@ -1916,16 +1919,38 @@ export function cycleLang() {
   setLang(nextLangCode());
 }
 
+/** Mark active EN / TR / ES buttons. */
+export function syncLangSwitchers(root = document) {
+  const lang = getLang();
+  const scope = root?.querySelectorAll ? root : document;
+  scope.querySelectorAll('[data-lang-btn]').forEach((b) => {
+    const on = b.dataset.langBtn === lang;
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.classList.toggle('active', on);
+  });
+}
+
+/** Wire [data-lang-btn] clicks (idempotent). */
+export function wireLangSwitchers(root = document) {
+  const scope = root?.querySelectorAll ? root : document;
+  scope.querySelectorAll('[data-lang-btn]').forEach((btn) => {
+    if (btn.dataset.langWired === '1') return;
+    btn.dataset.langWired = '1';
+    btn.addEventListener('click', () => {
+      const code = btn.dataset.langBtn;
+      if (code && STRINGS[code]) setLang(code);
+    });
+  });
+  syncLangSwitchers(scope);
+}
+
 export function setLang(lang) {
   if (!STRINGS[lang]) return;
   try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
   applyTranslations();
-  // Update toggle UI
-  document.querySelectorAll('[data-lang-btn]').forEach(b => {
-    b.classList.toggle('active', b.dataset.langBtn === lang);
-  });
-  // Update <html lang> for accessibility
+  syncLangSwitchers();
   document.documentElement.lang = lang;
+  window.dispatchEvent(new CustomEvent('carta-lang-change', { detail: { lang } }));
 }
 
 export function t(key) {
@@ -1955,9 +1980,8 @@ export function applyTranslations() {
     const key = el.getAttribute('data-i18n-alt');
     el.setAttribute('alt', t(key));
   });
-  document.querySelectorAll('[data-lang-btn]').forEach(b => {
-    b.classList.toggle('active', b.dataset.langBtn === lang);
-  });
+  syncLangSwitchers();
+  wireLangSwitchers();
 }
 
 // Auto-apply on load

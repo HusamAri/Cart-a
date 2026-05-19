@@ -903,7 +903,7 @@ applyTranslations();
 applyRoleGates(role, main);
 await load();
 
-document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+window.addEventListener('carta-lang-change', () => {
   setTimeout(() => {
     applyTranslations();
     renderList();

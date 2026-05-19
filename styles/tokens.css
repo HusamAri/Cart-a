@@ -399,6 +399,13 @@ button { font-family: inherit; cursor: pointer; }
   z-index: 100; transition: top var(--dur-1);
 }
 .skip-link:focus { top: 16px; }
+.skip-link:focus-visible { top: 16px; outline: 2px solid var(--on-primary); outline-offset: 2px; }
+
+#main:focus { outline: none; }
+#main:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
 
 /* Screen-reader-only headings (sections that are mostly visual still need a name). */
 .visually-hidden {
@@ -1003,6 +1010,13 @@ body.carta-landing .closing__brand-mark img {
 .lang-toggle button.active { color: var(--on-primary); background: var(--primary); }
 .lang-toggle button:hover:not([aria-pressed="true"]):not(.active) { color: var(--primary); }
 .lang-toggle button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.lang-toggle--compact button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
 
 /* Theme cycle (system / light / dark) — same hit target as language toggle */
 .carta-theme-btn {

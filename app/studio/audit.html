@@ -237,7 +237,7 @@ main.querySelector('#auditRefresh').addEventListener('click', () => load());
 
 await load();
 
-document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+window.addEventListener('carta-lang-change', () => {
   setTimeout(() => {
     const types = [...new Set(allRows.map(r => r.type).filter(Boolean))].sort();
     fillTypeFilter(types);

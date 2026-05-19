@@ -619,7 +619,7 @@ function renderCard(r, cl) {
 
 main.querySelector('#newBtn').addEventListener('click', () => openEditor(null));
 main.querySelector('#searchInput').addEventListener('input', (e) => render(e.target.value));
-document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+window.addEventListener('carta-lang-change', () => {
   setTimeout(() => {
     const q = main.querySelector('#searchInput')?.value || '';
     render(q);

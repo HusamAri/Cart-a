@@ -331,7 +331,7 @@ function round(v, digits = 2) {
   return Math.round(v * f) / f;
 }
 
-document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
+window.addEventListener('carta-lang-change', () => {
   setTimeout(() => applyRoleGates(role, main), 0);
 });
 </script>
