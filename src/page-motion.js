@@ -1,6 +1,8 @@
 // Carta — global motion: cross-document view transitions, UI ready state, a11y.
 // Loaded on marketing/auth pages and pulled in by studio-layout for studio routes.
 
+import { initSkipLink } from './skip-link.js';
+
 function initReducedMotion() {
   try {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -50,6 +52,7 @@ function wireViewTransitionNav() {
 function boot() {
   initReducedMotion();
   markUiReady();
+  initSkipLink();
   wireViewTransitionNav();
 }
 

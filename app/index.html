@@ -254,7 +254,11 @@
       <div class="app-bar__right" id="userBar">
         <span class="user-email" id="userEmail">—</span>
         <button type="button" class="carta-theme-btn" id="appThemeBtn" aria-label="">◐</button>
-        <button type="button" onclick="window.__cartaToggleLang()" id="langSwitch" aria-label="Toggle language">TR</button>
+        <div class="lang-toggle lang-toggle--compact" role="group" data-i18n-aria-label="ui.lang.group_aria" aria-label="Language">
+          <button type="button" data-lang-btn="en">EN</button>
+          <button type="button" data-lang-btn="tr">TR</button>
+          <button type="button" data-lang-btn="es">ES</button>
+        </div>
         <button type="button" onclick="window.__cartaSignOut()" data-i18n="app.sign_out">Sign out</button>
       </div>
     </div>
@@ -336,7 +340,7 @@ import {
 } from '/src/workspaces.js';
 import { planAllowsAdditionalMembers } from '/src/plan-limits.js';
 import { getMyRole, can, invalidateRoleCache } from '/src/permissions.js';
-import { applyTranslations, t, cycleLang, getLang, langButtonLabel } from '/src/i18n.js';
+import { applyTranslations, t, getLang, wireLangSwitchers } from '/src/i18n.js';
 import { cartaIcon } from '/src/carta-icon.js';
 import { initTheme, cycleThemePref, getThemePref, themePrefGlyph } from '/src/theme.js';
 applyTranslations();
@@ -357,12 +361,8 @@ document.getElementById('appThemeBtn')?.addEventListener('click', () => {
 });
 window.addEventListener('carta-theme-change', syncAppThemeBtn);
 
-function setLangBtn() {
-  const b = document.getElementById('langSwitch');
-  if (b) b.textContent = langButtonLabel();
-}
-setLangBtn();
-window.__cartaToggleLang = () => { cycleLang(); setLangBtn(); applyTranslations(); syncAppThemeBtn(); };
+wireLangSwitchers();
+window.addEventListener('carta-lang-change', () => { applyTranslations(); syncAppThemeBtn(); });
 window.__cartaSignOut = signOut;
 
 const $ = id => document.getElementById(id);

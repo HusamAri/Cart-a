@@ -1,10 +1,11 @@
 // Carta — Studio layout (shared sidebar nav + top bar)
 import './page-motion.js';
+import { initSkipLink } from './skip-link.js';
 import { getSessionAfterUrlAuth, onAuthChange } from './supabase-client.js';
 import { signOut } from './auth.js';
 import { getActiveWorkspace } from './workspaces.js';
 import { getMyRole, can, invalidateRoleCache } from './permissions.js';
-import { applyTranslations, t, cycleLang, getLang, langButtonLabel } from './i18n.js';
+import { applyTranslations, t, getLang, wireLangSwitchers } from './i18n.js';
 import { cartaIcon } from './carta-icon.js';
 import { mountFloatingBackToTop, mountShortcutsHelp } from './app-chrome.js';
 import { initTheme, cycleThemePref, getThemePref, themePrefGlyph } from './theme.js';
@@ -106,7 +107,11 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
         ${canSwitchProperty
           ? `<button type="button" id="sidebarSwitchWsBtn" class="btn btn-sm btn-ghost" data-i18n="studio.switch_ws" style="flex:1;padding:8px 12px;font-size:11px">Switch workspace</button>`
           : `<button type="button" class="btn btn-sm btn-ghost" disabled aria-disabled="true" title="${escapeHTML(t('ws.property_switch_denied') || 'Property switch is restricted')}" style="flex:1;padding:8px 12px;font-size:11px">${escapeHTML(t('studio.switch_ws'))}</button>`}
-        <button type="button" class="btn btn-sm btn-ghost" id="sidebarLangBtn" aria-label="Toggle language" style="padding:8px 12px;min-width:48px">EN</button>
+        <div class="lang-toggle lang-toggle--compact" role="group" data-i18n-aria-label="ui.lang.group_aria" aria-label="Language">
+          <button type="button" data-lang-btn="en">EN</button>
+          <button type="button" data-lang-btn="tr">TR</button>
+          <button type="button" data-lang-btn="es">ES</button>
+        </div>
         </div>
       </div>
       <button type="button" class="btn btn-sm btn-ghost btn-block" id="sidebarSignOut" data-i18n="app.sign_out" style="padding:10px 14px">Sign out</button>
@@ -220,22 +225,11 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   });
   window.addEventListener('carta-theme-change', syncSidebarThemeBtn);
 
-  const langBtn = document.getElementById('sidebarLangBtn');
-  function syncLang() {
-    if (!langBtn) return;
-    langBtn.textContent = langButtonLabel();
-    langBtn.setAttribute('aria-label', t('ui.lang.cycle_aria'));
-    langBtn.title = `${t('ui.lang.cycle_aria')} (${getLang().toUpperCase()} → ${langButtonLabel()})`;
-  }
-  syncLang();
-  langBtn?.addEventListener('click', () => {
-    cycleLang();
-    syncLang();
-    applyTranslations();
+  wireLangSwitchers(sidebar);
+  window.addEventListener('carta-lang-change', () => {
     syncWorkspaceContextAria(ws);
     syncSidebarRailUi();
     syncSidebarThemeBtn();
-    window.dispatchEvent(new CustomEvent('carta-lang-change'));
   });
 
   applyTranslations();
@@ -385,6 +379,8 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     { keyHtml: String.fromCharCode(8226), labelKey: 'ui.shortcuts.rail_toggle' },
     { keyHtml: 'Tab', labelKey: 'ui.shortcuts.skip_tip' },
   ]);
+
+  initSkipLink();
 
   return { session, workspace: ws, role };
 }

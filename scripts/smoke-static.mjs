@@ -75,6 +75,28 @@ for (const legal of ['legal/privacy.html', 'legal/terms.html', 'legal/kvkk.html'
   if (!exists(legal)) errors.push(`Missing legal page: ${legal}`);
 }
 
+const menuStructureRel = 'src/menu-structure.js';
+if (!exists(menuStructureRel)) {
+  errors.push('Missing required module: src/menu-structure.js (imported by dashboard, menus, recipes)');
+} else {
+  const ms = fs.readFileSync(path.join(root, menuStructureRel), 'utf8');
+  for (const sym of [
+    'clusterDishIds',
+    'clusterSections',
+    'menuDishesPayload',
+    'normalizeMenuDishes',
+    'syncRecipeMenus',
+    'menusContainingDish',
+    'emptySections',
+    'MENU_SECTION_KEYS',
+  ]) {
+    const hasExport = ms.includes(`export function ${sym}`)
+      || ms.includes(`export async function ${sym}`)
+      || ms.includes(`export const ${sym}`);
+    if (!hasExport) errors.push(`menu-structure.js: missing export ${sym}`);
+  }
+}
+
 if (errors.length) {
   console.error('Smoke static FAILED:\n' + errors.map((e) => `  - ${e}`).join('\n'));
   process.exit(1);
