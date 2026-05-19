@@ -75,6 +75,24 @@ for (const legal of ['legal/privacy.html', 'legal/terms.html', 'legal/kvkk.html'
   if (!exists(legal)) errors.push(`Missing legal page: ${legal}`);
 }
 
+for (const file of collectHtml('app/studio')) {
+  const c = fs.readFileSync(path.join(root, file), 'utf8');
+  if (c.includes('if (!ctx) return')) {
+    errors.push(
+      `${file}: top-level "return" in <script type="module"> breaks the page (use if/else or an async IIFE)`,
+    );
+  }
+}
+
+const esLocaleRel = 'src/locales/es.js';
+if (!exists(esLocaleRel)) {
+  errors.push('Missing Spanish locale: src/locales/es.js (run node scripts/build-es-locale.mjs)');
+} else {
+  const esMod = fs.readFileSync(path.join(root, esLocaleRel), 'utf8');
+  const keyCount = (esMod.match(/^\s{2}"[^"]+":/gm) || []).length;
+  if (keyCount < 800) errors.push(`Spanish locale looks incomplete (${keyCount} keys, expected ~821)`);
+}
+
 const menuStructureRel = 'src/menu-structure.js';
 if (!exists(menuStructureRel)) {
   errors.push('Missing required module: src/menu-structure.js (imported by dashboard, menus, recipes)');

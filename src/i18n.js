@@ -1,6 +1,8 @@
 // Carta — minimal i18n
 // Reads data-i18n, data-i18n-ph, data-i18n-title, data-i18n-aria-label, data-i18n-alt from DOM.
 
+import STRINGS_ES from './locales/es.js';
+
 const STRINGS = {
   en: {
     'nav.index': 'Modules',
@@ -71,7 +73,7 @@ const STRINGS = {
     'index.06_num': '06 — Surface',
     'index.06_title_l1': 'The',
     'index.06_title_em': 'output',
-    'index.06_desc': 'Bilingual EN/TR. Excel import, PDF/PNG export. Offline-capable. Mobile-considered.',
+    'index.06_desc': 'Bilingual EN/TR/ES. Excel import, PDF/PNG export. Offline-capable. Mobile-considered.',
     // editorial
     'editorial.eyebrow': 'Method',
     'editorial.title_em': 'Simplicity is power.',
@@ -341,7 +343,7 @@ const STRINGS = {
     'studio.d_audit':   'Snapshot every upload. Top movers, anomalies, drop list.',
     'studio.d_activity': 'Immutable-style timeline of workspace events for compliance review.',
     'studio.d_capabilities': 'UI actions mapped to planned agent tools. Export JSON for MCP prompts and parity reviews.',
-    'studio.d_surface': 'Bilingual EN/TR. Excel import, PDF/PNG export.',
+    'studio.d_surface': 'Bilingual EN/TR/ES. Excel import, PDF/PNG export.',
     'studio.m_ing_db': 'The pantry',
     'studio.d_ing_db': 'Browse Codex nutrient reference, filter by category, audit export, add custom rows.',
     'studio.m_presets': 'Presets',
@@ -982,7 +984,7 @@ const STRINGS = {
     'index.06_num': '06 — Raporlama',
     'index.06_title_l1': 'Rapor',
     'index.06_title_em': 've dışa aktarım',
-    'index.06_desc': 'Türkçe ve İngilizce. Excel’den içeri, PDF ve PNG olarak dışarı; mobilde de okunaklı.',
+    'index.06_desc': 'Türkçe, İngilizce ve İspanyolca. Excel’den içeri, PDF ve PNG olarak dışarı; mobilde de okunaklı.',
     // editorial
     'editorial.eyebrow': 'Yaklaşım',
     'editorial.title_em': 'Sadelik güçtür.',
@@ -1256,7 +1258,7 @@ const STRINGS = {
     'studio.d_audit':   'Maliyet defterinin anlık kaydı. En çok hareket eden kalemler ve sapmalar görünür.',
     'studio.d_activity': 'Uyumluluk incelemesi için çalışma alanı olaylarının zaman çizelgesi; kayıt silinmez akış.',
     'studio.d_capabilities': 'Arayüz aksiyonlarının planlanan ajan araçlarıyla eşlemesi. MCP istemleri ve parity incelemesi için JSON dışa aktarın.',
-    'studio.d_surface': 'Türkçe ve İngilizce. Excel’den içe, PDF ve PNG olarak dışarı.',
+    'studio.d_surface': 'Türkçe, İngilizce ve İspanyolca. Excel’den içe, PDF ve PNG olarak dışarı.',
     'studio.m_ing_db': 'Besin referansı',
     'studio.d_ing_db': 'Kodeks besin değerlerini gez; kümeye göre süz, denetim için Excel indir, özel satır ekle.',
     'studio.m_presets': 'Hazır menüler',
@@ -1831,60 +1833,7 @@ const STRINGS = {
   }
 };
 
-/** Spanish: full fallback to English, with product UI translated. */
-const STRINGS_ES = {
-  'nav.signin': 'Iniciar sesión',
-  'nav.begin': 'Empezar',
-  'studio.overview': 'Resumen',
-  'studio.m_dashboard': 'Panel',
-  'studio.m_builder': 'Recetas',
-  'studio.m_menus': 'Mis menús',
-  'studio.open': 'Abrir',
-  'studio.switch_ws': 'Cambiar espacio',
-  'app.sign_out': 'Cerrar sesión',
-  'ui.nav_menu': 'Menú',
-  'ui.nav_close': 'Cerrar menú',
-  'ui.lang.en': 'Inglés',
-  'ui.lang.tr': 'Turco',
-  'ui.lang.es': 'Español',
-  'ui.lang.cycle_aria': 'Cambiar idioma',
-  'ui.lang.group_aria': 'Idioma',
-  'menus.eyebrow': 'Agrupación de menús',
-  'menus.title_full': 'Mis menús',
-  'menus.intro':
-    'Compón menús al estilo impreso con apartados (entrantes, principales, postres…). Previsualiza cada carta a gran tamaño y asigna recetas desde aquí o desde el editor de recetas.',
-  'menus.list_title': 'Menús en este espacio',
-  'menus.list_empty': 'Aún no hay menús. Crea uno para agrupar recetas.',
-  'menus.list_count': '{n} recetas vinculadas',
-  'menus.new_menu': 'Nuevo menú',
-  'menus.pick_menu': 'Elige un menú a la izquierda o crea uno nuevo.',
-  'menus.print_preview': 'Vista previa impresa',
-  'menus.edit_details': 'Ajustes del menú',
-  'menus.assign_recipes': 'Asignar recetas por sección',
-  'menus.section_help': 'Coloca recetas en cada sección. Las secciones vacías no se muestran en la vista previa.',
-  'menus.save': 'Guardar menú',
-  'menus.delete': 'Eliminar menú',
-  'menus.section.starters': 'Entrantes',
-  'menus.section.soups': 'Sopas',
-  'menus.section.salads': 'Ensaladas',
-  'menus.section.mains': 'Platos principales',
-  'menus.section.sides': 'Guarniciones',
-  'menus.section.desserts': 'Postres',
-  'menus.section.drinks': 'Bebidas',
-  'menus.section.cheese': 'Quesos',
-  'menus.section.bar': 'Bar',
-  'menus.section.other': 'Otros',
-  'recipes.menus_heading': 'Menús',
-  'recipes.menus_help': 'Añade esta receta a uno o más menús. Se coloca en la sección por defecto (principal o bebidas). Ajusta secciones en Mis menús.',
-  'recipes.menus_none': 'Aún no hay menús. Créalos en Mis menús.',
-  'recipes.title': 'Receta',
-  'recipes.title_em': 'biblioteca',
-  'recipes.new': 'Nueva receta',
-  'recipes.save': 'Guardar',
-  'recipes.kind_food': 'Comida',
-  'recipes.kind_drink': 'Bebida',
-};
-
+/** Spanish: full locale (src/locales/es.js); merged over EN for any future gaps. */
 STRINGS.es = { ...STRINGS.en, ...STRINGS_ES };
 
 const LANG_ORDER = ['en', 'tr', 'es'];
