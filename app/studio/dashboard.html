@@ -289,7 +289,7 @@ main.innerHTML = `
     </div>
   </div>
 
-  <div id="dashRoot"></div>
+  <div id="dashRoot" class="dash-loading" aria-busy="true" data-i18n="dash.loading">Loading dashboard…</div>
 `;
 
 applyTranslations();
@@ -298,26 +298,70 @@ await load();
 
 let ingredientRegistry = null;
 
+function showDashLoading() {
+  const root = main.querySelector('#dashRoot');
+  if (!root) return;
+  root.className = 'dash-loading';
+  root.setAttribute('aria-busy', 'true');
+  root.innerHTML = escapeHTML(t('dash.loading'));
+  root.dataset.i18n = 'dash.loading';
+}
+
+function showDashError(message) {
+  const root = main.querySelector('#dashRoot');
+  if (!root) return;
+  root.className = '';
+  root.removeAttribute('aria-busy');
+  root.innerHTML = `<p class="flash error">${escapeHTML(message)}</p>`;
+}
+
+/** If entrance animations never run, KPI tiles and bars must not stay invisible. */
+function ensureDashVisible() {
+  const root = main.querySelector('#dashRoot');
+  if (!root) return;
+  requestAnimationFrame(() => {
+    root.querySelectorAll('.dash-kpi, .dash-card--viz').forEach((el) => {
+      if (parseFloat(getComputedStyle(el).opacity) < 0.05) {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      }
+    });
+    root.querySelectorAll('.dash-macro-seg, .dash-bar-fill').forEach((el) => {
+      const tr = getComputedStyle(el).transform;
+      if (tr && tr !== 'none' && (tr.includes('matrix(0') || tr.includes('scale(0'))) {
+        el.style.transform = 'scaleX(1)';
+      }
+    });
+  });
+}
+
 async function load() {
-  const reg = await loadIngredientRegistry(supabase, wsId);
-  ingredientRegistry = reg.registry;
-  const [dRes, cRes, clRes] = await Promise.all([
-    supabase.from('saved_dishes').select('*').eq('workspace_id', wsId).order('updated_at', { ascending: false }),
-    supabase.from('cost_db').select('*').eq('workspace_id', wsId),
-    supabase.from('menu_clusters').select('*').eq('workspace_id', wsId).order('name'),
-  ]);
-  if (dRes.error) {
-    main.querySelector('#dashRoot').innerHTML = `<p class="flash error">${escapeHTML(dRes.error.message)}</p>`;
-    return;
+  showDashLoading();
+  try {
+    const reg = await loadIngredientRegistry(supabase, wsId);
+    ingredientRegistry = reg.registry;
+    const [dRes, cRes, clRes] = await Promise.all([
+      supabase.from('saved_dishes').select('*').eq('workspace_id', wsId).order('updated_at', { ascending: false }),
+      supabase.from('cost_db').select('*').eq('workspace_id', wsId),
+      supabase.from('menu_clusters').select('*').eq('workspace_id', wsId).order('name'),
+    ]);
+    if (dRes.error) {
+      showDashError(dRes.error.message);
+      return;
+    }
+    allDishes = dRes.data || [];
+    const costMap = buildCostMap(cRes.data || []);
+    lastCostMap = costMap;
+    clusters = clRes.data || [];
+    fillClusterSelect();
+    renderDash(costMap);
+    applyTranslations();
+    applyRoleGates(role, main);
+    ensureDashVisible();
+  } catch (err) {
+    console.error('[dashboard]', err);
+    showDashError(err?.message || String(err));
   }
-  allDishes = dRes.data || [];
-  const costMap = buildCostMap(cRes.data || []);
-  lastCostMap = costMap;
-  clusters = clRes.data || [];
-  fillClusterSelect();
-  renderDash(costMap);
-  applyTranslations();
-  applyRoleGates(role, main);
 }
 
 function fillClusterSelect() {
@@ -377,11 +421,11 @@ function analyze(rows, costMap) {
 
   for (const { row, comp, cost } of items) {
     if (row.kind === 'drink') drinkN++; else foodN++;
-    const k = comp.perServing.kcal || 0;
+    const k = comp?.perServing?.kcal || 0;
     sumKcal += k;
-    sumP += comp.perServing.P || 0;
-    sumF += comp.perServing.F || 0;
-    sumC += comp.perServing.C || 0;
+    sumP += comp?.perServing?.P || 0;
+    sumF += comp?.perServing?.F || 0;
+    sumC += comp?.perServing?.C || 0;
     for (const a of comp.allergens || []) {
       allergenRecipeCount[a] = (allergenRecipeCount[a] || 0) + 1;
     }
@@ -406,7 +450,7 @@ function analyze(rows, costMap) {
     const data = row.data || {};
     const climate = computeRecipeClimate({ ingredients: data.ingredients || [], servings: data.servings || 1 });
     sumGco2 += climate.perServingGCo2e;
-    const kcalP = comp.perServing.kcal || 0;
+    const kcalP = comp?.perServing?.kcal || 0;
     if (kcalP >= 40) {
       sumCo2PerKcal += climate.perServingGCo2e / kcalP;
       co2KcalN++;
@@ -479,6 +523,8 @@ function dashCardHead(titleKey, methodBodyKey) {
 
 function renderDash(costMap) {
   const root = main.querySelector('#dashRoot');
+  root.className = '';
+  root.removeAttribute('aria-busy');
   const rows = scopedDishes();
 
   if (clusterFilter !== '__all__' && rows.length === 0 && allDishes.length > 0) {
@@ -615,6 +661,7 @@ function renderDash(costMap) {
   `;
   applyTranslations();
   applyRoleGates(role, main);
+  ensureDashVisible();
 }
 
 function escapeHTML(s) {
