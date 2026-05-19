@@ -134,6 +134,27 @@
     gap: var(--sp-3);
     flex-shrink: 0;
   }
+  .guest-print-btn {
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--outline-variant);
+    background: var(--surface-container-low);
+    color: var(--primary);
+    cursor: pointer;
+  }
+  .guest-print-btn:hover { background: var(--surface-container); }
+  @media print {
+    .guest-top__actions .lang-toggle,
+    .guest-print-btn,
+    .guest-foot { display: none !important; }
+    .guest-wrap { max-width: none; padding: 0; }
+    body { background: #fff; }
+  }
   .menu-print .chip-allergen {
     background: rgb(107 45 60 / 0.12);
     color: #6b2d3c;
@@ -291,6 +312,7 @@ function renderMenu(host, payload) {
     <header class="guest-top">
       <img class="carta-lockup" src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta" width="876" height="294" decoding="async">
       <div class="guest-top__actions">
+        <button type="button" class="guest-print-btn" id="guestPrintBtn" data-i18n="guest.print">Print menu</button>
         <div class="lang-toggle lang-toggle--compact" role="group" aria-label="${escapeHTML(t('ui.lang.group_aria'))}">
           <button type="button" data-lang-btn="en">EN</button>
           <button type="button" data-lang-btn="tr">TR</button>
@@ -315,6 +337,7 @@ function renderMenu(host, payload) {
     <p class="guest-foot">${escapeHTML(t('guest.powered'))} <a href="https://cart-a.live/">Carta</a></p>
   `;
   wireLangSwitchers(host);
+  host.querySelector('#guestPrintBtn')?.addEventListener('click', () => window.print());
 }
 
 applyTranslations();
