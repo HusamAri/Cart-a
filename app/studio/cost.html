@@ -476,6 +476,11 @@ function buildEditorEl(entry) {
           <input class="input" id="editMapsTo" type="text" list="costCanonicalList" value="${escapeHTML(e.ingredient_name)}" autocomplete="off" data-require-disable="${editAction}">
           <p class="text-muted" style="margin:6px 0 0;font-size:var(--type-caption)" data-i18n="cost.maps_to_hint">If SAP uses a different label, pick the Carta key used in recipes.</p>
         </div>
+        <div class="form-row">
+          <label class="label" for="editMapsToBrand" data-i18n="cost.label_maps_to_brand">Sub-brand (optional)</label>
+          <input class="input" id="editMapsToBrand" type="text" value="" autocomplete="off" data-require-disable="${editAction}">
+          <p class="text-muted" style="margin:6px 0 0;font-size:var(--type-caption)" data-i18n="cost.maps_to_brand_hint">When set, nutrition and allergens use this brand variant.</p>
+        </div>
         <div class="form-grid-2">
           <div class="form-row">
             <label class="label" for="editPrice" data-i18n="cost.label_price_per_100g">Price per 100g</label>
@@ -616,10 +621,12 @@ function buildEditorEl(entry) {
       if (error) throw error;
       const mapsTo = wrap.querySelector('#editMapsTo')?.value.trim();
       if (mapsTo && turkNorm(mapsTo) !== turkNorm(name)) {
+        const mapsBrand = wrap.querySelector('#editMapsToBrand')?.value.trim() || null;
         await upsertIngredientAlias(supabase, wsId, {
           alias: name,
           maps_to: mapsTo,
           sap_code: payload.sap_code,
+          brand_name: mapsBrand,
         });
       }
       closeEditor();

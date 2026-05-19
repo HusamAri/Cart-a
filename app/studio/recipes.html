@@ -201,7 +201,7 @@
   .ing-list { display: flex; flex-direction: column; gap: var(--sp-3); }
   .ing-row {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) 88px minmax(120px, 1fr) 44px;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 88px minmax(120px, 1fr) 44px;
     gap: 8px; align-items: start;
     position: relative;
   }
@@ -212,6 +212,7 @@
       gap: 10px;
     }
     .ing-row .col-name { grid-column: 1 / -1; }
+    .ing-row .col-brand { grid-column: 1 / -1; }
     .ing-row .col-amount { grid-column: 1; }
     .ing-row .col-unit { grid-column: 2; }
     .ing-row .col-rm { grid-column: 3; grid-row: 2; align-self: center; }
@@ -404,7 +405,7 @@ async function ensureIngredientRegistry() {
 }
 
 function computeRecipeWs(recipe) {
-  return computeRecipeWs(recipe, ingredientRegistry ? { registry: ingredientRegistry } : {});
+  return computeRecipe(recipe, ingredientRegistry ? { registry: ingredientRegistry } : {});
 }
 
 async function loadPantryNames() {
@@ -648,11 +649,16 @@ window.addEventListener('carta-lang-change', () => {
 });
 
 function readIngredients(wrap) {
-  return [...wrap.querySelectorAll('.ing-row')].map(row => ({
-    name:   row.querySelector('.ing-name').value.trim(),
-    amount: row.querySelector('.ing-amount').value,
-    unit:   row.querySelector('.ing-unit').value,
-  })).filter(i => i.name);
+  return [...wrap.querySelectorAll('.ing-row')].map(row => {
+    const brand = row.querySelector('.ing-brand')?.value.trim() || '';
+    const item = {
+      name:   row.querySelector('.ing-name').value.trim(),
+      amount: row.querySelector('.ing-amount').value,
+      unit:   row.querySelector('.ing-unit').value,
+    };
+    if (brand) item.brand = brand;
+    return item;
+  }).filter(i => i.name);
 }
 
 function escapeHTML(s) {
@@ -1363,12 +1369,43 @@ function buildEditorEl({ recipe, data }) {
   return wrap;
 }
 
+function brandDatalistHtml(name) {
+  if (!ingredientRegistry || !name) return '';
+  const canonical = ingredientRegistry.canonicalKeyFor?.(name) || name;
+  const brands = ingredientRegistry.listBrands?.(canonical) || [];
+  if (!brands.length) return '';
+  const id = `brand-list-${Math.random().toString(36).slice(2, 9)}`;
+  const opts = brands.map((b) => `<option value="${escapeHTML(b.brand_name)}">`).join('');
+  return `<datalist id="${id}">${opts}</datalist>`;
+}
+
+function syncIngBrandList(row) {
+  const name = row.querySelector('.ing-name')?.value.trim() || '';
+  const brandInput = row.querySelector('.ing-brand');
+  if (!brandInput) return;
+  row.querySelector('.col-brand datalist')?.remove();
+  const html = brandDatalistHtml(name);
+  if (html) {
+    brandInput.insertAdjacentHTML('afterend', html);
+    const id = html.match(/id="([^"]+)"/)?.[1];
+    if (id) brandInput.setAttribute('list', id);
+  } else {
+    brandInput.removeAttribute('list');
+  }
+}
+
 function buildIngRow(ing, editAction) {
   const row = document.createElement('div');
   row.className = 'ing-row';
+  const brandList = brandDatalistHtml(ing.name || '');
+  const brandListId = brandList.match(/id="([^"]+)"/)?.[1] || '';
   row.innerHTML = `
     <div class="col-name" style="position:relative">
       <input class="input ing-name" type="text" placeholder="${escapeHTML(t('recipes.col_name'))}" value="${escapeHTML(ing.name || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" data-require-disable="${editAction}">
+    </div>
+    <div class="col-brand">
+      <input class="input ing-brand" type="text" placeholder="${escapeHTML(t('recipes.col_brand'))}" value="${escapeHTML(ing.brand || '')}" ${brandListId ? `list="${brandListId}"` : ''} autocomplete="off" data-require-disable="${editAction}">
+      ${brandList}
     </div>
     <div class="col-amount">
       <input class="input ing-amount" type="text" inputmode="decimal" placeholder="${escapeHTML(t('recipes.col_amount'))}" value="${ing.amount ?? ''}" data-require-disable="${editAction}">
@@ -1389,6 +1426,9 @@ function buildIngRow(ing, editAction) {
     limit: 12,
     emptyMessage: t('recipes.no_match'),
   });
+  const nameInput = row.querySelector('.ing-name');
+  nameInput.addEventListener('change', () => syncIngBrandList(row));
+  nameInput.addEventListener('blur', () => syncIngBrandList(row));
   row.querySelector('.rm-btn').addEventListener('click', () => {
     row.remove();
     document.getElementById('recipeEditor')?.querySelector('.modal__form')?.dispatchEvent(new Event('input', { bubbles: true }));

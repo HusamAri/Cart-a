@@ -178,6 +178,33 @@
     display: flex; align-items: center; gap: 8px; font-size: var(--type-caption);
     cursor: pointer;
   }
+  .allergen-modal .modal-sub {
+    margin: var(--sp-5) 0 var(--sp-3);
+    font-size: var(--type-label-sm);
+    letter-spacing: var(--track-caps);
+    text-transform: uppercase;
+    color: var(--on-surface-variant);
+  }
+  .allergen-modal .modal-intro,
+  .allergen-modal .modal-hint { font-size: var(--type-caption); margin: 0 0 var(--sp-4); }
+  .allergen-modal .modal__foot.split { justify-content: space-between; }
+  .brand-add-form, .brand-macro-form {
+    display: grid;
+    grid-template-columns: 1.2fr repeat(3, minmax(64px, 1fr)) auto;
+    gap: var(--sp-3); align-items: end; margin: var(--sp-4) 0;
+  }
+  @media (max-width: 640px) {
+    .brand-add-form, .brand-macro-form { grid-template-columns: 1fr 1fr; }
+  }
+  .brand-add-form .form-cell label,
+  .brand-macro-form .form-cell label {
+    display: block; font-size: 10px; font-weight: 600; letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant); margin-bottom: 6px;
+  }
+  .btn-row-inline { display: flex; gap: 4px; flex-wrap: wrap; }
+  .brand-edit-title { margin: var(--sp-4) 0 var(--sp-2); font-family: var(--font-display); font-style: italic; color: var(--primary); }
+  .col-brands { text-align: center; font-variant-numeric: tabular-nums; }
+  .sap-form { grid-template-columns: 1.2fr 1.2fr 0.9fr 0.9fr auto; }
 </style>
 </head>
 <body>
@@ -198,13 +225,9 @@ import { supabase } from '/src/supabase-client.js';
 import {
   loadIngredientRegistry,
   upsertIngredientAlias,
-  saveAllergenOverride,
-  clearAllergenOverride,
-  saveIngredientBrand,
-  deleteIngredientBrand,
-  ALLERGEN_IDS,
   parseAllergenList,
 } from '/src/ingredient-registry.js';
+import { openIngredientDetailModal } from '/src/ingredient-brand-modal.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -257,7 +280,7 @@ async function reloadRegistry() {
   if (tableMissing) console.warn('workspace_ingredient_aliases / custom_ingredients not deployed');
   const { data } = await supabase
     .from('workspace_ingredient_aliases')
-    .select('alias,maps_to,sap_code')
+    .select('alias,maps_to,sap_code,brand_name')
     .eq('workspace_id', wsId)
     .order('alias', { ascending: true });
   sapAliases = data || [];
@@ -267,7 +290,7 @@ function renderSapAliases() {
   const tbody = main.querySelector('#sapAliasTbody');
   if (!tbody) return;
   if (!sapAliases.length) {
-    tbody.innerHTML = `<tr><td colspan="4" class="text-muted" data-i18n="ingdb.sap_empty">No SAP mappings yet.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="text-muted" data-i18n="ingdb.sap_empty">No SAP mappings yet.</td></tr>`;
     applyTranslations();
     return;
   }
@@ -275,6 +298,7 @@ function renderSapAliases() {
     <tr>
       <td>${escapeHTML(row.alias)}</td>
       <td class="col-key">${escapeHTML(row.maps_to)}</td>
+      <td>${escapeHTML(row.brand_name || '—')}</td>
       <td>${escapeHTML(row.sap_code || '—')}</td>
       <td><button type="button" class="btn btn-sm btn-ghost sap-rm" data-alias="${escapeHTML(row.alias)}" data-require="cost_delete">×</button></td>
     </tr>`).join('');
@@ -292,50 +316,12 @@ function renderSapAliases() {
   applyRoleGates(role, tbody);
 }
 
-function openAllergenModal(canonicalKey, baseRow) {
-  const cl = getLang();
-  const resolved = ingredientRegistry?.resolve(canonicalKey);
-  const current = resolved?.allergens?.length
-    ? [...resolved.allergens]
-    : [...(baseRow.allergens || [])];
-  const wrap = document.createElement('div');
-  wrap.className = 'modal-backdrop allergen-modal';
-  wrap.setAttribute('role', 'dialog');
-  wrap.setAttribute('aria-modal', 'true');
-  const checks = ALLERGEN_IDS.map((id) => {
-    const on = current.includes(id);
-    const lab = ALLERGEN_LABELS[id]?.[cl] || id;
-    return `<label class="chk"><input type="checkbox" value="${escapeHTML(id)}" ${on ? 'checked' : ''}> ${escapeHTML(lab)}</label>`;
-  }).join('');
-  wrap.innerHTML = `
-    <div class="modal" style="max-width:520px">
-      <header class="modal__head">
-        <h2 class="h2">${escapeHTML(t('ingdb.allergen_modal_title'))} ${escapeHTML(ingredientLabel(canonicalKey, cl))}</h2>
-        <button type="button" class="modal__close" id="alClose">${cartaIcon('close', { size: 24 })}</button>
-      </header>
-      <div class="check-grid">${checks}</div>
-      <footer class="modal__foot" style="justify-content:space-between">
-        <button type="button" class="btn btn-ghost" id="alReset" data-i18n="ingdb.allergen_reset">Use reference defaults</button>
-        <button type="button" class="btn btn-primary" id="alSave" data-i18n="ingdb.allergen_save">Save allergens</button>
-      </footer>
-    </div>`;
-  document.body.appendChild(wrap);
-  const close = () => wrap.remove();
-  wrap.querySelector('#alClose').addEventListener('click', close);
-  wrap.addEventListener('click', (e) => { if (e.target === wrap) close(); });
-  wrap.querySelector('#alSave').addEventListener('click', async () => {
-    const picked = [...wrap.querySelectorAll('input[type=checkbox]:checked')].map((el) => el.value);
-    const { error } = await saveAllergenOverride(supabase, wsId, canonicalKey, picked);
-    if (error) { alert(error.message); return; }
+function openIngredientModal(canonicalKey, baseRow) {
+  openIngredientDetailModal({
+    supabase, wsId, t, getLang, escapeHTML, cartaIcon, formatNumber, rowKcal,
+    ingredientRegistry, applyTranslations,
+  }, canonicalKey, baseRow, async () => {
     await reloadRegistry();
-    close();
-    render();
-  });
-  wrap.querySelector('#alReset').addEventListener('click', async () => {
-    const { error } = await clearAllergenOverride(supabase, wsId, canonicalKey);
-    if (error) { alert(error.message); return; }
-    await reloadRegistry();
-    close();
     render();
   });
 }
@@ -421,6 +407,7 @@ main.innerHTML = `
             <th class="col-num hide-narrow">P</th>
             <th class="col-num hide-narrow">F</th>
             <th class="col-num hide-narrow">C</th>
+            <th class="hide-narrow col-brands" data-i18n="ingdb.col_brands">Brands</th>
             <th class="hide-narrow" data-i18n="ingdb.col_allergens">Allergens</th>
           </tr>
         </thead>
@@ -442,6 +429,10 @@ main.innerHTML = `
         <input class="input" id="sapMapsTo" type="text" required list="canonicalList" autocomplete="off" data-require-disable="cost_create">
       </div>
       <div class="form-cell">
+        <label for="sapBrand" data-i18n="ingdb.sap_brand">Sub-brand</label>
+        <input class="input" id="sapBrand" type="text" autocomplete="off" data-require-disable="cost_create" placeholder="">
+      </div>
+      <div class="form-cell">
         <label for="sapCode" data-i18n="ingdb.sap_code">SAP code</label>
         <input class="input" id="sapCode" type="text" autocomplete="off" data-require-disable="cost_create">
       </div>
@@ -456,6 +447,7 @@ main.innerHTML = `
           <tr>
             <th data-i18n="ingdb.sap_alias">SAP label</th>
             <th data-i18n="ingdb.sap_maps_to">Carta ingredient</th>
+            <th data-i18n="ingdb.sap_brand">Sub-brand</th>
             <th data-i18n="ingdb.sap_code">SAP code</th>
             <th></th>
           </tr>
@@ -574,10 +566,14 @@ function render() {
   tbody.innerHTML = filtered.map(entry => {
     const { key, row, category, kcal, nameTr, nameEn, nameEs } = entry;
     const al = allergensForKey(key, row, cl) || '—';
+    const bc = ingredientRegistry?.brandCount?.(key) || 0;
+    const brandChip = bc
+      ? `<span class="chip chip-gold" title="${escapeHTML(t('ingdb.brand_section'))}">${bc}</span>`
+      : '—';
     const ov = hasAllergenOverride(key)
       ? ` <span class="chip chip-gold" style="font-size:10px" data-i18n="ingdb.allergen_override">Custom</span>`
       : '';
-    return `<tr class="ing-row-click" data-ing-key="${escapeHTML(key)}" title="${escapeHTML(t('ingdb.allergen_edit'))}">
+    return `<tr class="ing-row-click" data-ing-key="${escapeHTML(key)}" title="${escapeHTML(t('ingdb.brand_edit_row'))}">
       <td class="col-key">${escapeHTML(nameTr)}</td>
       <td class="hide-narrow">${escapeHTML(nameEn)}</td>
       <td class="hide-narrow">${escapeHTML(nameEs)}</td>
@@ -586,6 +582,7 @@ function render() {
       <td class="col-num hide-narrow">${formatNumber(row.P, 1)}</td>
       <td class="col-num hide-narrow">${formatNumber(row.F, 1)}</td>
       <td class="col-num hide-narrow">${formatNumber(row.C, 1)}</td>
+      <td class="hide-narrow col-brands">${brandChip}</td>
       <td class="hide-narrow">${escapeHTML(al)}${ov}</td>
     </tr>`;
   }).join('');
@@ -593,7 +590,7 @@ function render() {
     tr.addEventListener('click', () => {
       const key = tr.getAttribute('data-ing-key');
       const entry = referenceRows.find((e) => e.key === key);
-      if (entry) openAllergenModal(key, entry.row);
+      if (entry) openIngredientModal(key, entry.row);
     });
   });
 
@@ -702,8 +699,11 @@ main.querySelector('#sapMapForm')?.addEventListener('submit', async (e) => {
   const alias = main.querySelector('#sapAlias').value.trim();
   const mapsTo = main.querySelector('#sapMapsTo').value.trim();
   const sapCode = main.querySelector('#sapCode').value.trim() || null;
+  const brandName = main.querySelector('#sapBrand')?.value.trim() || null;
   if (!alias || !mapsTo) return;
-  const { error } = await upsertIngredientAlias(supabase, wsId, { alias, maps_to: mapsTo, sap_code: sapCode });
+  const { error } = await upsertIngredientAlias(supabase, wsId, {
+    alias, maps_to: mapsTo, sap_code: sapCode, brand_name: brandName,
+  });
   if (error) { alert(error.message); return; }
   main.querySelector('#sapMapForm').reset();
   await reloadRegistry();
