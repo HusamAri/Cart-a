@@ -388,7 +388,7 @@ const STRINGS = {
     'menus.eyebrow': 'Menu grouping',
     'menus.title_full': 'My menus',
     'menus.intro':
-      'Compose breakfast, banquet, terrace, bar sets. Hook in saved dishes, move dish lists through CSV, compare two menus cleanly.',
+      'Compose printed-style menus with section headings (starters, mains, desserts…). Preview each menu at scale, assign recipes from here or from the recipe editor.',
     'menus.list_title': 'Menus in this workspace',
     'menus.list_empty': 'No menus yet. Create one to group recipes.',
     'menus.list_count': '{n} recipes linked',
@@ -440,6 +440,31 @@ const STRINGS = {
     'menus.export_all_xls_empty': 'No menus to export.',
     'menus.compare_print': 'Print',
     'menus.cmp_print_sub': 'Comparison: {a} vs {b}',
+    'menus.print_preview': 'Printed menu preview',
+    'menus.edit_details': 'Menu settings',
+    'menus.assign_recipes': 'Assign recipes by section',
+    'menus.section_help': 'Drag recipes into sections. Empty sections are hidden in the preview.',
+    'menus.add_recipe': 'Add to section',
+    'menus.remove': 'Remove',
+    'menus.print_menu': 'Print this menu',
+    'menus.section.starters': 'Starters',
+    'menus.section.soups': 'Soups',
+    'menus.section.salads': 'Salads',
+    'menus.section.mains': 'Main courses',
+    'menus.section.sides': 'Sides',
+    'menus.section.desserts': 'Desserts',
+    'menus.section.drinks': 'Drinks',
+    'menus.section.cheese': 'Cheese',
+    'menus.section.bar': 'Bar',
+    'menus.section.other': 'Other',
+    'recipes.menus_heading': 'Menus',
+    'recipes.menus_help': 'Add this recipe to one or more menus. It is placed under the default section (mains or drinks). Adjust sections in My menus.',
+    'recipes.menus_none': 'No menus in this workspace yet. Create one under My menus.',
+    'recipes.menus_sync_failed': 'Recipe saved, but menu links could not be updated.',
+    'ui.lang.en': 'English',
+    'ui.lang.tr': 'Turkish',
+    'ui.lang.es': 'Spanish',
+    'ui.lang.cycle_aria': 'Change language',
     // Workspace activity log (audit_log table)
     'activity.eyebrow': 'Compliance',
     'activity.title': 'Activity',
@@ -842,6 +867,8 @@ const STRINGS = {
     'variance.no_snapshots': 'No snapshots yet.',
     'variance.no_snapshots_intro': 'Take a snapshot of your current cost ledger. Each upload from SAP can capture one automatically — but you can also save them manually here.',
     'variance.no_costs': 'Your cost ledger is empty. Add ingredients first to compare against.',
+    'variance.no_costs_title': 'Your cost ledger is empty.',
+    'variance.no_costs_intro': 'Add ingredients first to compare against.',
     'variance.capture_now': 'Capture snapshot',
     'variance.col_date': 'Captured at',
     'variance.col_source': 'Source',
@@ -1274,7 +1301,7 @@ const STRINGS = {
     'menus.eyebrow': 'Menü grupları',
     'menus.title_full': 'Menülerim',
     'menus.intro':
-      'Kahvaltı, banket, teras ya da bar kümeleri kur. Kayıtlı reçeteleri bağla. Ürün listesini CSV ile taşı veya iki menüyü yan yana seçerek kıyasla.',
+      'Başlangıçlar, ana yemekler, tatlılar gibi alt başlıklarla basılı menü düzeni kur. Her menüyü büyük önizlemede gör; reçeteleri buradan veya reçete düzenleyiciden menülere ekle.',
     'menus.list_title': 'Bu çalışma alanındaki menüler',
     'menus.list_empty': 'Henüz menü yok. Reçeteleri gruplamak için bir menü oluştur.',
     'menus.list_count': '{n} reçete bağlı',
@@ -1326,6 +1353,31 @@ const STRINGS = {
     'menus.export_all_xls_empty': 'Dışa aktarılacak menü yok.',
     'menus.compare_print': 'Yazdır',
     'menus.cmp_print_sub': 'Karşılaştırma: {a} ve {b}',
+    'menus.print_preview': 'Basılı menü önizlemesi',
+    'menus.edit_details': 'Menü ayarları',
+    'menus.assign_recipes': 'Reçeteleri bölüme göre ata',
+    'menus.section_help': 'Reçeteleri bölümlere yerleştir. Boş bölümler önizlemede görünmez.',
+    'menus.add_recipe': 'Bölüme ekle',
+    'menus.remove': 'Kaldır',
+    'menus.print_menu': 'Bu menüyü yazdır',
+    'menus.section.starters': 'Başlangıçlar',
+    'menus.section.soups': 'Çorbalar',
+    'menus.section.salads': 'Salatalar',
+    'menus.section.mains': 'Ana yemekler',
+    'menus.section.sides': 'Garnitürler',
+    'menus.section.desserts': 'Tatlılar',
+    'menus.section.drinks': 'İçecekler',
+    'menus.section.cheese': 'Peynir',
+    'menus.section.bar': 'Bar',
+    'menus.section.other': 'Diğer',
+    'recipes.menus_heading': 'Menüler',
+    'recipes.menus_help': 'Bu reçeteyi bir veya birden fazla menüye ekle. Varsayılan bölüm ana yemek veya içecektir. Bölümleri Menülerim ekranından düzenleyebilirsin.',
+    'recipes.menus_none': 'Bu çalışma alanında henüz menü yok. Menülerim bölümünden oluştur.',
+    'recipes.menus_sync_failed': 'Reçete kaydedildi ancak menü bağlantıları güncellenemedi.',
+    'ui.lang.en': 'İngilizce',
+    'ui.lang.tr': 'Türkçe',
+    'ui.lang.es': 'İspanyolca',
+    'ui.lang.cycle_aria': 'Dili değiştir',
     // Çalışma alanı etkinlik günlüğü (audit_log)
     'activity.eyebrow': 'Uyumluluk',
     'activity.title': 'Etkinlik',
@@ -1731,6 +1783,8 @@ const STRINGS = {
     'variance.no_snapshots': 'Kayıtlı anlık görüntü yok.',
     'variance.no_snapshots_intro': 'Şu anki maliyet defterinden bir anlık görüntü kaydet. SAP verisi yüklendiğinde otomatik de alınabilir; gerektiğinde bu ekrandan manuel de ekleyebilirsin.',
     'variance.no_costs': 'Maliyet defterin boş. Önce malzeme satırlarını ekle.',
+    'variance.no_costs_title': 'Maliyet defterin boş.',
+    'variance.no_costs_intro': 'Önce malzeme satırlarını ekle; ardından sapma analizi için anlık görüntü alabilirsin.',
     'variance.capture_now': 'Anlık görüntü al',
     'variance.col_date': 'Kayıt zamanı',
     'variance.col_source': 'Kaynak',
@@ -1775,6 +1829,63 @@ const STRINGS = {
   }
 };
 
+/** Spanish: full fallback to English, with product UI translated. */
+const STRINGS_ES = {
+  'nav.signin': 'Iniciar sesión',
+  'nav.begin': 'Empezar',
+  'studio.overview': 'Resumen',
+  'studio.m_dashboard': 'Panel',
+  'studio.m_builder': 'Recetas',
+  'studio.m_menus': 'Mis menús',
+  'studio.open': 'Abrir',
+  'studio.switch_ws': 'Cambiar espacio',
+  'app.sign_out': 'Cerrar sesión',
+  'ui.nav_menu': 'Menú',
+  'ui.nav_close': 'Cerrar menú',
+  'ui.lang.en': 'Inglés',
+  'ui.lang.tr': 'Turco',
+  'ui.lang.es': 'Español',
+  'ui.lang.cycle_aria': 'Cambiar idioma',
+  'menus.eyebrow': 'Agrupación de menús',
+  'menus.title_full': 'Mis menús',
+  'menus.intro':
+    'Compón menús al estilo impreso con apartados (entrantes, principales, postres…). Previsualiza cada carta a gran tamaño y asigna recetas desde aquí o desde el editor de recetas.',
+  'menus.list_title': 'Menús en este espacio',
+  'menus.list_empty': 'Aún no hay menús. Crea uno para agrupar recetas.',
+  'menus.list_count': '{n} recetas vinculadas',
+  'menus.new_menu': 'Nuevo menú',
+  'menus.pick_menu': 'Elige un menú a la izquierda o crea uno nuevo.',
+  'menus.print_preview': 'Vista previa impresa',
+  'menus.edit_details': 'Ajustes del menú',
+  'menus.assign_recipes': 'Asignar recetas por sección',
+  'menus.section_help': 'Coloca recetas en cada sección. Las secciones vacías no se muestran en la vista previa.',
+  'menus.save': 'Guardar menú',
+  'menus.delete': 'Eliminar menú',
+  'menus.section.starters': 'Entrantes',
+  'menus.section.soups': 'Sopas',
+  'menus.section.salads': 'Ensaladas',
+  'menus.section.mains': 'Platos principales',
+  'menus.section.sides': 'Guarniciones',
+  'menus.section.desserts': 'Postres',
+  'menus.section.drinks': 'Bebidas',
+  'menus.section.cheese': 'Quesos',
+  'menus.section.bar': 'Bar',
+  'menus.section.other': 'Otros',
+  'recipes.menus_heading': 'Menús',
+  'recipes.menus_help': 'Añade esta receta a uno o más menús. Se coloca en la sección por defecto (principal o bebidas). Ajusta secciones en Mis menús.',
+  'recipes.menus_none': 'Aún no hay menús. Créalos en Mis menús.',
+  'recipes.title': 'Receta',
+  'recipes.title_em': 'biblioteca',
+  'recipes.new': 'Nueva receta',
+  'recipes.save': 'Guardar',
+  'recipes.kind_food': 'Comida',
+  'recipes.kind_drink': 'Bebida',
+};
+
+STRINGS.es = { ...STRINGS.en, ...STRINGS_ES };
+
+const LANG_ORDER = ['en', 'tr', 'es'];
+
 const LANG_KEY = 'carta_lang';
 
 export function getLang() {
@@ -1782,9 +1893,27 @@ export function getLang() {
     const saved = localStorage.getItem(LANG_KEY);
     if (saved && STRINGS[saved]) return saved;
   } catch (e) {}
-  // Default: pick browser language if Turkish, else English
   const browser = (navigator.language || 'en').toLowerCase();
-  return browser.startsWith('tr') ? 'tr' : 'en';
+  if (browser.startsWith('tr')) return 'tr';
+  if (browser.startsWith('es')) return 'es';
+  return 'en';
+}
+
+/** Next language label for toggle buttons (shows target, not current). */
+export function nextLangCode() {
+  const i = LANG_ORDER.indexOf(getLang());
+  return LANG_ORDER[(i + 1) % LANG_ORDER.length];
+}
+
+export function langButtonLabel() {
+  const next = nextLangCode();
+  if (next === 'tr') return 'TR';
+  if (next === 'es') return 'ES';
+  return 'EN';
+}
+
+export function cycleLang() {
+  setLang(nextLangCode());
 }
 
 export function setLang(lang) {
@@ -1801,7 +1930,7 @@ export function setLang(lang) {
 
 export function t(key) {
   const lang = getLang();
-  return (STRINGS[lang] && STRINGS[lang][key]) || (STRINGS.en[key]) || key;
+  return (STRINGS[lang] && STRINGS[lang][key]) || STRINGS.en[key] || key;
 }
 
 export function applyTranslations() {

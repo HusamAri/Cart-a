@@ -207,7 +207,7 @@ main.id = 'main';
 main.className = 'studio-page';
 
 const ctx = await mountStudioShell({ active: 'cost', main });
-if (!ctx) throw new Error('No session/workspace');
+if (!ctx) return;
 const wsId = ctx.workspace.id;
 const currency = ctx.workspace.currency || '₺';
 const { role } = ctx;

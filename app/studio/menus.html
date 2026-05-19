@@ -38,11 +38,11 @@
   .page-head .lead { margin: 0; max-width: 60ch; }
 
   .menus-shell {
-    max-width: 1200px; margin: 0 auto;
-    display: grid; grid-template-columns: minmax(220px, 280px) 1fr; gap: var(--sp-6);
+    max-width: 1280px; margin: 0 auto;
+    display: grid; grid-template-columns: minmax(200px, 260px) minmax(0, 1fr); gap: var(--sp-6);
     align-items: start;
   }
-  @media (max-width: 860px) {
+  @media (max-width: 960px) {
     .menus-shell { grid-template-columns: 1fr; }
   }
 
@@ -142,6 +142,101 @@
 
   .editor-placeholder { padding: var(--sp-6); text-align: center; color: var(--on-surface-variant); font-size: var(--type-caption); }
 
+  .menus-stage { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
+  .menus-stage__toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+  .menus-stage__toolbar h2 {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 1.1rem; color: var(--primary); margin: 0;
+  }
+
+  .menu-print {
+    --menu-accent: var(--primary);
+    background: linear-gradient(165deg, rgba(255,255,255,0.97) 0%, rgba(250,248,244,0.98) 48%, rgb(var(--sage-mist-rgb) / 0.12) 100%);
+    border: 1px solid rgb(var(--ink-rgb) / 0.1);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-3), 0 24px 48px rgb(var(--ink-rgb) / 0.06);
+    padding: clamp(var(--sp-6), 4vw, var(--sp-9)) clamp(var(--sp-5), 3vw, var(--sp-8));
+    min-height: 420px;
+    position: relative;
+    overflow: hidden;
+  }
+  .menu-print::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 50% -10%, rgb(var(--sage-mist-rgb) / 0.22), transparent 55%);
+    pointer-events: none;
+  }
+  .menu-print--sage { --menu-accent: rgb(var(--sage-deep-rgb)); }
+  .menu-print--gold { --menu-accent: rgb(var(--gold-rgb)); }
+  .menu-print--wine { --menu-accent: #6b2d3c; }
+  .menu-print--forest { --menu-accent: #2d4a3e; }
+  .menu-print__head {
+    position: relative; z-index: 1;
+    display: flex; align-items: flex-start; gap: var(--sp-4);
+    padding-bottom: var(--sp-5);
+    margin-bottom: var(--sp-5);
+    border-bottom: 2px solid var(--menu-accent);
+  }
+  .menu-print__mark { color: var(--menu-accent); flex-shrink: 0; }
+  .menu-print__title {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: clamp(1.75rem, 4vw, 2.35rem); line-height: 1.1;
+    color: var(--on-surface); margin: 0 0 6px;
+  }
+  .menu-print__meta { margin: 0; font-size: var(--type-caption); color: var(--on-surface-variant); letter-spacing: 0.04em; text-transform: uppercase; }
+  .menu-print__section { position: relative; z-index: 1; margin-bottom: var(--sp-6); }
+  .menu-print__section:last-child { margin-bottom: 0; }
+  .menu-print__section-title {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 1.05rem; color: var(--menu-accent);
+    margin: 0 0 var(--sp-3); letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .menu-print__list { list-style: none; margin: 0; padding: 0; }
+  .menu-print__item {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, max-content);
+    gap: 8px; align-items: baseline;
+    padding: 7px 0; font-size: 15px;
+  }
+  .menu-print__dots {
+    border-bottom: 1px dotted rgb(var(--ink-rgb) / 0.2);
+    min-width: 24px; margin-bottom: 4px;
+  }
+  .menu-print__tail { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+  .menu-print__kcal { font-size: 11px; color: var(--on-surface-variant); white-space: nowrap; }
+  .menu-print-empty, .menu-print__empty { text-align: center; color: var(--on-surface-variant); padding: var(--sp-8); }
+
+  .menus-inspector {
+    background: var(--surface-container-lowest);
+    border: var(--glass-border); border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-2); padding: var(--glass-padding);
+  }
+  .menus-inspector summary {
+    cursor: pointer; font-weight: 600; font-size: var(--type-caption);
+    color: var(--primary); list-style: none;
+  }
+  .menus-inspector summary::-webkit-details-marker { display: none; }
+  .menus-inspector[open] summary { margin-bottom: var(--sp-4); }
+  .menu-section-block {
+    border: 1px solid rgb(var(--ink-rgb) / 0.08); border-radius: var(--r-lg);
+    padding: var(--sp-3); margin-bottom: var(--sp-3);
+    background: rgba(255,255,255,0.5);
+  }
+  .menu-section-block__head {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;
+    margin-bottom: var(--sp-2);
+  }
+  .menu-section-block__head strong { font-size: 13px; color: var(--menu-accent, var(--primary)); }
+  .menu-section-dish {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 4px 0; font-size: 13px;
+  }
+  .menu-section-dish button {
+    border: none; background: transparent; color: var(--on-surface-variant);
+    cursor: pointer; font-size: 11px; text-decoration: underline;
+  }
+  .menu-add-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .menu-add-row select { flex: 1; min-width: 140px; padding: 8px; border-radius: var(--r-md); border: 1px solid rgb(var(--ink-rgb) / 0.12); font: inherit; }
+
   .print-only { display: none !important; }
   @media print {
     @page { margin: 12mm; }
@@ -152,7 +247,9 @@
     main.studio-page .menus-shell,
     main.studio-page .no-print,
     main.studio-page .compare-toolbar,
-    main.studio-page .menus-compare > .toolbar-row {
+    main.studio-page .menus-compare > .toolbar-row,
+    main.studio-page .menus-inspector,
+    main.studio-page .menus-side {
       display: none !important;
     }
     body.studio-body .studio-main {
@@ -162,6 +259,7 @@
       padding: 0 !important;
     }
     .print-only { display: block !important; }
+    .menu-print { box-shadow: none !important; border: none !important; min-height: auto; }
     .menus-compare {
       box-shadow: none !important;
       border: none !important;
@@ -187,33 +285,91 @@ import {
   normalizeMenuClusterIcon,
   menuClusterIconHtml,
 } from '/src/menu-cluster-icon.js';
+import {
+  clusterDishIds,
+  clusterSections,
+  menuDishesPayload,
+  menuSectionI18nKey,
+  MENU_SECTION_KEYS,
+  normalizeMenuDishes,
+  defaultSectionForKind,
+  emptySections,
+} from '/src/menu-structure.js';
 
 const main = document.createElement('main');
 main.id = 'main';
 main.className = 'studio-page';
 
 const ctx = await mountStudioShell({ active: 'menus', main });
-if (!ctx) throw new Error('No session/workspace');
+if (!ctx) return;
 const wsId = ctx.workspace.id;
 const { role } = ctx;
 
 let clusters = [];
 let dishes = [];
 let selectedId = null;
+let draftSections = null;
 
 function escapeHTML(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function clusterDishIds(cl) {
-  const raw = cl?.dishes;
-  if (!Array.isArray(raw)) return [];
-  const out = [];
-  for (const d of raw) {
-    if (typeof d === 'string') out.push(d);
-    else if (d && typeof d.id === 'string') out.push(d.id);
+function ensureDraft(cl) {
+  if (!draftSections) {
+    draftSections = clusterSections(cl).map((s) => ({ key: s.key, dish_ids: [...s.dish_ids] }));
   }
-  return out;
+  return draftSections;
+}
+
+function renderMenuPrint(cl, sections) {
+  const host = main.querySelector('#menuPrintHost');
+  if (!host) return;
+  if (!cl) {
+    host.innerHTML = `<p class="menu-print-empty" data-i18n="menus.pick_menu">Select a menu</p>`;
+    applyTranslations();
+    return;
+  }
+  const dm = dishByIdMap();
+  const visible = sections.filter((s) => (s.dish_ids || []).length > 0);
+  const color = cl.color || 'navy';
+  const icon = normalizeMenuClusterIcon(cl.icon);
+  const total = clusterDishIds({ dishes: menuDishesPayload(sections) }).length;
+
+  const sectionHtml = visible.length
+    ? visible.map((sec) => {
+      const items = (sec.dish_ids || []).map((id) => {
+        const d = dm.get(id);
+        if (!d) return '';
+        const data = d.data || {};
+        const comp = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
+        const kcal = Math.round(comp.perServing?.kcal || 0);
+        return `<li class="menu-print__item">
+          <span class="menu-print__dish">${escapeHTML(d.name)}</span>
+          <span class="menu-print__dots" aria-hidden="true"></span>
+          <span class="menu-print__tail"><span class="chip ${d.kind === 'drink' ? 'chip-gold' : 'chip-mist'}" style="font-size:9px">${escapeHTML(kindLabel(d.kind))}</span>${kcal ? `<span class="menu-print__kcal">${kcal} kcal</span>` : ''}</span>
+        </li>`;
+      }).filter(Boolean).join('');
+      return `<section class="menu-print__section">
+        <h3 class="menu-print__section-title">${escapeHTML(t(menuSectionI18nKey(sec.key)))}</h3>
+        <ul class="menu-print__list">${items}</ul>
+      </section>`;
+    }).join('')
+    : `<p class="menu-print__empty" data-i18n="menus.list_empty">No recipes yet</p>`;
+
+  host.innerHTML = `
+    <article class="menu-print menu-print--${escapeHTML(color)}" id="menuPrintCard">
+      <header class="menu-print__head">
+        <span class="menu-print__mark">${menuClusterIconHtml(icon, { size: 28 })}</span>
+        <div class="menu-print__titles">
+          <h2 class="menu-print__title">${escapeHTML(cl.name)}</h2>
+          <p class="menu-print__meta">${escapeHTML(t('menus.type.' + (cl.type || 'mixed')))} · ${escapeHTML(t('menus.list_count').replace('{n}', String(total)))}</p>
+        </div>
+      </header>
+      ${sectionHtml}
+    </article>
+  `;
+
+  applyTranslations();
 }
 
 function dishByIdMap() {
@@ -270,10 +426,18 @@ main.innerHTML = `
         </button>
         <div id="clusterList"></div>
       </aside>
-      <div class="menus-main">
-        <div class="menus-editor" id="editorPanel">
-          <div id="editorBody"></div>
+      <div class="menus-stage">
+        <div class="menus-stage__toolbar no-print">
+          <h2 data-i18n="menus.print_preview">Printed menu preview</h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" class="btn btn-outline btn-sm" id="btnPrintMenu" data-i18n="menus.print_menu">Print this menu</button>
+          </div>
         </div>
+        <div id="menuPrintHost"><p class="menu-print-empty" data-i18n="menus.pick_menu">Select a menu</p></div>
+        <details class="menus-inspector no-print" id="menuInspector" open>
+          <summary data-i18n="menus.edit_details">Menu settings</summary>
+          <div id="editorBody"></div>
+        </details>
       </div>
     </div>
 
@@ -312,6 +476,7 @@ async function load() {
   clusters = cRes.data || [];
   dishes = dRes.data || [];
   if (selectedId && !clusters.some(c => c.id === selectedId)) selectedId = null;
+  draftSections = null;
   renderList();
   renderEditor();
   fillCompareSelects();
@@ -338,6 +503,7 @@ function renderList() {
   host.querySelectorAll('[data-cid]').forEach(btn => {
     btn.addEventListener('click', () => {
       selectedId = btn.getAttribute('data-cid');
+      draftSections = null;
       renderList();
       renderEditor();
     });
@@ -348,35 +514,74 @@ function kindLabel(kind) {
   return kind === 'drink' ? t('recipes.kind_drink') : t('recipes.kind_food');
 }
 
+function refreshPreviewFromForm() {
+  const cl = clusters.find((c) => c.id === selectedId);
+  if (!cl || !draftSections) return;
+  const nameEl = main.querySelector('#fName');
+  const colorEl = main.querySelector('#fColor');
+  const previewCl = {
+    ...cl,
+    name: nameEl?.value?.trim() || cl.name,
+    color: colorEl?.value || cl.color,
+  };
+  renderMenuPrint(previewCl, draftSections);
+}
+
 function renderEditor() {
   const body = main.querySelector('#editorBody');
-  const cl = clusters.find(c => c.id === selectedId);
+  const cl = clusters.find((c) => c.id === selectedId);
   if (!cl) {
-    body.innerHTML = `<div class="editor-placeholder" data-i18n="menus.pick_menu">Select a menu on the left or create a new one.</div>`;
-    applyTranslations();
+    renderMenuPrint(null, []);
+    if (body) {
+      body.innerHTML = `<div class="editor-placeholder" data-i18n="menus.pick_menu">Select a menu on the left or create a new one.</div>`;
+      applyTranslations();
+    }
     return;
   }
 
-  const ids = new Set(clusterDishIds(cl));
+  const sections = ensureDraft(cl);
+  renderMenuPrint(cl, sections);
+  const dm = dishByIdMap();
+  const usedIds = new Set(clusterDishIds({ dishes: menuDishesPayload(sections) }));
+  const available = dishes.filter((d) => !usedIds.has(d.id));
+
+  const sectionBlocks = sections.map((sec) => {
+    const dishRows = (sec.dish_ids || []).map((id) => {
+      const d = dm.get(id);
+      if (!d) return '';
+      return `<div class="menu-section-dish" data-dish-id="${escapeHTML(id)}">
+        <span>${escapeHTML(d.name)} <span class="chip ${d.kind === 'drink' ? 'chip-gold' : 'chip-mist'}" style="font-size:9px">${escapeHTML(kindLabel(d.kind))}</span></span>
+        <button type="button" data-remove="${escapeHTML(id)}" data-section="${escapeHTML(sec.key)}" data-i18n="menus.remove">Remove</button>
+      </div>`;
+    }).filter(Boolean).join('');
+    const opts = available.map((d) => `<option value="${escapeHTML(d.id)}">${escapeHTML(d.name)} (${escapeHTML(kindLabel(d.kind))})</option>`).join('');
+    return `<div class="menu-section-block" data-section="${escapeHTML(sec.key)}">
+      <div class="menu-section-block__head"><strong>${escapeHTML(t(menuSectionI18nKey(sec.key)))}</strong></div>
+      ${dishRows || `<p class="text-muted" style="margin:0;font-size:11px">—</p>`}
+      <div class="menu-add-row" data-require="menu_cluster_edit">
+        <select class="menu-add-select" data-section="${escapeHTML(sec.key)}" aria-label="${escapeHTML(t('menus.add_recipe'))}">
+          <option value="">+ ${escapeHTML(t('menus.add_recipe'))}</option>${opts}
+        </select>
+      </div>
+    </div>`;
+  }).join('');
 
   body.innerHTML = `
-    <h2 data-i18n="menus.edit_title">Edit menu</h2>
     <div class="form-grid">
       <label><span data-i18n="menus.field_name">Name</span>
         <input type="text" id="fName" value="${escapeHTML(cl.name)}" maxlength="120">
       </label>
       <label><span data-i18n="menus.field_type">Type</span>
         <select id="fType">
-          ${['food','drinks','mixed'].map(v => `<option value="${v}" ${cl.type === v ? 'selected' : ''}>${escapeHTML(t('menus.type.' + v))}</option>`).join('')}
+          ${['food', 'drinks', 'mixed'].map((v) => `<option value="${v}" ${cl.type === v ? 'selected' : ''}>${escapeHTML(t('menus.type.' + v))}</option>`).join('')}
         </select>
       </label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);align-items:start">
         <div>
           <label style="display:block;font-size:var(--type-caption);font-weight:600;margin-bottom:8px"><span data-i18n="menus.field_icon">Menu icon</span></label>
-          <p class="text-muted" style="font-size:11px;margin:0 0 10px;line-height:1.4" data-i18n="menus.icon_hint">Pick a symbol for this menu cluster.</p>
           <input type="hidden" id="fMenuIcon" value="${escapeHTML(normalizeMenuClusterIcon(cl.icon))}">
           <div class="menu-icon-grid" id="menuIconGrid" role="group" aria-label="Menu icon">
-            ${MENU_CLUSTER_ICON_OPTIONS.map(opt => {
+            ${MENU_CLUSTER_ICON_OPTIONS.map((opt) => {
     const cur = normalizeMenuClusterIcon(cl.icon);
     const sel = opt.id === cur ? ' selected' : '';
     return `<button type="button" class="menu-icon-opt${sel}" data-menu-icon="${escapeHTML(opt.id)}" title="${escapeHTML(t(opt.i18n))}" aria-label="${escapeHTML(t(opt.i18n))}" aria-pressed="${opt.id === cur ? 'true' : 'false'}">${cartaIcon(opt.id, { size: 22 })}</button>`;
@@ -385,23 +590,15 @@ function renderEditor() {
         </div>
         <label><span data-i18n="menus.field_color">Color tag</span>
           <select id="fColor">
-            ${[...new Set([cl.color || 'navy', 'navy', 'sage', 'gold', 'wine', 'forest'])].map(v => `<option value="${escapeHTML(v)}" ${(cl.color || 'navy') === v ? 'selected' : ''}>${escapeHTML(v)}</option>`).join('')}
+            ${[...new Set([cl.color || 'navy', 'navy', 'sage', 'gold', 'wine', 'forest'])].map((v) => `<option value="${escapeHTML(v)}" ${(cl.color || 'navy') === v ? 'selected' : ''}>${escapeHTML(v)}</option>`).join('')}
           </select>
         </label>
       </div>
     </div>
 
-    <label style="display:block;font-size:var(--type-caption);font-weight:600;margin-bottom:8px" data-i18n="menus.dishes_in_menu">Recipes in this menu</label>
-    <input type="search" class="dish-search" id="dishSearchQ" data-i18n-ph="menus.search_dishes">
-    <div class="dish-picker" id="dishPicker">
-      ${dishes.map(d => `
-        <label class="chk" data-q="${escapeHTML(`${String(d.name || '')} ${d.kind || ''}`.toLowerCase())}">
-          <input type="checkbox" value="${escapeHTML(d.id)}" ${ids.has(d.id) ? 'checked' : ''}>
-          <span class="chip ${d.kind === 'drink' ? 'chip-gold' : 'chip-mist'}" style="font-size:9px">${escapeHTML(kindLabel(d.kind))}</span>
-          ${escapeHTML(d.name)}
-        </label>
-      `).join('')}
-    </div>
+    <p class="text-muted" style="font-size:11px;margin:0 0 var(--sp-3)" data-i18n="menus.section_help">Section help</p>
+    <h3 style="font-size:13px;margin:0 0 var(--sp-3)" data-i18n="menus.assign_recipes">Assign recipes</h3>
+    ${sectionBlocks}
 
     <div class="toolbar-row">
       <button type="button" class="btn btn-primary" id="btnSaveMenu" data-require="menu_cluster_edit"><span data-i18n="menus.save">Save menu</span></button>
@@ -413,25 +610,40 @@ function renderEditor() {
     </div>
   `;
 
-  function filterDishPicker() {
-    const q = (body.querySelector('#dishSearchQ')?.value || '').trim().toLowerCase();
-    body.querySelectorAll('#dishPicker .chk').forEach(el => {
-      const hay = el.getAttribute('data-q') || '';
-      el.style.display = !q || hay.includes(q) ? '' : 'none';
-    });
-  }
-  body.querySelector('#dishSearchQ')?.addEventListener('input', filterDishPicker);
+  body.querySelector('#fName')?.addEventListener('input', refreshPreviewFromForm);
+  body.querySelector('#fColor')?.addEventListener('change', refreshPreviewFromForm);
 
-  body.querySelectorAll('.menu-icon-opt').forEach(btn => {
+  body.querySelectorAll('.menu-icon-opt').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.getAttribute('data-menu-icon');
       const hid = body.querySelector('#fMenuIcon');
       if (hid && id) hid.value = id;
-      body.querySelectorAll('.menu-icon-opt').forEach(b => {
+      body.querySelectorAll('.menu-icon-opt').forEach((b) => {
         const on = b.getAttribute('data-menu-icon') === id;
         b.classList.toggle('selected', on);
         b.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
+    });
+  });
+
+  body.querySelectorAll('[data-remove]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const dishId = btn.getAttribute('data-remove');
+      const secKey = btn.getAttribute('data-section');
+      const sec = draftSections?.find((s) => s.key === secKey);
+      if (sec) sec.dish_ids = sec.dish_ids.filter((id) => id !== dishId);
+      renderEditor();
+    });
+  });
+
+  body.querySelectorAll('.menu-add-select').forEach((sel) => {
+    sel.addEventListener('change', () => {
+      const dishId = sel.value;
+      if (!dishId || !draftSections) return;
+      const secKey = sel.getAttribute('data-section');
+      const sec = draftSections.find((s) => s.key === secKey);
+      if (sec && !sec.dish_ids.includes(dishId)) sec.dish_ids.push(dishId);
+      renderEditor();
     });
   });
 
@@ -444,7 +656,6 @@ function renderEditor() {
 
   applyRoleGates(role, body);
   applyTranslations();
-  filterDishPicker();
 }
 
 async function saveSelected() {
@@ -459,14 +670,15 @@ async function saveSelected() {
   const type = main.querySelector('#fType')?.value || 'mixed';
   const icon = normalizeMenuClusterIcon(main.querySelector('#fMenuIcon')?.value);
   const color = main.querySelector('#fColor')?.value || 'navy';
-  const checked = [...main.querySelectorAll('#dishPicker input[type=checkbox]:checked')].map(el => el.value);
+  const payload = menuDishesPayload(draftSections || clusterSections(cl));
   const { error } = await supabase.from('menu_clusters').update({
-    name, type, icon, color, dishes: checked,
+    name, type, icon, color, dishes: payload,
   }).eq('id', cl.id).eq('workspace_id', wsId);
   if (error) {
     alert(error.message);
     return;
   }
+  draftSections = null;
   await load();
 }
 
@@ -490,10 +702,12 @@ function sheetNameSafe(name) {
 
 function dishRowsForCluster(cl) {
   const dm = dishByIdMap();
-  const rows = [['dish_name', 'kind']];
-  for (const id of clusterDishIds(cl)) {
-    const d = dm.get(id);
-    if (d) rows.push([d.name, d.kind]);
+  const rows = [['section', 'dish_name', 'kind']];
+  for (const sec of clusterSections(cl)) {
+    for (const id of sec.dish_ids || []) {
+      const d = dm.get(id);
+      if (d) rows.push([t(menuSectionI18nKey(sec.key)), d.name, d.kind]);
+    }
   }
   return rows;
 }
@@ -549,26 +763,38 @@ async function onCsvPicked(ev) {
   if (!f || !cl) return;
   const text = await f.text();
   const parsed = parseMenuCSV(text);
-  const keyToId = new Map(dishes.map(d => [normRowKey(d.name, d.kind), d.id]));
+  const keyToId = new Map(dishes.map((d) => [normRowKey(d.name, d.kind), d.id]));
   let matched = 0;
   let missing = 0;
-  const next = new Set(clusterDishIds(cl));
+  const norm = ensureDraft(cl);
   for (const row of parsed) {
     const name = (row[0] || '').replace(/^\ufeff/, '');
-    const kind = (row[1] || 'food').toLowerCase() === 'drink' ? 'drink' : 'food';
+    let kind = 'food';
+    let sectionRaw = '';
+    if (row.length >= 3) {
+      kind = (row[1] || 'food').toLowerCase() === 'drink' ? 'drink' : 'food';
+      sectionRaw = (row[2] || '').trim().toLowerCase();
+    } else {
+      kind = (row[1] || 'food').toLowerCase() === 'drink' ? 'drink' : 'food';
+    }
     if (!name.trim()) continue;
     const id = keyToId.get(normRowKey(name, kind));
     if (id) {
-      next.add(id);
+      const secKey = MENU_SECTION_KEYS.find((k) => k === sectionRaw || t(menuSectionI18nKey(k)).toLowerCase() === sectionRaw)
+        || defaultSectionForKind(kind);
+      let sec = norm.find((s) => s.key === secKey);
+      if (!sec) { sec = { key: secKey, dish_ids: [] }; norm.push(sec); }
+      if (!sec.dish_ids.includes(id)) sec.dish_ids.push(id);
       matched++;
     } else missing++;
   }
-  const { error } = await supabase.from('menu_clusters').update({ dishes: [...next] }).eq('id', cl.id).eq('workspace_id', wsId);
+  draftSections = norm;
+  const { error } = await supabase.from('menu_clusters').update({ dishes: menuDishesPayload(norm) }).eq('id', cl.id).eq('workspace_id', wsId);
   if (error) {
     alert(error.message);
     return;
   }
-  alert(t('menus.import_result').replace('{m}', String(matched)).replace('{x}', String(missing)));
+  draftSections = null;
   await load();
   selectedId = cl.id;
   renderList();
@@ -583,7 +809,7 @@ async function createMenu() {
     type: 'mixed',
     color: 'navy',
     icon: DEFAULT_MENU_CLUSTER_ICON,
-    dishes: [],
+    dishes: menuDishesPayload(emptySections()),
   }).select('id').single();
   if (error) {
     alert(error.message);
@@ -649,12 +875,12 @@ function exportMenusJson() {
     v: 1,
     exported_at: new Date().toISOString(),
     workspace_id: wsId,
-    menus: clusters.map(c => ({
+    menus: clusters.map((c) => ({
       name: c.name,
       type: c.type,
       color: c.color,
       icon: c.icon,
-      dish_ids: clusterDishIds(c),
+      sections: clusterSections(c),
     })),
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -671,6 +897,7 @@ main.querySelector('#cmpRun').addEventListener('click', runCompare);
 main.querySelector('#btnExportMenusJson').addEventListener('click', exportMenusJson);
 main.querySelector('#btnExportAllMenusXls').addEventListener('click', exportAllMenusXls);
 main.querySelector('#cmpPrint').addEventListener('click', () => window.print());
+main.querySelector('#btnPrintMenu')?.addEventListener('click', () => window.print());
 
 applyTranslations();
 applyRoleGates(role, main);
@@ -685,6 +912,11 @@ document.getElementById('sidebarLangBtn')?.addEventListener('click', () => {
     runCompare();
     applyRoleGates(role, main);
   }, 0);
+});
+window.addEventListener('carta-lang-change', () => {
+  renderList();
+  renderEditor();
+  runCompare();
 });
 </script>
 </body>

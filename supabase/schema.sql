@@ -43,6 +43,9 @@ create table if not exists public.saved_dishes (
   kind text not null check (kind in ('food','drink')),
   name text not null,
   data jsonb not null,
+  share_with_org boolean not null default false,
+  share_consent_at timestamptz,
+  share_consent_by uuid references auth.users(id) on delete set null,
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz default now(),
   updated_at timestamptz default now()

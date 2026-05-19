@@ -1,5 +1,24 @@
 -- ============================================================
 -- Org-wide workspace visibility (şirket içi tüm tesisler)
+-- org_members.role must be owner | admin | cost_controller | food_engineer
+-- ============================================================
+
+create or replace function public.workspace_role_to_org_role(ws_role text)
+returns text
+language sql
+immutable
+as $$
+  select case ws_role
+    when 'owner' then 'owner'
+    when 'admin' then 'admin'
+    when 'cost_controller' then 'cost_controller'
+    when 'food_engineer' then 'food_engineer'
+    else 'food_engineer'
+  end;
+$$;
+
+-- ============================================================
+-- Org-wide workspace visibility (continued)
 -- When a user joins any facility in an organization, they also
 -- receive a viewer membership on every other workspace in the
 -- same organization (existing roles are never overwritten).
@@ -23,7 +42,7 @@ begin
 
   -- Org directory row (for listMyOrganizations etc.)
   insert into public.org_members (organization_id, user_id, role, joined_at)
-  values (oid, new.user_id, 'member', coalesce(new.joined_at, now()))
+  values (oid, new.user_id, public.workspace_role_to_org_role(new.role), coalesce(new.joined_at, now()))
   on conflict (organization_id, user_id) do nothing;
 
   -- Same-company facilities: add read membership where missing
@@ -73,7 +92,7 @@ create trigger zzz_ws_sync_org_peers
 
 -- One-time backfill (idempotent)
 insert into public.org_members (organization_id, user_id, role, joined_at)
-select distinct w.organization_id, wm.user_id, 'member', coalesce(wm.joined_at, now())
+select distinct w.organization_id, wm.user_id, public.workspace_role_to_org_role(wm.role), coalesce(wm.joined_at, now())
 from public.workspace_members wm
 inner join public.workspaces w on w.id = wm.workspace_id
 where w.organization_id is not null

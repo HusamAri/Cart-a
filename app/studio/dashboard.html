@@ -230,7 +230,8 @@
 import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
-import { computeRecipe, computeDishCost, buildCostMap, formatNumber, computeRecipeClimate, toGrams } from '/src/recipe-compute.js';
+import { computeRecipe, formatNumber, computeDishCost, buildCostMap, computeRecipeClimate, toGrams } from '/src/recipe-compute.js';
+import { clusterDishIds } from '/src/menu-structure.js';
 import { emissionIntensityKgCo2ePerKg } from '/src/carbon-factors.js';
 import { ALLERGEN_LABELS } from '/src/nutrient-db.js';
 import { applyRoleGates } from '/src/permissions.js';
@@ -241,7 +242,7 @@ main.id = 'main';
 main.className = 'studio-page';
 
 const ctx = await mountStudioShell({ active: 'dashboard', main });
-if (!ctx) throw new Error('No session/workspace');
+if (!ctx) return;
 const ws = ctx.workspace;
 const wsId = ws.id;
 const qFactor = Number(ws.q_factor) || 3;
@@ -314,16 +315,9 @@ function fillClusterSelect() {
 
 function clusterDishSet(clusterId) {
   if (clusterId === '__all__') return null;
-  const cl = clusters.find(x => x.id === clusterId);
+  const cl = clusters.find((x) => x.id === clusterId);
   if (!cl) return new Set();
-  const raw = cl.dishes;
-  if (!Array.isArray(raw) || raw.length === 0) return new Set();
-  const ids = new Set();
-  for (const d of raw) {
-    if (typeof d === 'string') ids.add(d);
-    else if (d && typeof d.id === 'string') ids.add(d.id);
-  }
-  return ids;
+  return new Set(clusterDishIds(cl));
 }
 
 function scopedDishes() {

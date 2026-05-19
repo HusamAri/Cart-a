@@ -98,7 +98,7 @@ main.id = 'main';
 main.className = 'studio-page';
 
 const ctx = await mountStudioShell({ active: 'capabilities', main });
-if (!ctx) throw new Error('No session/workspace');
+if (!ctx) return;
 const { role } = ctx;
 
 main.innerHTML = `
