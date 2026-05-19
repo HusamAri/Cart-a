@@ -242,7 +242,9 @@ main.id = 'main';
 main.className = 'studio-page';
 
 const ctx = await mountStudioShell({ active: 'dashboard', main });
-if (!ctx) return;
+if (!ctx) {
+  // mountStudioShell already redirected
+} else {
 const ws = ctx.workspace;
 const wsId = ws.id;
 const qFactor = Number(ws.q_factor) || 3;
@@ -653,6 +655,7 @@ window.addEventListener('carta-lang-change', () => {
     applyRoleGates(role, main);
   }, 0);
 });
+}
 </script>
 </body>
 </html>

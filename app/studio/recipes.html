@@ -381,7 +381,9 @@ main.id = 'main';
 main.className = 'studio-page';
 
 const ctx = await mountStudioShell({ active: 'recipes', main });
-if (!ctx) return;
+if (!ctx) {
+  // mountStudioShell already redirected
+} else {
 const wsId = ctx.workspace.id;
 const wsPlan = ctx.workspace.plan;
 const orgId = ctx.workspace.organization_id ?? null;
@@ -1385,6 +1387,7 @@ if (importJsonBtn && recipeJsonFile) {
     if (!requireCan(role, 'recipe_create', t('recipes.import_denied'))) return;
     await runRecipeJsonImport(f);
   });
+}
 }
 </script>
 </body>

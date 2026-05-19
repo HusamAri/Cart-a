@@ -15,11 +15,11 @@ if (!email || !password) {
 }
 
 const pages = [
-  '/app/studio/dashboard',
-  '/app/studio/recipes',
-  '/app/studio/menus',
-  '/app/studio/cost',
-  '/app/studio/ingredients',
+  '/app/studio/dashboard.html',
+  '/app/studio/recipes.html',
+  '/app/studio/menus.html',
+  '/app/studio/cost.html',
+  '/app/studio/ingredients.html',
 ];
 
 const browser = await chromium.launch({ headless: true });
