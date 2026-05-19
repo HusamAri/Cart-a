@@ -25,10 +25,15 @@
   }
   .guest-top {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--sp-4);
     margin-bottom: var(--sp-6);
+  }
+  @media (max-width: 520px) {
+    .guest-top { flex-direction: column; align-items: stretch; }
+    .guest-top__actions { justify-content: space-between; width: 100%; }
   }
   .guest-top img.carta-lockup {
     height: clamp(40px, 5vw, 48px);
@@ -99,6 +104,42 @@
     margin: 0 0 var(--sp-3);
     letter-spacing: 0.06em;
     text-transform: uppercase;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 10px 0 8px;
+    background: linear-gradient(180deg, #fdfcfa 70%, rgb(253 252 250 / 0.92));
+    box-shadow: 0 1px 0 var(--menu-paper-rule);
+  }
+  .menu-print__price {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--menu-accent);
+    white-space: nowrap;
+  }
+  .guest-loading {
+    padding: var(--sp-8) 0;
+  }
+  .guest-loading__card {
+    border-radius: var(--r-2xl);
+    border: 1px solid var(--outline-variant);
+    background: var(--surface-container-low);
+    padding: var(--sp-6);
+    animation: guest-pulse 1.2s ease-in-out infinite;
+  }
+  .guest-loading__line {
+    height: 12px;
+    border-radius: var(--r-pill);
+    background: rgb(var(--ink-rgb) / 0.08);
+    margin-bottom: 12px;
+  }
+  .guest-loading__line--short { width: 55%; }
+  @keyframes guest-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .guest-loading__card { animation: none; }
   }
   .menu-print__list { list-style: none; margin: 0; padding: 0; }
   .menu-print__item {
@@ -107,8 +148,10 @@
     gap: 8px;
     align-items: baseline;
     padding: 7px 0;
-    font-size: 15px;
+    font-size: 16px;
+    line-height: 1.45;
   }
+  .menu-print__dish { font-weight: 500; }
   .menu-print__dots {
     border-bottom: 1px dotted var(--menu-paper-rule);
     min-width: 24px;
@@ -140,7 +183,9 @@
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    padding: 8px 12px;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 14px;
     border-radius: var(--r-pill);
     border: 1px solid var(--outline-variant);
     background: var(--surface-container-low);
@@ -148,6 +193,45 @@
     cursor: pointer;
   }
   .guest-print-btn:hover { background: var(--surface-container); }
+  .guest-print-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .guest-top .lang-toggle button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .guest-section-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 var(--sp-5);
+    padding: 0;
+    list-style: none;
+  }
+  .guest-section-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--menu-accent, #1b2a22);
+    border: 1px solid rgb(27 42 34 / 0.18);
+    border-radius: var(--r-pill);
+    background: rgb(255 255 255 / 0.65);
+  }
+  .guest-section-nav a:focus-visible { outline: 2px solid var(--menu-accent, #1b2a22); outline-offset: 2px; }
+  .guest-allergen-note {
+    margin: var(--sp-5) 0 0;
+    padding: var(--sp-4);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--menu-paper-text-muted);
+    border-radius: var(--r-lg);
+    background: rgb(27 42 34 / 0.04);
+    border: 1px solid rgb(27 42 34 / 0.1);
+  }
   @media print {
     .guest-top__actions .lang-toggle,
     .guest-print-btn,
@@ -182,14 +266,15 @@
 </head>
 <body>
 <main id="main" class="guest-wrap">
-  <p class="guest-status" id="status">Loading menu…</p>
+  <p class="guest-status" id="status" role="status" aria-live="polite" data-i18n="guest.loading">Loading menu…</p>
 </main>
 
 <script type="module">
 import { supabase } from '/src/supabase-client.js';
 import { fetchGuestMenu } from '/src/menu-guest.js';
-import { applyTranslations, t } from '/src/i18n.js';
-import { computeRecipe } from '/src/recipe-compute.js';
+import { applyTranslations, t, setLang, getLang, wireLangSwitchers } from '/src/i18n.js';
+import { computeRecipe, formatMoney } from '/src/recipe-compute.js';
+import { ALLERGEN_LABELS } from '/src/nutrient-db.js';
 import {
   menuSectionI18nKey,
   sectionsForMenuDisplay,
@@ -238,31 +323,49 @@ function dishMetaChips(comp) {
   return parts.join('');
 }
 
+function showLoading(host) {
+  host.innerHTML = `
+    <div class="guest-loading" aria-busy="true" aria-live="polite">
+      <p class="guest-status" data-i18n="guest.loading">Loading menu…</p>
+      <div class="guest-loading__card" aria-hidden="true">
+        <div class="guest-loading__line"></div>
+        <div class="guest-loading__line guest-loading__line--short"></div>
+        <div class="guest-loading__line"></div>
+        <div class="guest-loading__line"></div>
+      </div>
+    </div>`;
+  applyTranslations();
+}
+
 async function boot() {
   const host = document.getElementById('main');
-  const status = document.getElementById('status');
   if (!token || token.length < 16) {
+    const status = document.createElement('p');
+    status.className = 'guest-status error';
+    status.setAttribute('role', 'status');
+    host.innerHTML = '';
+    host.appendChild(status);
     status.textContent = t('guest.invalid_link');
-    status.classList.add('error');
     applyTranslations();
     return;
   }
 
+  showLoading(host);
+
   try {
     const payload = await fetchGuestMenu(supabase, token);
     if (!payload || payload.error) {
-      status.textContent = t('guest.not_found');
-      status.classList.add('error');
+      host.innerHTML = `<p class="guest-status error" role="status">${escapeHTML(t('guest.not_found'))}</p>`;
       applyTranslations();
       return;
     }
+    lastGuestPayload = payload;
     renderMenu(host, payload);
     applyTranslations();
     document.title = `${payload.menu?.name || 'Menu'} · Carta`;
   } catch (err) {
     console.error(err);
-    status.textContent = t('guest.load_error');
-    status.classList.add('error');
+    host.innerHTML = `<p class="guest-status error" role="status">${escapeHTML(t('guest.load_error'))}</p>`;
     applyTranslations();
   }
 }
@@ -276,24 +379,32 @@ function renderMenu(host, payload) {
   const color = menu.color || 'navy';
   const icon = normalizeMenuClusterIcon(menu.icon);
   const menuType = normalizeMenuType(menu.type);
+  const currency = ws.currency || '₺';
   const sections = sectionsForMenuDisplay(
     { type: menuType, dishes: { v: 2, sections: rawSections } },
     rawSections,
   ).filter((sec) => (sec.dish_ids || []).length > 0);
 
+  let hasAllergens = false;
   const sectionHtml = sections
-    .map((sec) => {
+    .map((sec, idx) => {
       const items = (sec.dish_ids || []).map((id) => {
         const d = dm.get(id);
         if (!d) return '';
         const data = d.data || {};
         const comp = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
+        if ((comp.allergens || []).length) hasAllergens = true;
         const kcal = Math.round(comp.perServing?.kcal || 0);
         const meta = dishMetaChips(comp);
+        const price = Number(data.menu_price);
+        const priceHtml = price > 0
+          ? `<span class="menu-print__price">${escapeHTML(formatMoney(price, currency, 0))}</span>`
+          : '';
         return `<li class="menu-print__item">
           <span class="menu-print__dish">${escapeHTML(d.name)}</span>
           <span class="menu-print__dots" aria-hidden="true"></span>
           <span class="menu-print__tail">
+            ${priceHtml}
             ${meta}
             <span class="chip ${d.kind === 'drink' ? 'chip-gold' : 'chip-mist'}">${escapeHTML(kindLabel(d.kind))}</span>
             ${kcal ? `<span class="menu-print__kcal">${kcal} kcal</span>` : ''}
@@ -302,11 +413,28 @@ function renderMenu(host, payload) {
       }).filter(Boolean).join('');
       if (!items) return '';
       const secKey = sec.key || 'other';
-      return `<section class="menu-print__section">
-        <h2 class="menu-print__section-title">${escapeHTML(sectionLabel(secKey))}</h2>
+      const secId = `sec-${secKey}-${idx}`;
+      return `<section class="menu-print__section" id="${escapeHTML(secId)}" aria-labelledby="${escapeHTML(secId)}-title">
+        <h2 class="menu-print__section-title" id="${escapeHTML(secId)}-title">${escapeHTML(sectionLabel(secKey))}</h2>
         <ul class="menu-print__list">${items}</ul>
       </section>`;
     }).filter(Boolean).join('');
+
+  const sectionNav = sections.length >= 3
+    ? `<nav class="guest-section-nav-wrap" aria-label="${escapeHTML(t('guest.section_nav'))}">
+        <ul class="guest-section-nav">
+          ${sections.map((sec, idx) => {
+      const secKey = sec.key || 'other';
+      const secId = `sec-${secKey}-${idx}`;
+      return `<li><a href="#${escapeHTML(secId)}">${escapeHTML(sectionLabel(secKey))}</a></li>`;
+    }).join('')}
+        </ul>
+      </nav>`
+    : '';
+
+  const allergenNote = hasAllergens
+    ? `<p class="guest-allergen-note" data-i18n="guest.allergen_note">${escapeHTML(t('guest.allergen_note'))}</p>`
+    : '';
 
   host.innerHTML = `
     <header class="guest-top">
@@ -332,7 +460,9 @@ function renderMenu(host, payload) {
           </p>
         </div>
       </header>
+      ${sectionNav}
       ${sectionHtml || `<p class="guest-status">${escapeHTML(t('guest.empty_menu'))}</p>`}
+      ${allergenNote}
     </article>
     <p class="guest-foot">${escapeHTML(t('guest.powered'))} <a href="https://cart-a.live/">Carta</a></p>
   `;

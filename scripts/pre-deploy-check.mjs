@@ -34,6 +34,14 @@ for (const id of ['menu_glass', 'qr_code', 'menu_layers']) {
   if (!svg.includes(`id="${id}"`)) errors.push(`SVG missing symbol: ${id}`);
 }
 
+const guestHtml = fs.readFileSync(path.join(root, 'app/m/index.html'), 'utf8');
+for (const sym of ['setLang', 'getLang', 'wireLangSwitchers', 'ALLERGEN_LABELS']) {
+  if (!guestHtml.includes(sym)) errors.push(`app/m/index.html missing reference: ${sym}`);
+}
+if (!guestHtml.includes("from '/src/i18n.js'") || !guestHtml.includes('setLang')) {
+  errors.push('app/m/index.html: broken i18n imports (setLang must be imported)');
+}
+
 if (errors.length) {
   console.error('Pre-deploy check FAILED:\n' + errors.map((e) => `  - ${e}`).join('\n'));
   process.exit(1);

@@ -76,11 +76,12 @@
   .dash-card--viz:nth-child(7) { animation-delay: 0.38s; }
   .dash-card--viz:nth-child(8) { animation-delay: 0.42s; }
   @keyframes dashCardIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: none; }
+    from { transform: translateY(10px); }
+    to { transform: none; }
   }
+  .dash-card--viz { opacity: 1; }
   @media (prefers-reduced-motion: reduce) {
-    .dash-card--viz { animation: none !important; }
+    .dash-card--viz { animation: none !important; opacity: 1 !important; transform: none !important; }
     .dash-macro-seg,
     .dash-bar-fill,
     .dash-kpi { animation: none !important; transition: none !important; }
@@ -168,8 +169,8 @@
   .dash-kpi:nth-child(3) { animation-delay: 0.2s; }
   .dash-kpi:nth-child(4) { animation-delay: 0.26s; }
   @keyframes dashKpiIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: none; }
+    from { transform: translateY(6px); }
+    to { transform: none; }
   }
   .dash-kpi .num { font-family: var(--font-display); font-size: 1.75rem; font-weight: 300; color: var(--primary); line-height: 1.2; font-variant-numeric: tabular-nums; }
   .dash-kpi .lbl { font-size: 10px; letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--on-surface-variant); margin-top: 4px; }
@@ -179,7 +180,7 @@
   }
   .dash-macro-seg {
     height: 100%;
-    transform: scaleX(0);
+    transform: scaleX(1);
     transform-origin: left center;
     animation: dashMacroSeg 0.85s var(--ease) forwards;
   }
@@ -187,6 +188,7 @@
   .dash-macro-seg--c { animation-delay: 0.16s; }
   .dash-macro-seg--f { animation-delay: 0.26s; }
   @keyframes dashMacroSeg {
+    from { transform: scaleX(0); }
     to { transform: scaleX(1); }
   }
   .dash-macro-legend { display: flex; gap: var(--sp-4); flex-wrap: wrap; margin-top: var(--sp-3); font-size: var(--type-caption); }
@@ -199,12 +201,19 @@
     width: var(--bar-w, 0%);
     background: var(--primary);
     border-radius: var(--r-pill);
-    transform: scaleX(0);
+    transform: scaleX(1);
     transform-origin: left center;
     animation: dashBarGrow 0.72s var(--ease) forwards;
   }
   @keyframes dashBarGrow {
+    from { transform: scaleX(0); }
     to { transform: scaleX(1); }
+  }
+  .dash-loading {
+    text-align: center;
+    padding: var(--sp-10) var(--sp-5);
+    color: var(--on-surface-variant);
+    font-size: var(--type-caption);
   }
   .dash-row .pct { min-width: 48px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
 
