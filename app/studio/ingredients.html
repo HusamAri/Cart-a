@@ -167,7 +167,9 @@ main.id = 'main';
 main.className = 'studio-page';
 
 const ctx = await mountStudioShell({ active: 'ingredients', main });
-if (!ctx) return;
+if (!ctx) {
+  // mountStudioShell already redirected
+} else {
 const wsId = ctx.workspace.id;
 const { role } = ctx;
 const LS_KEY = `carta_ing_custom_${wsId}`;
@@ -502,6 +504,7 @@ window.addEventListener('carta-lang-change', () => {
     render();
   }, 0);
 });
+}
 </script>
 </body>
 </html>

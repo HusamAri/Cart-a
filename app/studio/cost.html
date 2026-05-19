@@ -207,7 +207,9 @@ main.id = 'main';
 main.className = 'studio-page';
 
 const ctx = await mountStudioShell({ active: 'cost', main });
-if (!ctx) return;
+if (!ctx) {
+  // mountStudioShell already redirected
+} else {
 const wsId = ctx.workspace.id;
 const currency = ctx.workspace.currency || '₺';
 const { role } = ctx;
@@ -649,6 +651,7 @@ window.addEventListener('carta-lang-change', () => {
     applyRoleGates(role, main);
   }, 0);
 });
+}
 </script>
 </body>
 </html>
