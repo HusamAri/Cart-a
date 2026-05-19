@@ -6,6 +6,7 @@
     "check": "node scripts/smoke-static.mjs && node scripts/pre-deploy-check.mjs",
     "check:prod": "CARTA_BASE_URL=https://cart-a.live node scripts/e2e-audit.mjs",
     "i18n:es": "node scripts/build-es-locale.mjs",
-    "audit:e2e": "node scripts/e2e-audit.mjs"
+    "audit:e2e": "node scripts/e2e-audit.mjs",
+    "test:dashboard": "node scripts/test-dashboard.mjs"
   }
 }

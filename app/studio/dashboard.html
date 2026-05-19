@@ -264,6 +264,7 @@ let allDishes = [];
 let clusters = [];
 let clusterFilter = '__all__';
 let lastCostMap = buildCostMap([]);
+let ingredientRegistry = null;
 
 main.innerHTML = `
   <div class="page-head">
@@ -294,9 +295,6 @@ main.innerHTML = `
 
 applyTranslations();
 applyRoleGates(role, main);
-await load();
-
-let ingredientRegistry = null;
 
 function showDashLoading() {
   const root = main.querySelector('#dashRoot');
@@ -719,6 +717,8 @@ window.addEventListener('carta-lang-change', () => {
     applyRoleGates(role, main);
   }, 0);
 });
+
+await load();
 }
 </script>
 </body>
