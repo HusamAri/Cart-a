@@ -447,7 +447,7 @@
 <script type="module">
 import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
-import { applyTranslations, t } from '/src/i18n.js';
+import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { computeRecipe } from '/src/recipe-compute.js';
 import { applyRoleGates, requireCan } from '/src/permissions.js';
 import { downloadWorkbook } from '/src/xlsx-export.js';
@@ -590,7 +590,7 @@ async function removeLogo() {
 
 function guestQrPanelHtml(cl) {
   const published = Boolean(cl.guest_published_at && cl.guest_token);
-  const url = published ? guestMenuUrl(cl.guest_token) : '';
+  const url = published ? guestMenuUrl(cl.guest_token, { lang: getLang() }) : '';
   const statusClass = published ? 'is-live' : 'is-off';
   const statusKey = published ? 'menus.qr_live' : 'menus.qr_off';
   return `
@@ -644,7 +644,7 @@ async function unpublishGuestMenu() {
 function copyGuestLink() {
   const cl = clusters.find((c) => c.id === selectedId);
   if (!cl?.guest_token || !cl.guest_published_at) return;
-  const url = guestMenuUrl(cl.guest_token);
+  const url = guestMenuUrl(cl.guest_token, { lang: getLang() });
   navigator.clipboard?.writeText(url).then(() => {
     alert(t('menus.qr_copied'));
   }).catch(() => {
@@ -655,7 +655,7 @@ function copyGuestLink() {
 async function downloadGuestQr() {
   const cl = clusters.find((c) => c.id === selectedId);
   if (!cl?.guest_token || !cl.guest_published_at) return;
-  const url = guestMenuUrl(cl.guest_token);
+  const url = guestMenuUrl(cl.guest_token, { lang: getLang() });
   try {
     await downloadGuestMenuQrCard({
       url,

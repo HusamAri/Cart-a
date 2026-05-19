@@ -128,6 +128,35 @@
     color: var(--on-surface-variant);
   }
   .guest-foot a { color: var(--primary); }
+  .guest-top__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    flex-shrink: 0;
+  }
+  .menu-print .chip-allergen {
+    background: rgb(107 45 60 / 0.12);
+    color: #6b2d3c;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .menu-print .chip-diet {
+    background: rgb(45 74 62 / 0.12);
+    color: #2d4a3e;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .menu-print__tail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-end;
+    align-items: center;
+  }
 </style>
 </head>
 <body>
@@ -150,6 +179,16 @@ import { menuClusterIconHtml, normalizeMenuClusterIcon } from '/src/menu-cluster
 
 const params = new URLSearchParams(window.location.search);
 const token = params.get('t') || params.get('token') || '';
+let lastGuestPayload = null;
+
+const langParam = (params.get('lang') || '').toLowerCase();
+if (['en', 'tr', 'es'].includes(langParam)) setLang(langParam);
+
+window.addEventListener('carta-lang-change', () => {
+  if (lastGuestPayload) {
+    renderMenu(document.getElementById('main'), lastGuestPayload);
+  }
+});
 
 function escapeHTML(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -163,6 +202,19 @@ function sectionLabel(sectionKey) {
   const k = menuSectionI18nKey(sectionKey);
   const label = t(k);
   return label !== k ? label : sectionKey;
+}
+
+function dishMetaChips(comp) {
+  const cl = getLang();
+  const parts = [];
+  for (const a of (comp.allergens || []).slice(0, 3)) {
+    const lab = ALLERGEN_LABELS[a]?.[cl] || a;
+    parts.push(`<span class="chip chip-allergen">${escapeHTML(lab)}</span>`);
+  }
+  for (const d of (comp.dietTags || []).slice(0, 2)) {
+    parts.push(`<span class="chip chip-diet">${escapeHTML(t('diet.' + d) || d)}</span>`);
+  }
+  return parts.join('');
 }
 
 async function boot() {
@@ -216,10 +268,12 @@ function renderMenu(host, payload) {
         const data = d.data || {};
         const comp = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
         const kcal = Math.round(comp.perServing?.kcal || 0);
+        const meta = dishMetaChips(comp);
         return `<li class="menu-print__item">
           <span class="menu-print__dish">${escapeHTML(d.name)}</span>
           <span class="menu-print__dots" aria-hidden="true"></span>
           <span class="menu-print__tail">
+            ${meta}
             <span class="chip ${d.kind === 'drink' ? 'chip-gold' : 'chip-mist'}">${escapeHTML(kindLabel(d.kind))}</span>
             ${kcal ? `<span class="menu-print__kcal">${kcal} kcal</span>` : ''}
           </span>
@@ -236,7 +290,14 @@ function renderMenu(host, payload) {
   host.innerHTML = `
     <header class="guest-top">
       <img class="carta-lockup" src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta" width="876" height="294" decoding="async">
-      ${ws.logo_url ? `<img class="ws-logo" src="${escapeHTML(ws.logo_url)}" alt="${escapeHTML(ws.name || '')}" decoding="async">` : ''}
+      <div class="guest-top__actions">
+        <div class="lang-toggle lang-toggle--compact" role="group" aria-label="${escapeHTML(t('ui.lang.group_aria'))}">
+          <button type="button" data-lang-btn="en">EN</button>
+          <button type="button" data-lang-btn="tr">TR</button>
+          <button type="button" data-lang-btn="es">ES</button>
+        </div>
+        ${ws.logo_url ? `<img class="ws-logo" src="${escapeHTML(ws.logo_url)}" alt="${escapeHTML(ws.name || '')}" decoding="async">` : ''}
+      </div>
     </header>
     <article class="menu-print menu-print--${escapeHTML(color)}">
       <header class="menu-print__head">
@@ -253,6 +314,7 @@ function renderMenu(host, payload) {
     </article>
     <p class="guest-foot">${escapeHTML(t('guest.powered'))} <a href="https://cart-a.live/">Carta</a></p>
   `;
+  wireLangSwitchers(host);
 }
 
 applyTranslations();
