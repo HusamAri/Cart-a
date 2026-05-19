@@ -367,7 +367,15 @@ import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { ALLERGEN_LABELS, lookupNutrient, ingredientLabel } from '/src/nutrient-db.js';
 import { computeRecipe, formatNumber } from '/src/recipe-compute.js';
-import { normalizeRecipeUnit, PASTE_RECIPE_UNITS, recipeUnitSelectHtml } from '/src/recipe-units.js';
+import { normalizeRecipeUnit, recipeUnitSelectHtml } from '/src/recipe-units.js';
+import {
+  parsePastedIngredients,
+  parsePastedBarceloBlock,
+  parseRecipeExcelFile,
+  isValidPasteRow,
+  normPasteAmount,
+  normalizeExcelRecipeUnit,
+} from '/src/recipe-import.js';
 import { mountIngredientAutocomplete } from '/src/ingredient-autocomplete.js';
 import { applyRoleGates, requireCan } from '/src/permissions.js';
 import { cartaIcon } from '/src/carta-icon.js';
@@ -452,7 +460,12 @@ main.innerHTML = `
         ${cartaIcon('upload_file', { size: 18 })}
         <span data-i18n="recipes.import_json">Import JSON</span>
       </button>
+      <button type="button" class="btn btn-outline btn-sm" id="importExcelBtn" data-require="recipe_create">
+        ${cartaIcon('upload_file', { size: 18 })}
+        <span data-i18n="recipes.import_excel">Import Excel</span>
+      </button>
       <input type="file" id="recipeJsonFile" accept=".json,application/json" hidden>
+      <input type="file" id="recipeExcelFile" accept=".xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
     </div>
   </div>
 
@@ -665,81 +678,14 @@ function escapeHTML(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-const PASTE_UNITS = PASTE_RECIPE_UNITS;
-const normalizePasteUnit = normalizeRecipeUnit;
+const normalizePasteUnit = normalizeExcelRecipeUnit;
 
-function normPasteAmount(s) {
-  return String(s ?? '').trim().replace(',', '.');
-}
-
-function isValidPasteRow(r) {
-  const a = parseFloat(normPasteAmount(r.amount));
-  const u = normalizePasteUnit(r.unit);
-  return !!(r.name && String(r.name).trim() && !isNaN(a) && a > 0 && PASTE_UNITS.has(u));
-}
-
-function parsePastedIngredients(text) {
-  const rows = [];
-  const warnings = [];
-  const lines = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-
-  for (const rawLine of lines) {
-    if (rawLine.startsWith('#') || rawLine.startsWith('//')) continue;
-    const line = rawLine.replace(/^[-*•]\s*/, '').trim();
-    if (!line) continue;
-
-    if (line.includes('\t')) {
-      const p = line.split('\t').map(x => x.trim()).filter(x => x.length);
-      if (p.length >= 3) {
-        rows.push({ amount: normPasteAmount(p[0]), unit: normalizePasteUnit(p[1]), name: p[2] });
-        continue;
-      }
-      if (p.length === 2 && /^\d/.test(p[0])) {
-        rows.push({ amount: normPasteAmount(p[0]), unit: 'g', name: p[1] });
-        continue;
-      }
-      warnings.push(rawLine);
-      continue;
-    }
-
-    let m = line.match(/^(\d+(?:[.,]\d+)?)\s*(şişe|şişeler|sis|sise|bottle)\s+(.+)$/iu);
-    if (m && m[3].trim()) {
-      rows.push({ amount: normPasteAmount(m[1]), unit: 'sis', name: m[3].trim() });
-      continue;
-    }
-    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|mg|ml|cl|dl|l|yk|tk|ck|sb|cb|sis|kd|ad)\s+(.+)$/i);
-    if (m && m[3].trim()) {
-      rows.push({ amount: normPasteAmount(m[1]), unit: normalizePasteUnit(m[2]), name: m[3].trim() });
-      continue;
-    }
-    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|mg|ml|cl|dl|l|yk|tk|ck|sb|cb|sis|kd|ad)([^\s\d].*)$/i);
-    if (m && m[3].trim()) {
-      rows.push({ amount: normPasteAmount(m[1]), unit: normalizePasteUnit(m[2]), name: m[3].trim() });
-      continue;
-    }
-    m = line.match(/^(\d+(?:[.,]\d+)?)\s*(?:adet|ad|x)\s+(.+)$/i);
-    if (m && m[2].trim()) {
-      rows.push({ amount: normPasteAmount(m[1]), unit: 'ad', name: m[2].trim() });
-      continue;
-    }
-    m = line.match(/^(\d+(?:[.,]\d+)?)\s+(.+)$/);
-    if (m) {
-      const rest = m[2].trim();
-      const head = rest.split(/\s+/)[0]?.toLowerCase();
-      if (head && PASTE_UNITS.has(normalizePasteUnit(head))) {
-        warnings.push(rawLine);
-        continue;
-      }
-      if (!rest) {
-        warnings.push(rawLine);
-        continue;
-      }
-      rows.push({ amount: normPasteAmount(m[1]), unit: 'g', name: rest });
-      continue;
-    }
-    warnings.push(rawLine);
+function parsePasteText(text) {
+  const raw = String(text || '');
+  if (/\bingredients\b/i.test(raw) || (raw.includes('\t') && /\b(kg|pce|adet|litre)\b/i.test(raw))) {
+    return parsePastedBarceloBlock(raw);
   }
-  return { rows, warnings };
+  return parsePastedIngredients(raw);
 }
 
 function recipesArrayFromParsed(parsed) {
@@ -787,16 +733,7 @@ function normalizeImportedRecipe(raw) {
   return { name, kind, data };
 }
 
-async function runRecipeJsonImport(file) {
-  let parsed;
-  try {
-    parsed = JSON.parse(await file.text());
-  } catch {
-    alert(t('recipes.import_json_err_parse'));
-    return;
-  }
-  const arr = recipesArrayFromParsed(parsed);
-  const normalized = arr.map(normalizeImportedRecipe).filter(Boolean);
+async function insertImportedRecipes(normalized, doneKey = 'recipes.import_json_done') {
   if (!normalized.length) {
     alert(t('recipes.import_json_err_empty'));
     return;
@@ -811,7 +748,7 @@ async function runRecipeJsonImport(file) {
     pending.push(row);
   }
   if (!pending.length) {
-    alert(t('recipes.import_json_done').replace('{n}', '0').replace('{s}', String(skipped)));
+    alert(t(doneKey).replace('{n}', '0').replace('{s}', String(skipped)));
     return;
   }
   const q = canAddRecipes(wsPlan, localRecipeCount(), pending.length);
@@ -840,7 +777,51 @@ async function runRecipeJsonImport(file) {
     }
   }
   await loadRecipes();
-  alert(t('recipes.import_json_done').replace('{n}', String(n)).replace('{s}', String(skipped)));
+  alert(t(doneKey).replace('{n}', String(n)).replace('{s}', String(skipped)));
+}
+
+async function runRecipeJsonImport(file) {
+  let parsed;
+  try {
+    parsed = JSON.parse(await file.text());
+  } catch {
+    alert(t('recipes.import_json_err_parse'));
+    return;
+  }
+  const arr = recipesArrayFromParsed(parsed);
+  const normalized = arr.map(normalizeImportedRecipe).filter(Boolean);
+  await insertImportedRecipes(normalized);
+}
+
+async function runRecipeExcelImport(file) {
+  const { recipes, warnings } = await parseRecipeExcelFile(file);
+  if (warnings.includes('xlsx_load_failed')) {
+    alert(t('recipes.import_excel_err_xlsx'));
+    return;
+  }
+  if (warnings.includes('unsupported_file')) {
+    alert(t('recipes.import_excel_err_file'));
+    return;
+  }
+  const normalized = recipes.map((r) => normalizeImportedRecipe(r)).filter(Boolean);
+  if (!normalized.length) {
+    alert(t('recipes.import_excel_err_empty'));
+    return;
+  }
+  await insertImportedRecipes(normalized, 'recipes.import_excel_done');
+}
+
+function applyParsedIngredientsToList(ingList, valid, editAction, gateRole, replace) {
+  if (replace) ingList.innerHTML = '';
+  for (const r of valid) {
+    const row = buildIngRow({
+      name: r.name.trim(),
+      amount: normPasteAmount(r.amount),
+      unit: normalizePasteUnit(r.unit),
+    }, editAction);
+    ingList.appendChild(row);
+    applyRoleGates(gateRole, row);
+  }
 }
 
 function toTitleTrWords(str) {
@@ -967,6 +948,7 @@ function buildEditorEl({ recipe, data }) {
               <button type="button" class="btn btn-sm btn-outline" id="pastePreviewBtn" data-i18n="recipes.paste_preview" data-require="${editAction}">Preview</button>
               <button type="button" class="btn btn-sm btn-primary" id="pasteApplyBtn" data-i18n="recipes.paste_apply" data-require="${editAction}">Apply</button>
               <button type="button" class="btn btn-sm btn-ghost" id="pasteClipboardBtn" data-i18n="recipes.paste_clipboard" data-require="${editAction}">Clipboard</button>
+              <button type="button" class="btn btn-sm btn-outline" id="pasteExcelBtn" data-i18n="recipes.paste_excel" data-require="${editAction}">Excel sheet</button>
             </div>
             <div id="pastePreview" class="paste-preview" hidden></div>
           </div>
@@ -1090,7 +1072,7 @@ function buildEditorEl({ recipe, data }) {
   const pastePrev = wrap.querySelector('#pastePreview');
 
   function runPastePreview() {
-    const { rows, warnings } = parsePastedIngredients(pasteTa.value);
+    const { rows, warnings, format } = parsePasteText(pasteTa.value);
     const valid = rows.filter(isValidPasteRow);
     if (!valid.length && !warnings.length) {
       pastePrev.hidden = true;
@@ -1098,7 +1080,11 @@ function buildEditorEl({ recipe, data }) {
       return;
     }
     pastePrev.hidden = false;
-    let html = '<table><thead><tr>';
+    let html = '';
+    if (format && format !== 'plain') {
+      html += `<p class="text-muted" style="margin:8px 10px;font-size:var(--type-caption)">${escapeHTML(t('recipes.paste_format_detected').replace('{f}', format))}</p>`;
+    }
+    html += '<table><thead><tr>';
     html += `<th>${escapeHTML(t('recipes.col_amount'))}</th>`;
     html += `<th>${escapeHTML(t('recipes.col_unit'))}</th>`;
     html += `<th>${escapeHTML(t('recipes.col_name'))}</th></tr></thead><tbody>`;
@@ -1121,30 +1107,68 @@ function buildEditorEl({ recipe, data }) {
   pasteTa.addEventListener('paste', () => { setTimeout(runPastePreview, 0); });
 
   wrap.querySelector('#pasteApplyBtn').addEventListener('click', () => {
-    const { rows, warnings } = parsePastedIngredients(pasteTa.value);
+    const { rows, warnings } = parsePasteText(pasteTa.value);
     const valid = rows.filter(isValidPasteRow);
     if (!valid.length) {
       alert(warnings.length ? t('recipes.paste_none_warn') : t('recipes.paste_none'));
       return;
     }
-    if (wrap.querySelector('#pasteReplace').checked) {
-      ingList.innerHTML = '';
-    }
-    for (const r of valid) {
-      const row = buildIngRow({
-        name: r.name.trim(),
-        amount: normPasteAmount(r.amount),
-        unit: normalizePasteUnit(r.unit),
-      }, editAction);
-      ingList.appendChild(row);
-      applyRoleGates(gateRole, row);
-    }
+    applyParsedIngredientsToList(ingList, valid, editAction, gateRole, wrap.querySelector('#pasteReplace').checked);
     pasteTa.value = '';
     pastePrev.hidden = true;
     pastePrev.innerHTML = '';
     wrap.querySelector('.modal__form').dispatchEvent(new Event('input', { bubbles: true }));
     recompute();
   });
+
+  const pasteExcelBtn = wrap.querySelector('#pasteExcelBtn');
+  if (pasteExcelBtn) {
+    pasteExcelBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.xlsx,.xls,.xlsm';
+      input.addEventListener('change', async () => {
+        const f = input.files?.[0];
+        if (!f) return;
+        const { recipes, warnings } = await parseRecipeExcelFile(f);
+        if (warnings.includes('xlsx_load_failed')) {
+          alert(t('recipes.import_excel_err_xlsx'));
+          return;
+        }
+        if (!recipes.length) {
+          alert(t('recipes.import_excel_err_empty'));
+          return;
+        }
+        let pick = recipes[0];
+        if (recipes.length > 1) {
+          const list = recipes.map((r, i) => `${i + 1}. ${r.name}`).join('\n');
+          const ans = window.prompt(`${t('recipes.excel_pick_sheet')}\n${list}`, '1');
+          if (ans == null) return;
+          const idx = parseInt(ans, 10) - 1;
+          if (idx >= 0 && idx < recipes.length) pick = recipes[idx];
+        }
+        const norm = normalizeImportedRecipe(pick);
+        if (!norm?.data?.ingredients?.length) {
+          alert(t('recipes.import_excel_err_empty'));
+          return;
+        }
+        const nameEl = wrap.querySelector('#editName');
+        if (nameEl && !nameEl.value.trim()) nameEl.value = pick.name;
+        const srvEl = wrap.querySelector('#editServings');
+        if (srvEl && norm.data.servings) srvEl.value = String(norm.data.servings);
+        applyParsedIngredientsToList(
+          ingList,
+          norm.data.ingredients,
+          editAction,
+          gateRole,
+          wrap.querySelector('#pasteReplace').checked,
+        );
+        wrap.querySelector('.modal__form').dispatchEvent(new Event('input', { bubbles: true }));
+        recompute();
+      });
+      input.click();
+    });
+  }
 
   wrap.querySelector('#pasteClipboardBtn').addEventListener('click', async () => {
     try {
@@ -1445,6 +1469,8 @@ document.head.appendChild(vh);
 
 const importJsonBtn = main.querySelector('#importJsonBtn');
 const recipeJsonFile = main.querySelector('#recipeJsonFile');
+const importExcelBtn = main.querySelector('#importExcelBtn');
+const recipeExcelFile = main.querySelector('#recipeExcelFile');
 if (importJsonBtn && recipeJsonFile) {
   importJsonBtn.setAttribute('aria-label', t('recipes.import_json_aria'));
   importJsonBtn.addEventListener('click', () => {
@@ -1457,6 +1483,19 @@ if (importJsonBtn && recipeJsonFile) {
     if (!f) return;
     if (!requireCan(role, 'recipe_create', t('recipes.import_denied'))) return;
     await runRecipeJsonImport(f);
+  });
+}
+if (importExcelBtn && recipeExcelFile) {
+  importExcelBtn.addEventListener('click', () => {
+    if (!requireCan(role, 'recipe_create', t('recipes.import_denied'))) return;
+    recipeExcelFile.click();
+  });
+  recipeExcelFile.addEventListener('change', async (ev) => {
+    const f = ev.target.files?.[0];
+    ev.target.value = '';
+    if (!f) return;
+    if (!requireCan(role, 'recipe_create', t('recipes.import_denied'))) return;
+    await runRecipeExcelImport(f);
   });
 }
 }

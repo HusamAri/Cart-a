@@ -2056,6 +2056,21 @@ html.motion-reduce ::view-transition-new(root) {
   animation: carta-content-in 0.62s var(--ease) both;
 }
 
+/* Without this, reduced-motion users keep opacity:0 (animation fill-mode both). */
+html.motion-reduce .studio-main main.content-reveal {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-main main.content-reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 /* Marketing hero: staggered editorial reveal */
 @media (prefers-reduced-motion: no-preference) {
   html.carta-ui-ready .hero .hero__eyebrow-row {
