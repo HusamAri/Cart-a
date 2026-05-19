@@ -30,7 +30,7 @@ const UNIT_ALIASES = {
   cb: ['cb', 'cay bardagi', 'çay bardağı', 'cay bardagi'],
   kd: ['kd', 'kadeh', 'wine glass', 'bardak'],
   sis: ['sis', 'sise', 'şişe', 'şişe', 'sise', 'bottle', 'şişeler'],
-  ad: ['ad', 'adet', 'piece', 'pc', 'x'],
+  ad: ['ad', 'adet', 'piece', 'pc', 'x', 'pce', 'stk', 'st'],
 };
 
 const ALIAS_TO_CANONICAL = new Map();

@@ -194,9 +194,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   if (main) {
     // Move provided main element into wrap
     mainWrap.appendChild(main);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => main.classList.add('content-reveal'));
-    });
+    scheduleMainContentReveal(main);
   }
   document.body.appendChild(mobileBottom);
   document.body.appendChild(mainWrap);
@@ -383,6 +381,32 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   initSkipLink();
 
   return { session, workspace: ws, role };
+}
+
+/** Fade-in main column after page markup is set; skip motion when reduced-motion is on. */
+function scheduleMainContentReveal(main) {
+  let reduced = false;
+  try {
+    reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch { /* ignore */ }
+  if (reduced || document.documentElement.classList.contains('motion-reduce')) {
+    return;
+  }
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      main.classList.add('content-reveal');
+      // If the animation never runs (OS/browser quirk), do not leave main invisible.
+      const fallbackMs = 900;
+      const timer = window.setTimeout(() => {
+        if (parseFloat(getComputedStyle(main).opacity) < 0.05) {
+          main.classList.remove('content-reveal');
+          main.style.opacity = '1';
+          main.style.transform = 'none';
+        }
+      }, fallbackMs);
+      main.addEventListener('animationend', () => window.clearTimeout(timer), { once: true });
+    });
+  });
 }
 
 function escapeHTML(s) {
