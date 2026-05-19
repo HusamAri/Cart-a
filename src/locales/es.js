@@ -820,5 +820,16 @@ export default {
   "surface.print_card": "Imprimir una receta",
   "surface.items_count": "{n} ítems",
   "surface.no_data": "Aún no hay nada que exportar.",
-  "surface.format_note": "Formato: SpreadsheetML 2003 (.xls): se abre en Excel y Google Sheets."
+  "surface.format_note": "Formato: SpreadsheetML 2003 (.xls): se abre en Excel y Google Sheets.",
+  "guest.invalid_link": "Este enlace de menú no es válido.",
+  "guest.not_found": "Este menú no está disponible. Puede haberse retirado de la publicación.",
+  "guest.load_error": "No se pudo cargar el menú. Inténtalo más tarde.",
+  "guest.empty_menu": "Este menú aún no tiene platos.",
+  "guest.menu_fallback": "Menú",
+  "guest.powered": "Con tecnología de",
+  "guest.print": "Imprimir menú",
+  "guest.section_nav": "Ir a sección",
+  "guest.allergen_note": "Las etiquetas de alérgenos se derivan de los ingredientes de la receta. Consulta al personal si tienes alergias o necesidades dietéticas.",
+  "guest.loading": "Cargando menú…",
+  "menus.qr_scan_hint": "Escanea para ver el menú"
 };
