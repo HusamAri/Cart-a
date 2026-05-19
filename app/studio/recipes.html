@@ -364,7 +364,7 @@
 import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
-import { ALLERGEN_LABELS, lookupNutrient, NUTRIENT_EN } from '/src/nutrient-db.js';
+import { ALLERGEN_LABELS, lookupNutrient, ingredientLabel } from '/src/nutrient-db.js';
 import { computeRecipe, formatNumber } from '/src/recipe-compute.js';
 import { normalizeRecipeUnit, PASTE_RECIPE_UNITS, recipeUnitSelectHtml } from '/src/recipe-units.js';
 import { mountIngredientAutocomplete } from '/src/ingredient-autocomplete.js';
@@ -372,6 +372,8 @@ import { applyRoleGates, requireCan } from '/src/permissions.js';
 import { cartaIcon } from '/src/carta-icon.js';
 import { canAddRecipes, planLimitMessageKey } from '/src/plan-limits.js';
 import { syncRecipeMenus, menusContainingDish } from '/src/menu-structure.js';
+import { archiveDeletedRecipe } from '/src/recipe-presets-api.js';
+import { loadIngredientRegistry } from '/src/ingredient-registry.js';
 
 // ============================================================
 // 1. Mount sidebar shell + get workspace context
@@ -391,6 +393,20 @@ const { role } = ctx;
 
 let pantryIngredientNames = [];
 let pantryNamesLoaded = false;
+let ingredientRegistry = null;
+
+async function ensureIngredientRegistry() {
+  if (!ingredientRegistry) {
+    const { registry } = await loadIngredientRegistry(supabase, wsId);
+    ingredientRegistry = registry;
+  }
+  return ingredientRegistry;
+}
+
+function computeRecipeWs(recipe) {
+  return computeRecipeWs(recipe, ingredientRegistry ? { registry: ingredientRegistry } : {});
+}
+
 async function loadPantryNames() {
   if (pantryNamesLoaded) return pantryIngredientNames;
   pantryNamesLoaded = true;
@@ -487,6 +503,7 @@ async function loadMenuClusters() {
 }
 
 async function loadRecipes() {
+  await ensureIngredientRegistry();
   const { data: localRows, error } = await supabase
     .from('saved_dishes')
     .select('*')
@@ -592,7 +609,7 @@ function renderEmpty() {
 
 function renderCard(r, cl) {
   const data = r.data || {};
-  const computed = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
+  const computed = computeRecipeWs({ ingredients: data.ingredients || [], servings: data.servings || 1 });
   const kindLabel = r.kind === 'drink' ? t('recipes.kind_drink') : t('recipes.kind_food');
   const kindClass = r.kind === 'drink' ? 'chip-gold' : 'chip-mist';
   const allergens = (computed.allergens || []).slice(0, 3);
@@ -758,7 +775,7 @@ function normalizeImportedRecipe(raw) {
     if (isValidPasteRow(row)) ingredients.push(row);
   }
   if (!ingredients.length) return null;
-  const computed = computeRecipe({ ingredients, servings });
+  const computed = computeRecipeWs({ ingredients, servings });
   const { ingredients: _ing, servings: _srv, computed: _cmp, ...rest } = blob;
   const data = { ...rest, servings, ingredients, computed };
   return { name, kind, data };
@@ -839,8 +856,8 @@ function suggestRecipeNameFromForm(wrap) {
   const parts = take.map(i => {
     const hit = lookupNutrient(i.name);
     const key = hit?.key || i.name.trim();
-    if (lang === 'en') {
-      return NUTRIENT_EN[key] || englishTitleFromKey(key);
+    if (lang === 'tr' || lang === 'en' || lang === 'es') {
+      return ingredientLabel(key, lang);
     }
     return toTitleTrWords(i.name.trim());
   });
@@ -1175,7 +1192,7 @@ function buildEditorEl({ recipe, data }) {
     }
     const servings = Math.max(1, parseInt(wrap.querySelector('#editServings').value) || 1);
     const ingredients = readIngredients(wrap);
-    const computed = computeRecipe({ ingredients, servings });
+    const computed = computeRecipeWs({ ingredients, servings });
     const selectedMenuIds = isForeignShared
       ? []
       : [...wrap.querySelectorAll('#recipeMenuPicker input[type=checkbox]:checked')].map((el) => el.value);
@@ -1259,6 +1276,20 @@ function buildEditorEl({ recipe, data }) {
   if (isEdit) {
     wrap.querySelector('#deleteBtn').addEventListener('click', async () => {
       if (!confirm(t('recipes.delete_confirm'))) return;
+      const delName = wrap.querySelector('#editName').value.trim() || recipe.name;
+      const servings = Math.max(1, parseInt(wrap.querySelector('#editServings').value) || 1);
+      const ingredients = readIngredients(wrap);
+      const computed = computeRecipeWs({ ingredients, servings });
+      const arch = await archiveDeletedRecipe(supabase, wsId, {
+        name: delName,
+        kind: editorKind,
+        data: { servings, ingredients, computed },
+      });
+      if (arch.tableMissing) {
+        console.warn('My presets table not deployed — recipe not archived to presets');
+      } else if (arch.error) {
+        console.warn('archive preset', arch.error);
+      }
       const { error } = await supabase.from('saved_dishes').delete().eq('id', recipe.id);
       if (error) { alert(error.message); return; }
       closeEditor();
@@ -1278,7 +1309,7 @@ function buildEditorEl({ recipe, data }) {
       // Capture current form state (in case the user has edited but not saved)
       const servings = Math.max(1, parseInt(wrap.querySelector('#editServings').value) || 1);
       const ingredients = readIngredients(wrap);
-      const computed = computeRecipe({ ingredients, servings });
+      const computed = computeRecipeWs({ ingredients, servings });
       const newData = { servings, ingredients, computed };
       const { data, error } = await supabase
         .from('saved_dishes')
@@ -1304,7 +1335,7 @@ function buildEditorEl({ recipe, data }) {
   function recompute() {
     const servings = Math.max(1, parseInt(wrap.querySelector('#editServings').value) || 1);
     const ings = readIngredients(wrap);
-    const c = computeRecipe({ ingredients: ings, servings });
+    const c = computeRecipeWs({ ingredients: ings, servings });
     wrap.querySelector('#prevKcal').textContent = formatNumber(c.perServing.kcal, 0);
     wrap.querySelector('#prevP').textContent  = formatNumber(c.perServing.P, 1) + ' g';
     wrap.querySelector('#prevF').textContent  = formatNumber(c.perServing.F, 1) + ' g';

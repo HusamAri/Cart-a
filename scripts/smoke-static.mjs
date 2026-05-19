@@ -93,6 +93,20 @@ if (!exists(esLocaleRel)) {
   if (keyCount < 800) errors.push(`Spanish locale looks incomplete (${keyCount} keys, expected ~821)`);
 }
 
+// Every NUTRIENT_DB key must have tr/en/es labels
+const nutrientDb = fs.readFileSync(path.join(root, 'src/nutrient-db.js'), 'utf8');
+const i18nSrc = fs.readFileSync(path.join(root, 'src/ingredient-i18n.js'), 'utf8');
+const dbKeys = [...nutrientDb.matchAll(/^\s+'([^']+)':\s*\{/gm)].map((m) => m[1]);
+const i18nKeys = [...i18nSrc.matchAll(/^\s+'([^']+)':\s*\{/gm)].map((m) => m[1]);
+const missingI18n = dbKeys.filter((k) => !i18nKeys.includes(k));
+const extraI18n = i18nKeys.filter((k) => !dbKeys.includes(k));
+if (missingI18n.length) {
+  errors.push(`ingredient-i18n.js missing ${missingI18n.length} keys (e.g. ${missingI18n.slice(0, 3).join(', ')})`);
+}
+if (extraI18n.length) {
+  errors.push(`ingredient-i18n.js has ${extraI18n.length} orphan keys not in NUTRIENT_DB`);
+}
+
 const menuStructureRel = 'src/menu-structure.js';
 if (!exists(menuStructureRel)) {
   errors.push('Missing required module: src/menu-structure.js (imported by dashboard, menus, recipes)');

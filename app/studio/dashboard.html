@@ -234,6 +234,7 @@ import { computeRecipe, formatNumber, computeDishCost, buildCostMap, computeReci
 import { clusterDishIds } from '/src/menu-structure.js';
 import { emissionIntensityKgCo2ePerKg } from '/src/carbon-factors.js';
 import { ALLERGEN_LABELS } from '/src/nutrient-db.js';
+import { loadIngredientRegistry } from '/src/ingredient-registry.js';
 import { applyRoleGates } from '/src/permissions.js';
 import { cartaIcon } from '/src/carta-icon.js';
 
@@ -286,7 +287,11 @@ applyTranslations();
 applyRoleGates(role, main);
 await load();
 
+let ingredientRegistry = null;
+
 async function load() {
+  const reg = await loadIngredientRegistry(supabase, wsId);
+  ingredientRegistry = reg.registry;
   const [dRes, cRes, clRes] = await Promise.all([
     supabase.from('saved_dishes').select('*').eq('workspace_id', wsId).order('updated_at', { ascending: false }),
     supabase.from('cost_db').select('*').eq('workspace_id', wsId),
@@ -338,7 +343,10 @@ function analyze(rows, costMap) {
   const lang = getLang();
   const items = rows.map(r => {
     const data = r.data || {};
-    const comp = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
+    const comp = computeRecipe(
+      { ingredients: data.ingredients || [], servings: data.servings || 1 },
+      ingredientRegistry ? { registry: ingredientRegistry } : {},
+    );
     const cost = computeDishCost(data, costMap, qFactor);
     return { row: r, comp, cost };
   });

@@ -32,18 +32,57 @@
   @media (max-width: 900px) {
     .studio-page { padding: var(--sp-5) var(--margin-mobile) var(--sp-8); }
   }
-  .page-head {
-    max-width: 1100px; margin: 0 auto var(--sp-7);
-  }
+  .page-head { max-width: 1100px; margin: 0 auto var(--sp-7); }
   .page-head .eyebrow { margin-bottom: var(--sp-3); }
   .page-head h1 { margin: 0 0 var(--sp-3); }
   .page-head .lead { margin: 0 0 var(--sp-5); max-width: 58ch; }
+  .preset-search-bar {
+    max-width: 1100px; margin: 0 auto var(--sp-6);
+    display: flex; flex-direction: column; gap: var(--sp-4);
+  }
+  .preset-search-bar input {
+    width: 100%; max-width: 480px;
+    padding: 12px 16px; border-radius: var(--r-pill);
+    border: var(--glass-border);
+    background: var(--surface-container-lowest);
+    font-family: var(--font-sans); font-size: var(--type-body);
+    color: var(--on-surface);
+  }
+  .preset-search-bar input::placeholder { color: var(--outline); }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag-filter {
+    border: 1px solid var(--outline-variant);
+    background: var(--surface-container);
+    color: var(--on-surface-variant);
+    border-radius: var(--r-pill);
+    padding: 6px 14px;
+    font-size: var(--type-caption);
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+  .tag-filter.is-active {
+    border-color: var(--primary);
+    background: rgb(var(--sage-deep-rgb) / 0.12);
+    color: var(--primary);
+  }
+  .section-block { max-width: 1100px; margin: 0 auto var(--sp-9); }
+  .section-block h2 {
+    font-family: var(--font-display); font-style: italic; font-weight: 400;
+    font-size: 1.5rem; color: var(--primary); margin: 0 0 var(--sp-2);
+  }
+  .section-block .section-hint {
+    margin: 0 0 var(--sp-5); font-size: var(--type-caption);
+    color: var(--on-surface-variant); max-width: 62ch;
+  }
+  .section-divider {
+    max-width: 1100px; margin: var(--sp-9) auto;
+    border: 0; border-top: 1px solid var(--outline-variant);
+  }
   .pack-grid {
-    max-width: 1100px; margin: 0 auto;
     display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: var(--sp-5);
   }
-  .pack-card {
+  .pack-card, .trusted-card, .my-preset-card {
     background: var(--surface-container-lowest);
     border: var(--glass-border);
     border-radius: var(--r-2xl);
@@ -51,24 +90,31 @@
     padding: var(--glass-padding);
     display: flex; flex-direction: column; gap: var(--sp-4);
   }
-  .pack-card h2 {
+  .pack-card h3, .trusted-card h3, .my-preset-card h3 {
     font-family: var(--font-display); font-style: italic; font-weight: 400;
-    font-size: 1.35rem; color: var(--primary); margin: 0;
+    font-size: 1.25rem; color: var(--primary); margin: 0;
   }
-  .pack-card .deck {
-    display: flex; flex-direction: column; gap: var(--sp-2);
-    flex: 1;
-  }
+  .pack-card .deck { display: flex; flex-direction: column; gap: var(--sp-2); flex: 1; }
   .pack-card .deck .row {
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
     font-size: var(--type-caption);
   }
   .pack-card .deck .row strong { font-weight: 600; color: var(--on-surface); }
+  .tag-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .pack-actions { margin-top: auto; padding-top: var(--sp-3); }
-  .foot-cta {
-    max-width: 1100px; margin: var(--sp-8) auto 0;
-    text-align: center;
+  .my-preset-card .archived-label {
+    font-size: 10px; letter-spacing: var(--track-caps);
+    text-transform: uppercase; color: var(--on-surface-variant);
   }
+  .empty-my {
+    text-align: center; padding: var(--sp-7);
+    color: var(--on-surface-variant);
+    background: var(--surface-container-low);
+    border-radius: var(--r-xl);
+    border: 1px dashed var(--outline-variant);
+  }
+  .foot-cta { max-width: 1100px; margin: var(--sp-8) auto 0; text-align: center; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
 </style>
 </head>
 <body>
@@ -79,7 +125,12 @@ import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t } from '/src/i18n.js';
 import { MENU_PRESET_PACKS } from '/src/menu-presets.js';
-import { computeRecipe } from '/src/recipe-compute.js';
+import { searchTrustedCatalog, PRESET_TAG_IDS } from '/src/preset-search.js';
+import {
+  applyPresetRecipes,
+  fetchMyPresets,
+  removeMyPreset,
+} from '/src/recipe-presets-api.js';
 import { applyRoleGates, requireCan } from '/src/permissions.js';
 
 const main = document.createElement('main');
@@ -93,32 +144,137 @@ if (!ctx) {
 const wsId = ctx.workspace.id;
 const { role } = ctx;
 
+let existingKeys = new Set();
+let myPresets = [];
+let activeTags = [];
+let searchQuery = '';
+
 function escapeHTML(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function kindLabel(kind) {
+  return kind === 'drink' ? t('recipes.kind_drink') : t('recipes.kind_food');
+}
+
+function tagLabel(tag) {
+  return t(`presets.tag.${tag}`) || tag;
+}
+
+function formatResult({ added, skipped, errors }) {
+  let msg = t('presets.result').replace('{a}', String(added)).replace('{s}', String(skipped));
+  if (errors?.length) msg += '\n' + errors.slice(0, 3).join('\n');
+  return msg;
+}
+
+async function loadExistingKeys() {
+  const { data, error } = await supabase.from('saved_dishes').select('name, kind').eq('workspace_id', wsId);
+  if (error) {
+    console.warn(error);
+    return new Set();
+  }
+  return new Set((data || []).map(r => `${r.kind}|${String(r.name || '').trim().toLowerCase()}`));
+}
+
+async function loadMyPresetsRows() {
+  const res = await fetchMyPresets(supabase, wsId);
+  myPresets = res.rows || [];
+  return res;
+}
+
+async function applyRecipes(recipes) {
+  if (!requireCan(role, 'recipe_create', t('presets.denied'))) return;
+  const result = await applyPresetRecipes(supabase, wsId, existingKeys, recipes);
+  existingKeys = result.keys;
+  alert(formatResult(result));
 }
 
 main.innerHTML = `
   <div class="page-head">
     <span class="eyebrow eyebrow-accent" data-i18n="presets.eyebrow">Starter packs</span>
     <h1 class="h1"><span data-i18n="presets.title">Menu</span> <em data-i18n="presets.title_em">presets</em></h1>
-    <p class="lead" data-i18n="presets.intro">Curated mini-menus for demos and new properties. Adds Codex-ready recipes to this workspace (skips duplicates by name and kind).</p>
+    <p class="lead" data-i18n="presets.intro">Curated mini-menus for demos and new properties.</p>
   </div>
-
-  <div class="studio-panel-visual">
-    <figure class="studio-panel-visual__cell" style="--ar-w:824; --ar-h:1024;"><img class="is-brand-visual" src="/assets/carta-editorial-mood-a.png" alt="Folded linen with flatware beside a wax-sealed tasting menu card." data-i18n-alt="img.alt.menu_card" width="824" height="1024" loading="lazy" decoding="async"></figure>
+  <div class="preset-search-bar">
+    <input type="search" id="presetSearch" autocomplete="off" placeholder="Search cocktails, plates, vegan…">
+    <p class="text-muted" style="margin:0;font-size:var(--type-caption)" data-i18n="presets.search_hint">Curated templates with Codex-friendly ingredients.</p>
+    <div class="tag-row" id="tagFilters"></div>
   </div>
-
-  <div class="pack-grid" id="packGrid"></div>
+  <section class="section-block">
+    <h2 data-i18n="presets.section_carta">Carta starter packs</h2>
+    <div class="pack-grid" id="packGrid"></div>
+  </section>
+  <hr class="section-divider" aria-hidden="true">
+  <section class="section-block" id="trustedSection">
+    <h2 data-i18n="presets.section_trusted">Trusted recipe library</h2>
+    <div class="pack-grid" id="trustedGrid"></div>
+  </section>
+  <hr class="section-divider" aria-hidden="true">
+  <section class="section-block" id="myPresetsSection">
+    <h2 data-i18n="presets.section_my">My presets</h2>
+    <p class="section-hint" data-i18n="presets.section_my_hint">Recipes you removed from the library are kept here.</p>
+    <div class="pack-grid" id="myPresetsGrid"></div>
+  </section>
   <div class="foot-cta">
     <a class="btn btn-outline" href="/app/studio/recipes.html" data-i18n="presets.go_recipes">Open recipe library →</a>
   </div>
 `;
 
-function kindLabel(kind) {
-  return kind === 'drink' ? t('recipes.kind_drink') : t('recipes.kind_food');
+function renderTagFilters() {
+  const row = main.querySelector('#tagFilters');
+  const allBtn = `<button type="button" class="tag-filter${activeTags.length ? '' : ' is-active'}" data-tag="">${escapeHTML(t('presets.tag_all'))}</button>`;
+  const tags = PRESET_TAG_IDS.map(tag =>
+    `<button type="button" class="tag-filter${activeTags.includes(tag) ? ' is-active' : ''}" data-tag="${escapeHTML(tag)}">${escapeHTML(tagLabel(tag))}</button>`
+  ).join('');
+  row.innerHTML = allBtn + tags;
+  row.querySelectorAll('.tag-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tag = btn.getAttribute('data-tag');
+      activeTags = tag ? (activeTags.includes(tag) ? activeTags.filter(x => x !== tag) : [...activeTags, tag]) : [];
+      if (!tag) activeTags = [];
+      renderTagFilters();
+      renderTrusted();
+    });
+  });
 }
 
-function renderCards() {
+function renderTrusted() {
+  const grid = main.querySelector('#trustedGrid');
+  const items = searchTrustedCatalog({ query: searchQuery, tags: activeTags });
+  if (!items.length) {
+    grid.innerHTML = `<p class="empty-my">${escapeHTML(t('recipes.no_match'))}</p>`;
+    return;
+  }
+  grid.innerHTML = items.map(entry => {
+    const ingN = (entry.data.ingredients || []).length;
+    const tags = (entry.tags || []).map(tag => `<span class="chip chip-mist" style="font-size:10px">${escapeHTML(tagLabel(tag))}</span>`).join('');
+    return `
+      <article class="trusted-card" data-trusted-id="${escapeHTML(entry.id)}">
+        <h3>${escapeHTML(entry.name)}</h3>
+        <div class="tag-chips">${tags}</div>
+        <p class="text-muted" style="margin:0;font-size:var(--type-caption)">
+          <span class="chip ${entry.kind === 'drink' ? 'chip-gold' : 'chip-mist'}" style="font-size:10px">${escapeHTML(kindLabel(entry.kind))}</span>
+          ${ingN} · ${escapeHTML(t('recipes.ingredients'))}
+        </p>
+        <div class="pack-actions">
+          <button type="button" class="btn btn-primary btn-block add-trusted" data-require="recipe_create">
+            <span data-i18n="presets.add_one">Add to workspace</span>
+          </button>
+        </div>
+      </article>`;
+  }).join('');
+  grid.querySelectorAll('.add-trusted').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.trusted-card');
+      const id = card?.getAttribute('data-trusted-id');
+      const entry = items.find(e => e.id === id);
+      if (entry) applyRecipes([{ name: entry.name, kind: entry.kind, data: entry.data }]);
+    });
+  });
+  applyRoleGates(role, grid);
+}
+
+function renderPackCards() {
   const grid = main.querySelector('#packGrid');
   grid.innerHTML = MENU_PRESET_PACKS.map(pack => {
     const title = t(`presets.pack.${pack.id}.title`);
@@ -129,7 +285,7 @@ function renderCards() {
     }).join('');
     return `
       <article class="pack-card" data-pack-id="${escapeHTML(pack.id)}">
-        <h2>${escapeHTML(title)}</h2>
+        <h3>${escapeHTML(title)}</h3>
         <p class="text-muted" style="margin:0;font-size:var(--type-caption);line-height:1.5">${escapeHTML(desc)}</p>
         <div class="deck">${rows}</div>
         <div class="pack-actions">
@@ -139,63 +295,100 @@ function renderCards() {
         </div>
       </article>`;
   }).join('');
+}
 
-  grid.querySelectorAll('.apply-pack').forEach(btn => {
-    btn.addEventListener('click', () => applyPack(btn.getAttribute('data-pack')));
+function renderMyPresets() {
+  const grid = main.querySelector('#myPresetsGrid');
+  if (!myPresets.length) {
+    grid.innerHTML = `<p class="empty-my" data-i18n="presets.my_empty">No saved presets yet.</p>`;
+    return;
+  }
+  grid.innerHTML = myPresets.map(row => {
+    const ingN = (row.data?.ingredients || []).length;
+    return `
+      <article class="my-preset-card" data-preset-id="${escapeHTML(row.id)}">
+        <span class="archived-label" data-i18n="presets.my_archived">Archived from library</span>
+        <h3>${escapeHTML(row.name)}</h3>
+        <p class="text-muted" style="margin:0;font-size:var(--type-caption)">
+          <span class="chip ${row.kind === 'drink' ? 'chip-gold' : 'chip-mist'}" style="font-size:10px">${escapeHTML(kindLabel(row.kind))}</span>
+          ${ingN} · ${escapeHTML(t('recipes.ingredients'))}
+        </p>
+        <div class="pack-actions btn-row">
+          <button type="button" class="btn btn-primary restore-preset" data-require="recipe_create">
+            <span data-i18n="presets.restore">Restore to library</span>
+          </button>
+          <button type="button" class="btn btn-outline remove-preset">
+            <span data-i18n="presets.remove_archive">Remove from my presets</span>
+          </button>
+        </div>
+      </article>`;
+  }).join('');
+  grid.querySelectorAll('.restore-preset').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const card = btn.closest('.my-preset-card');
+      const id = card?.getAttribute('data-preset-id');
+      const row = myPresets.find(r => r.id === id);
+      if (!row) return;
+      await applyRecipes([{ name: row.name, kind: row.kind, data: row.data }]);
+    });
+  });
+  grid.querySelectorAll('.remove-preset').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm(t('presets.remove_confirm'))) return;
+      const card = btn.closest('.my-preset-card');
+      const id = card?.getAttribute('data-preset-id');
+      const { error } = await removeMyPreset(supabase, id);
+      if (error) { alert(error.message); return; }
+      await loadMyPresetsRows();
+      renderMyPresets();
+    });
   });
   applyRoleGates(role, grid);
 }
 
 async function applyPack(packId) {
-  if (!requireCan(role, 'recipe_create', t('presets.denied'))) return;
   const pack = MENU_PRESET_PACKS.find(p => p.id === packId);
   if (!pack) return;
-
-  const { data: existing, error: exErr } = await supabase
-    .from('saved_dishes')
-    .select('name, kind')
-    .eq('workspace_id', wsId);
-  if (exErr) {
-    alert(exErr.message);
-    return;
-  }
-  const keys = new Set((existing || []).map(r => `${r.kind}|${String(r.name || '').trim().toLowerCase()}`));
-  let added = 0;
-  let skipped = 0;
-  const errMsg = [];
-  for (const r of pack.recipes) {
-    const name = String(r.name || '').trim();
-    const k = `${r.kind}|${name.toLowerCase()}`;
-    if (!name) continue;
-    if (keys.has(k)) {
-      skipped++;
-      continue;
-    }
-    const servings = Math.max(1, Number(r.data?.servings) || 1);
-    const ingredients = Array.isArray(r.data?.ingredients) ? r.data.ingredients : [];
-    const computed = computeRecipe({ ingredients, servings });
-    const data = { servings, ingredients, computed };
-    const { error } = await supabase
-      .from('saved_dishes')
-      .insert({ workspace_id: wsId, name, kind: r.kind, data });
-    if (error) {
-      errMsg.push(error.message);
-      continue;
-    }
-    keys.add(k);
-    added++;
-  }
-  let msg = t('presets.result').replace('{a}', String(added)).replace('{s}', String(skipped));
-  if (errMsg.length) msg += '\n' + errMsg.slice(0, 3).join('\n');
-  alert(msg);
+  await applyRecipes(pack.recipes);
 }
+
+function wirePackButtons() {
+  main.querySelector('#packGrid').querySelectorAll('.apply-pack').forEach(btn => {
+    btn.addEventListener('click', () => applyPack(btn.getAttribute('data-pack')));
+  });
+  applyRoleGates(role, main.querySelector('#packGrid'));
+}
+
+const searchInput = main.querySelector('#presetSearch');
+searchInput.addEventListener('input', () => {
+  searchQuery = searchInput.value;
+  renderTrusted();
+});
+
+existingKeys = await loadExistingKeys();
+await loadMyPresetsRows();
+
+renderTagFilters();
+renderTrusted();
+renderPackCards();
+wirePackButtons();
+renderMyPresets();
 
 applyTranslations();
 applyRoleGates(role, main);
-renderCards();
+searchInput.placeholder = t('presets.search_placeholder');
 
 window.addEventListener('carta-lang-change', () => {
-  setTimeout(() => { applyTranslations(); renderCards(); applyRoleGates(role, main); }, 0);
+  setTimeout(() => {
+    applyTranslations();
+    searchInput.placeholder = t('presets.search_placeholder');
+    renderTagFilters();
+    renderTrusted();
+    renderPackCards();
+    wirePackButtons();
+    renderMyPresets();
+    applyRoleGates(role, main);
+  }, 0);
 });
 }
 </script>

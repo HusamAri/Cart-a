@@ -1,4 +1,7 @@
 // Carta — Minimal nutrient reference DB
+import { PHASE4_NUTRIENTS } from './data/turkish-ingredients-phase4.js';
+import { INGREDIENT_I18N } from './ingredient-i18n.js';
+export { INGREDIENT_I18N } from './ingredient-i18n.js';
 // Values per 100g edible portion. Aligned with Turkish Food Codex Ek-10
 // (Türk Gıda Kodeksi · Beslenme Tabelası Yönetmeliği, Ek-10).
 // Macros in grams. Energy is computed via Atwater factors at runtime.
@@ -7,8 +10,8 @@
 // turkomp.tarimorman.gov.tr or any live “TÜRK-Komp” API; products that need
 // an official composition database should license or follow that source’s terms separately.
 //
-// This is a starter set (~70 items) covering common professional kitchen
-// ingredients. Users can add custom ingredients via the Cost Ledger module.
+// Curated reference set (~300+ items) with TR / EN / ES display names in ingredient-i18n.js.
+// Users can add custom ingredients via the Cost Ledger module.
 
 export const NUTRIENT_DB = {
   // ---- Eggs & Dairy ----
@@ -319,9 +322,91 @@ export const NUTRIENT_DB = {
   'çikolata (bitter)': { P: 7.8,  F: 42.6, C: 45.9, Fi: 10.9, allergens: ['milk'] },
   'çikolata (sütlü)':  { P: 7.6,  F: 30.0, C: 60.0, Fi: 3.4, allergens: ['milk'] },
   'beyaz çikolata':    { P: 6.0,  F: 33.0, C: 59.0, Fi: 0,   allergens: ['milk'] },
+
+  // ============ EXPANSION (Phase 3) ============
+
+  'zeytin (yeşil)':    { P: 0.8,  F: 11.0, C: 4.0,  Fi: 3.2, allergens: [] },
+  'zeytin (siyah)':    { P: 0.8,  F: 15.0, C: 5.0,  Fi: 3.0, allergens: [] },
+  'domates salçası':   { P: 4.3,  F: 0.5,  C: 19.0, Fi: 3.5, allergens: [] },
+  'biber salçası':     { P: 2.0,  F: 0.4,  C: 14.0, Fi: 3.0, allergens: [] },
+  'nar ekşisi':        { P: 0.2,  F: 0,    C: 14.0, Fi: 0,   allergens: [] },
+  'limon suyu':        { P: 0.4,  F: 0.2,  C: 6.9,  Fi: 0.3, allergens: [] },
+  'kapari':            { P: 2.4,  F: 0.9,  C: 4.9,  Fi: 3.2, allergens: [] },
+  'ançuez':            { P: 28.9, F: 4.8,  C: 0,    Fi: 0,   allergens: ['fish'] },
+  'nişasta':           { P: 0.3,  F: 0,    C: 88.0, Fi: 0.9, allergens: [] },
+  'kabartma tozu':     { P: 0.1,  F: 0,    C: 28.0, Fi: 0.2, allergens: ['gluten'] },
+  'maya':              { P: 8.4,  F: 1.0,  C: 41.0, Fi: 26.0, allergens: ['gluten'] },
+  'kakao':             { P: 19.6, F: 13.7, C: 57.9, Fi: 33.2, allergens: [] },
+  'vanilya özü':       { P: 0.1,  F: 0,    C: 12.7, Fi: 0,   allergens: [] },
+  'defne yaprağı':     { P: 7.6,  F: 8.4,  C: 75.0, Fi: 26.3, allergens: [] },
+  'muskat':            { P: 6.0,  F: 36.0, C: 49.0, Fi: 21.0, allergens: [] },
+  'karanfil':          { P: 6.0,  F: 13.0, C: 66.0, Fi: 34.0, allergens: [] },
+  'yenibahar':         { P: 6.0,  F: 8.7,  C: 51.0, Fi: 21.0, allergens: [] },
+  'çörek otu':         { P: 16.0, F: 15.0, C: 52.0, Fi: 38.0, allergens: [] },
+  'susam ezmesi':      { P: 17.0, F: 53.8, C: 21.2, Fi: 9.3, allergens: ['sesame'] },
+  'fıstık ezmesi':     { P: 25.0, F: 50.0, C: 20.0, Fi: 6.0, allergens: ['peanut'] },
+  'zencefil':          { P: 1.8,  F: 0.8,  C: 18.0, Fi: 2.0, allergens: [] },
+  'misket limonu':     { P: 0.7,  F: 0.2,  C: 10.5, Fi: 2.8, allergens: [] },
+  'greyfurt':          { P: 0.8,  F: 0.1,  C: 11.0, Fi: 1.6, allergens: [] },
+  'mandalina':         { P: 0.8,  F: 0.3,  C: 13.0, Fi: 1.8, allergens: [] },
+  'ahududu':           { P: 1.2,  F: 0.7,  C: 12.0, Fi: 6.5, allergens: [] },
+  'böğürtlen':         { P: 1.4,  F: 0.5,  C: 10.0, Fi: 5.3, allergens: [] },
+  'yaban mersini':     { P: 0.7,  F: 0.3,  C: 14.5, Fi: 2.4, allergens: [] },
+  'erik':              { P: 0.7,  F: 0.3,  C: 11.4, Fi: 1.4, allergens: [] },
+  'brüksel lahanası':  { P: 3.4,  F: 0.3,  C: 9.0,  Fi: 3.8, allergens: [] },
+  'tatlı patates':     { P: 1.6,  F: 0.1,  C: 20.1, Fi: 3.0, allergens: [] },
+  'balkabağı':         { P: 1.0,  F: 0.1,  C: 6.5,  Fi: 0.5, allergens: [] },
+  'dolmalık biber':    { P: 1.0,  F: 0.2,  C: 6.0,  Fi: 2.1, allergens: [] },
+  'kapya biber':       { P: 1.0,  F: 0.2,  C: 6.0,  Fi: 2.1, allergens: [] },
+  'acı biber':         { P: 2.0,  F: 0.4,  C: 8.8,  Fi: 1.5, allergens: [] },
+  'turşu salatalık':   { P: 0.5,  F: 0.1,  C: 2.3,  Fi: 0.5, allergens: ['sulphite'] },
+  'miso':              { P: 12.0, F: 6.0,  C: 26.0, Fi: 5.0, allergens: ['soya'] },
+  'wakame':            { P: 3.0,  F: 0.6,  C: 9.1,  Fi: 0.6, allergens: [] },
+  'nori':              { P: 6.0,  F: 0.3,  C: 44.0, Fi: 4.0, allergens: [] },
+  'edamame':           { P: 11.0, F: 5.0,  C: 10.0, Fi: 5.0, allergens: ['soya'] },
+  'humus':             { P: 8.0,  F: 18.0, C: 14.0, Fi: 6.0, allergens: ['sesame'] },
+  'gravy':             { P: 2.0,  F: 1.5,  C: 5.0,  Fi: 0.2, allergens: ['gluten'] },
+  'demi-glace':        { P: 5.0,  F: 0.2,  C: 3.0,  Fi: 0,   allergens: [] },
+  'worcestershire sos':{ P: 0,    F: 0,    C: 19.0, Fi: 0,   allergens: ['fish','gluten'] },
+  'tabasco':           { P: 1.0,  F: 0.5,  C: 2.0,  Fi: 1.0, allergens: [] },
+  'trüf yağı':         { P: 0,    F: 100.0,C: 0,    Fi: 0,   allergens: [] },
+  'portakal kabuğu':   { P: 1.5,  F: 0.2,  C: 25.0, Fi: 10.0, allergens: [] },
+  'limon kabuğu':      { P: 1.5,  F: 0.3,  C: 16.0, Fi: 10.6, allergens: [] },
+  'gül suyu':          { P: 0.1,  F: 0,    C: 5.0,  Fi: 0,   allergens: [] },
+  'badem unu':         { P: 21.0, F: 50.0, C: 22.0, Fi: 12.0, allergens: ['nuts'] },
+  'hindistan cevizi':  { P: 3.3,  F: 33.0, C: 15.0, Fi: 9.0, allergens: [] },
+  'yufka':             { P: 9.0,  F: 1.5,  C: 55.0, Fi: 2.0, allergens: ['gluten'] },
+  'börek yufkası':     { P: 9.0,  F: 1.5,  C: 55.0, Fi: 2.0, allergens: ['gluten'] },
+  'galeta unu':        { P: 13.0, F: 4.5,  C: 72.0, Fi: 4.5, allergens: ['gluten'] },
+  'panko':             { P: 12.0, F: 3.5,  C: 76.0, Fi: 3.0, allergens: ['gluten'] },
+  'arpa':              { P: 10.0, F: 1.3,  C: 73.0, Fi: 17.0, allergens: ['gluten'] },
+  'arpa şehriye':      { P: 12.0, F: 1.5,  C: 75.0, Fi: 3.0, allergens: ['gluten'] },
+  'erişte':            { P: 14.0, F: 2.0,  C: 70.0, Fi: 3.0, allergens: ['gluten','egg'] },
+  'tortilla':          { P: 8.0,  F: 2.5,  C: 50.0, Fi: 3.0, allergens: ['gluten'] },
+  'tahıl gevreği':     { P: 8.0,  F: 2.0,  C: 80.0, Fi: 8.0, allergens: ['gluten'] },
+
+  // Phase 4 — Turkish hotel pantry (see data/turkish-ingredients-phase4.js)
+  ...PHASE4_NUTRIENTS,
 };
 
-// English dish-name hints for Auto-Name (sparse; unknown keys fall back to title-cased Turkish key)
+/** Localized display name for a reference ingredient key. */
+export function ingredientLabel(key, lang = 'tr') {
+  const row = INGREDIENT_I18N[key];
+  if (row) {
+    const code = lang === 'tr' || lang === 'en' || lang === 'es' ? lang : 'tr';
+    return row[code] || row.tr || row.en || key;
+  }
+  return key;
+}
+
+/** Search blob (TR key + all display names). */
+export function ingredientSearchBlob(key) {
+  const row = INGREDIENT_I18N[key];
+  if (!row) return key;
+  return [key, row.tr, row.en, row.es].filter(Boolean).join(' ');
+}
+
+// English dish-name hints (legacy; prefer ingredientLabel(key, 'en'))
 export const NUTRIENT_EN = {
   'yumurta': 'Egg', 'tavuk yumurtası': 'Egg', 'süt': 'Milk', 'yarım yağlı süt': 'Semi-skimmed milk',
   'yağsız süt': 'Skim milk', 'tereyağı': 'Butter', 'krema': 'Cream', 'yoğurt': 'Yogurt',
@@ -352,20 +437,20 @@ export const NUTRIENT_EN = {
 
 // Allergen catalog (14 EU categories + Türkiye additions)
 export const ALLERGEN_LABELS = {
-  gluten:     { en: 'Gluten',         tr: 'Glüten' },
-  crustacean: { en: 'Crustaceans',    tr: 'Kabuklu deniz ürünleri' },
-  egg:        { en: 'Egg',            tr: 'Yumurta' },
-  fish:       { en: 'Fish',           tr: 'Balık' },
-  peanut:     { en: 'Peanut',         tr: 'Yer fıstığı' },
-  soya:       { en: 'Soya',           tr: 'Soya' },
-  milk:       { en: 'Milk',           tr: 'Süt' },
-  nuts:       { en: 'Tree nuts',      tr: 'Sert kabuklu yemişler' },
-  celery:     { en: 'Celery',         tr: 'Kereviz' },
-  mustard:    { en: 'Mustard',        tr: 'Hardal' },
-  sesame:     { en: 'Sesame',         tr: 'Susam' },
-  sulphite:   { en: 'Sulphites',      tr: 'Sülfit' },
-  lupin:      { en: 'Lupin',          tr: 'Acı bakla' },
-  mollusk:    { en: 'Molluscs',       tr: 'Yumuşakça' },
+  gluten:     { en: 'Gluten',         tr: 'Glüten', es: 'Gluten' },
+  crustacean: { en: 'Crustaceans',    tr: 'Kabuklu deniz ürünleri', es: 'Crustáceos' },
+  egg:        { en: 'Egg',            tr: 'Yumurta', es: 'Huevo' },
+  fish:       { en: 'Fish',           tr: 'Balık', es: 'Pescado' },
+  peanut:     { en: 'Peanut',         tr: 'Yer fıstığı', es: 'Cacahuete' },
+  soya:       { en: 'Soya',           tr: 'Soya', es: 'Soja' },
+  milk:       { en: 'Milk',           tr: 'Süt', es: 'Leche' },
+  nuts:       { en: 'Tree nuts',      tr: 'Sert kabuklu yemişler', es: 'Frutos de cáscara' },
+  celery:     { en: 'Celery',         tr: 'Kereviz', es: 'Apio' },
+  mustard:    { en: 'Mustard',        tr: 'Hardal', es: 'Mostaza' },
+  sesame:     { en: 'Sesame',         tr: 'Susam', es: 'Sésamo' },
+  sulphite:   { en: 'Sulphites',      tr: 'Sülfit', es: 'Sulfitos' },
+  lupin:      { en: 'Lupin',          tr: 'Acı bakla', es: 'Altramuz' },
+  mollusk:    { en: 'Molluscs',       tr: 'Yumuşakça', es: 'Moluscos' },
 };
 
 // Returns normalised lookup (Turkish-aware, accent-stripped, lowercase)
@@ -401,12 +486,9 @@ export function suggestNutrients(query, limit = 8) {
     if (nk.startsWith(q)) push(k);
     else if (nk.includes(q)) push(k);
   }
-  for (const [trKey, enLabel] of Object.entries(NUTRIENT_EN)) {
-    const en = String(enLabel || '').toLowerCase();
-    if (!en) continue;
-    if (en.startsWith(rawQ) || en.includes(rawQ) || turkNorm(en).includes(q)) {
-      push(trKey);
-    }
+  for (const k in NUTRIENT_DB) {
+    const blob = turkNorm(ingredientSearchBlob(k));
+    if (blob.includes(q)) push(k);
   }
   return matches.slice(0, limit);
 }

@@ -196,7 +196,8 @@ import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { formatNumber } from '/src/recipe-compute.js';
-import { suggestNutrients } from '/src/nutrient-db.js';
+import { suggestNutrients, NUTRIENT_DB, turkNorm } from '/src/nutrient-db.js';
+import { upsertIngredientAlias } from '/src/ingredient-registry.js';
 import { applyRoleGates, requireCan } from '/src/permissions.js';
 import { parseSapCostFile } from '/src/sap-cost-import.js';
 import { downloadWorkbook } from '/src/xlsx-export.js';
@@ -464,10 +465,16 @@ function buildEditorEl(entry) {
           ${cartaIcon('close', { size: 24 })}
         </button>
       </header>
+      <datalist id="costCanonicalList">${Object.keys(NUTRIENT_DB).sort((a,b)=>a.localeCompare(b,'tr')).map(k => `<option value="${escapeHTML(k)}">`).join('')}</datalist>
       <form class="modal__form" id="costForm" novalidate>
         <div class="form-row" style="position:relative">
           <label class="label" for="editName" data-i18n="cost.col_ingredient">Ingredient</label>
           <input class="input" id="editName" type="text" required value="${escapeHTML(e.ingredient_name)}" ${isEdit?'readonly':''} autocomplete="off" data-require-disable="${editAction}">
+        </div>
+        <div class="form-row">
+          <label class="label" for="editMapsTo" data-i18n="cost.label_maps_to">Maps to Carta ingredient</label>
+          <input class="input" id="editMapsTo" type="text" list="costCanonicalList" value="${escapeHTML(e.ingredient_name)}" autocomplete="off" data-require-disable="${editAction}">
+          <p class="text-muted" style="margin:6px 0 0;font-size:var(--type-caption)" data-i18n="cost.maps_to_hint">If SAP uses a different label, pick the Carta key used in recipes.</p>
         </div>
         <div class="form-grid-2">
           <div class="form-row">
@@ -607,6 +614,14 @@ function buildEditorEl(entry) {
       // cost_db has composite PK (workspace_id, ingredient_name) — upsert
       const { error } = await supabase.from('cost_db').upsert(payload, { onConflict: 'workspace_id,ingredient_name' });
       if (error) throw error;
+      const mapsTo = wrap.querySelector('#editMapsTo')?.value.trim();
+      if (mapsTo && turkNorm(mapsTo) !== turkNorm(name)) {
+        await upsertIngredientAlias(supabase, wsId, {
+          alias: name,
+          maps_to: mapsTo,
+          sap_code: payload.sap_code,
+        });
+      }
       closeEditor();
       await loadEntries();
     } catch (err) {
