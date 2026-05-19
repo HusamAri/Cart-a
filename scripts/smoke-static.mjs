@@ -121,6 +121,9 @@ if (!exists(menuStructureRel)) {
     'menusContainingDish',
     'emptySections',
     'MENU_SECTION_KEYS',
+    'MENU_TYPE_KEYS',
+    'sectionsForMenuType',
+    'mergeDraftSectionsForType',
   ]) {
     const hasExport = ms.includes(`export function ${sym}`)
       || ms.includes(`export async function ${sym}`)
