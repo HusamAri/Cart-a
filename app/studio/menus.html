@@ -116,6 +116,43 @@
     box-shadow: var(--shadow-focus);
     background: rgb(var(--sage-mist-rgb) / 0.35);
   }
+  .cluster-row .meta .row-sub {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .cluster-row .meta .row-count {
+    font-size: var(--type-caption);
+    color: var(--on-surface-variant);
+    font-weight: 400;
+  }
+  .menu-type-field__row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .menu-type-field__ic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--outline-variant);
+    background: rgb(var(--primary-rgb) / 0.08);
+    color: var(--primary);
+  }
+  .menu-type-field__row select { flex: 1; min-width: 0; }
+  .menu-print__meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 0;
+  }
   .menu-icon-opt:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
@@ -417,7 +454,6 @@ import { downloadWorkbook } from '/src/xlsx-export.js';
 import { cartaIcon } from '/src/carta-icon.js';
 import {
   MENU_CLUSTER_ICON_OPTIONS,
-  DEFAULT_MENU_CLUSTER_ICON,
   normalizeMenuClusterIcon,
   menuClusterIconHtml,
 } from '/src/menu-cluster-icon.js';
@@ -426,14 +462,22 @@ import {
   clusterSections,
   menuDishesPayload,
   menuSectionI18nKey,
-  MENU_SECTION_KEYS,
-  normalizeMenuDishes,
-  defaultSectionForKind,
-  emptySections,
+  MENU_TYPE_KEYS,
+  sectionsForMenuType,
+  sectionsForMenuDisplay,
+  mergeDraftSectionsForType,
+  emptySectionsForMenuType,
+  defaultSectionForMenuType,
+  normalizeMenuType,
 } from '/src/menu-structure.js';
 import { guestMenuUrl, newGuestToken } from '/src/menu-guest.js';
 import { uploadWorkspaceLogo, clearWorkspaceLogo, fetchWorkspaceLogoUrl } from '/src/workspace-logo.js';
 import { downloadGuestMenuQrCard } from '/src/qr-menu.js';
+import {
+  menuTypeBadgeHtml,
+  menuTypeIconHtml,
+  defaultClusterIconForMenuType,
+} from '/src/menu-type-icon.js';
 
 const main = document.createElement('main');
 main.id = 'main';
@@ -557,10 +601,10 @@ function guestQrPanelHtml(cl) {
       ${published ? `<p class="guest-qr-url" id="guestMenuUrl">${escapeHTML(url)}</p>` : ''}
       <div class="toolbar-row" data-require="menu_cluster_edit">
         ${published
-    ? `<button type="button" class="btn btn-outline btn-sm" id="btnUnpublishQr" data-i18n="menus.qr_unpublish">Unpublish</button>`
-    : `<button type="button" class="btn btn-primary btn-sm" id="btnPublishQr" data-i18n="menus.qr_publish">Publish guest menu</button>`}
-        <button type="button" class="btn btn-outline btn-sm" id="btnCopyGuestUrl" ${published ? '' : 'disabled'} data-i18n="menus.qr_copy">Copy link</button>
-        <button type="button" class="btn btn-outline btn-sm" id="btnDownloadQr" ${published ? '' : 'disabled'} data-i18n="menus.qr_download">Download QR card</button>
+    ? `<button type="button" class="btn btn-outline btn-sm" id="btnUnpublishQr">${cartaIcon('visibility_off', { size: 16 })} <span data-i18n="menus.qr_unpublish">Unpublish</span></button>`
+    : `<button type="button" class="btn btn-primary btn-sm" id="btnPublishQr">${cartaIcon('qr_code', { size: 16 })} <span data-i18n="menus.qr_publish">Publish guest menu</span></button>`}
+        <button type="button" class="btn btn-outline btn-sm" id="btnCopyGuestUrl" ${published ? '' : 'disabled'}>${cartaIcon('link', { size: 16 })} <span data-i18n="menus.qr_copy">Copy link</span></button>
+        <button type="button" class="btn btn-outline btn-sm" id="btnDownloadQr" ${published ? '' : 'disabled'}>${cartaIcon('download', { size: 16 })} <span data-i18n="menus.qr_download">Download QR card</span></button>
       </div>
     </div>
   `;
@@ -626,9 +670,23 @@ async function downloadGuestQr() {
   }
 }
 
+function sectionLabel(sectionKey) {
+  const k = menuSectionI18nKey(sectionKey);
+  const label = t(k);
+  return label !== k ? label : sectionKey;
+}
+
+function editorMenuType(cl, root = main) {
+  const fromForm = root.querySelector('#fType')?.value;
+  return normalizeMenuType(fromForm || cl?.type);
+}
+
 function ensureDraft(cl) {
   if (!draftSections) {
-    draftSections = clusterSections(cl).map((s) => ({ key: s.key, dish_ids: [...s.dish_ids] }));
+    draftSections = mergeDraftSectionsForType(
+      clusterSections(cl).map((s) => ({ key: s.key, dish_ids: [...s.dish_ids] })),
+      cl.type,
+    );
   }
   return draftSections;
 }
@@ -662,7 +720,7 @@ function renderMenuPrint(cl, sections) {
         </li>`;
       }).filter(Boolean).join('');
       return `<section class="menu-print__section">
-        <h3 class="menu-print__section-title">${escapeHTML(t(menuSectionI18nKey(sec.key)))}</h3>
+        <h3 class="menu-print__section-title">${escapeHTML(sectionLabel(sec.key))}</h3>
         <ul class="menu-print__list">${items}</ul>
       </section>`;
     }).join('')
@@ -678,7 +736,10 @@ function renderMenuPrint(cl, sections) {
         <span class="menu-print__mark">${menuClusterIconHtml(icon, { size: 28 })}</span>
         <div class="menu-print__titles">
           <h2 class="menu-print__title">${escapeHTML(cl.name)}</h2>
-          <p class="menu-print__meta">${escapeHTML(t('menus.type.' + (cl.type || 'mixed')))} · ${escapeHTML(t('menus.list_count').replace('{n}', String(total)))}</p>
+          <p class="menu-print__meta menu-print__meta-row">
+            ${menuTypeBadgeHtml(cl.type || 'mixed', t('menus.type.' + normalizeMenuType(cl.type)), { size: 13 })}
+            <span>${escapeHTML(t('menus.list_count').replace('{n}', String(total)))}</span>
+          </p>
         </div>
         ${wsLogo}
       </header>
@@ -816,9 +877,11 @@ function renderList() {
   host.innerHTML = clusters.map(cl => {
     const n = clusterDishIds(cl).length;
     const sub = t('menus.list_count').replace('{n}', String(n));
+    const menuType = normalizeMenuType(cl.type);
+    const badge = menuTypeBadgeHtml(menuType, t('menus.type.' + menuType), { size: 11 });
     return `<button type="button" class="cluster-row ${cl.id === selectedId ? 'active' : ''}" data-cid="${escapeHTML(cl.id)}">
-      <span class="ico">${menuClusterIconHtml(cl.icon, { size: 20 })}</span>
-      <span class="meta"><strong>${escapeHTML(cl.name)}</strong><span>${escapeHTML(sub)}</span></span>
+      <span class="ico">${menuClusterIconHtml(cl.icon, { size: 22 })}</span>
+      <span class="meta"><strong>${escapeHTML(cl.name)}</strong><span class="row-sub">${badge}<span class="row-count">${escapeHTML(sub)}</span></span></span>
     </button>`;
   }).join('');
   host.querySelectorAll('[data-cid]').forEach(btn => {
@@ -840,12 +903,15 @@ function refreshPreviewFromForm() {
   if (!cl || !draftSections) return;
   const nameEl = main.querySelector('#fName');
   const colorEl = main.querySelector('#fColor');
+  const menuType = editorMenuType(cl);
   const previewCl = {
     ...cl,
     name: nameEl?.value?.trim() || cl.name,
     color: colorEl?.value || cl.color,
+    type: menuType,
   };
-  renderMenuPrint(previewCl, draftSections);
+  const sections = sectionsForMenuDisplay(previewCl, draftSections);
+  renderMenuPrint(previewCl, sections);
 }
 
 function renderEditor() {
@@ -860,8 +926,9 @@ function renderEditor() {
     return;
   }
 
-  const sections = ensureDraft(cl);
-  renderMenuPrint(cl, sections);
+  const menuType = editorMenuType(cl, body);
+  const sections = sectionsForMenuDisplay({ ...cl, type: menuType }, ensureDraft(cl));
+  renderMenuPrint({ ...cl, type: menuType }, sections);
   const dm = dishByIdMap();
   const usedIds = new Set(clusterDishIds({ dishes: menuDishesPayload(sections) }));
   const available = dishes.filter((d) => !usedIds.has(d.id));
@@ -877,7 +944,7 @@ function renderEditor() {
     }).filter(Boolean).join('');
     const opts = available.map((d) => `<option value="${escapeHTML(d.id)}">${escapeHTML(d.name)} (${escapeHTML(kindLabel(d.kind))})</option>`).join('');
     return `<div class="menu-section-block" data-section="${escapeHTML(sec.key)}">
-      <div class="menu-section-block__head"><strong>${escapeHTML(t(menuSectionI18nKey(sec.key)))}</strong></div>
+      <div class="menu-section-block__head"><strong>${escapeHTML(sectionLabel(sec.key))}</strong></div>
       ${dishRows || `<p class="text-muted" style="margin:0;font-size:11px">—</p>`}
       <div class="menu-add-row" data-require="menu_cluster_edit">
         <select class="menu-add-select" data-section="${escapeHTML(sec.key)}" aria-label="${escapeHTML(t('menus.add_recipe'))}">
@@ -892,10 +959,13 @@ function renderEditor() {
       <label><span data-i18n="menus.field_name">Name</span>
         <input type="text" id="fName" value="${escapeHTML(cl.name)}" maxlength="120">
       </label>
-      <label><span data-i18n="menus.field_type">Type</span>
-        <select id="fType">
-          ${['food', 'drinks', 'mixed'].map((v) => `<option value="${v}" ${cl.type === v ? 'selected' : ''}>${escapeHTML(t('menus.type.' + v))}</option>`).join('')}
-        </select>
+      <label class="menu-type-field"><span data-i18n="menus.field_type">Type</span>
+        <div class="menu-type-field__row">
+          <span class="menu-type-field__ic" id="fTypeIconPreview" aria-hidden="true">${menuTypeIconHtml(editorMenuType(cl, body), { size: 20 })}</span>
+          <select id="fType">
+            ${MENU_TYPE_KEYS.map((v) => `<option value="${v}" ${normalizeMenuType(cl.type) === v ? 'selected' : ''}>${escapeHTML(t('menus.type.' + v))}</option>`).join('')}
+          </select>
+        </div>
       </label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);align-items:start">
         <div>
@@ -935,6 +1005,13 @@ function renderEditor() {
 
   body.querySelector('#fName')?.addEventListener('input', refreshPreviewFromForm);
   body.querySelector('#fColor')?.addEventListener('change', refreshPreviewFromForm);
+  body.querySelector('#fType')?.addEventListener('change', () => {
+    const newType = editorMenuType(cl, body);
+    draftSections = mergeDraftSectionsForType(ensureDraft(cl), newType);
+    const preview = body.querySelector('#fTypeIconPreview');
+    if (preview) preview.innerHTML = menuTypeIconHtml(newType, { size: 20 });
+    renderEditor();
+  });
 
   body.querySelectorAll('.menu-icon-opt').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -995,10 +1072,11 @@ async function saveSelected() {
     alert(t('menus.name_required'));
     return;
   }
-  const type = main.querySelector('#fType')?.value || 'mixed';
+  const type = normalizeMenuType(main.querySelector('#fType')?.value || 'mixed');
   const icon = normalizeMenuClusterIcon(main.querySelector('#fMenuIcon')?.value);
   const color = main.querySelector('#fColor')?.value || 'navy';
-  const payload = menuDishesPayload(draftSections || clusterSections(cl));
+  draftSections = mergeDraftSectionsForType(draftSections || clusterSections(cl), type);
+  const payload = menuDishesPayload(draftSections);
   const { error } = await supabase.from('menu_clusters').update({
     name, type, icon, color, dishes: payload,
   }).eq('id', cl.id).eq('workspace_id', wsId);
@@ -1034,7 +1112,7 @@ function dishRowsForCluster(cl) {
   for (const sec of clusterSections(cl)) {
     for (const id of sec.dish_ids || []) {
       const d = dm.get(id);
-      if (d) rows.push([t(menuSectionI18nKey(sec.key)), d.name, d.kind]);
+      if (d) rows.push([sectionLabel(sec.key), d.name, d.kind]);
     }
   }
   return rows;
@@ -1094,7 +1172,9 @@ async function onCsvPicked(ev) {
   const keyToId = new Map(dishes.map((d) => [normRowKey(d.name, d.kind), d.id]));
   let matched = 0;
   let missing = 0;
-  const norm = ensureDraft(cl);
+  const menuType = normalizeMenuType(cl.type);
+  const typeSectionKeys = sectionsForMenuType(menuType);
+  const norm = mergeDraftSectionsForType(ensureDraft(cl), menuType);
   for (const row of parsed) {
     const name = (row[0] || '').replace(/^\ufeff/, '');
     let kind = 'food';
@@ -1108,8 +1188,8 @@ async function onCsvPicked(ev) {
     if (!name.trim()) continue;
     const id = keyToId.get(normRowKey(name, kind));
     if (id) {
-      const secKey = MENU_SECTION_KEYS.find((k) => k === sectionRaw || t(menuSectionI18nKey(k)).toLowerCase() === sectionRaw)
-        || defaultSectionForKind(kind);
+      const secKey = typeSectionKeys.find((k) => k === sectionRaw || sectionLabel(k).toLowerCase() === sectionRaw)
+        || defaultSectionForMenuType(menuType, kind);
       let sec = norm.find((s) => s.key === secKey);
       if (!sec) { sec = { key: secKey, dish_ids: [] }; norm.push(sec); }
       if (!sec.dish_ids.includes(id)) sec.dish_ids.push(id);
@@ -1134,10 +1214,10 @@ async function createMenu() {
   const { data, error } = await supabase.from('menu_clusters').insert({
     workspace_id: wsId,
     name: t('menus.new_menu_default'),
-    type: 'mixed',
+    type: 'food',
     color: 'navy',
-    icon: DEFAULT_MENU_CLUSTER_ICON,
-    dishes: menuDishesPayload(emptySections()),
+    icon: defaultClusterIconForMenuType('food'),
+    dishes: menuDishesPayload(emptySectionsForMenuType('food')),
   }).select('id').single();
   if (error) {
     alert(error.message);

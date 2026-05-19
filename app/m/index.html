@@ -138,9 +138,14 @@
 <script type="module">
 import { supabase } from '/src/supabase-client.js';
 import { fetchGuestMenu } from '/src/menu-guest.js';
-import { applyTranslations, t, getLang } from '/src/i18n.js';
+import { applyTranslations, t } from '/src/i18n.js';
 import { computeRecipe } from '/src/recipe-compute.js';
-import { menuSectionI18nKey, MENU_SECTION_KEYS } from '/src/menu-structure.js';
+import {
+  menuSectionI18nKey,
+  sectionsForMenuDisplay,
+  normalizeMenuType,
+} from '/src/menu-structure.js';
+import { menuTypeBadgeHtml } from '/src/menu-type-icon.js';
 import { menuClusterIconHtml, normalizeMenuClusterIcon } from '/src/menu-cluster-icon.js';
 
 const params = new URLSearchParams(window.location.search);
@@ -152,6 +157,12 @@ function escapeHTML(s) {
 
 function kindLabel(kind) {
   return kind === 'drink' ? t('recipes.kind_drink') : t('recipes.kind_food');
+}
+
+function sectionLabel(sectionKey) {
+  const k = menuSectionI18nKey(sectionKey);
+  const label = t(k);
+  return label !== k ? label : sectionKey;
 }
 
 async function boot() {
@@ -186,16 +197,18 @@ async function boot() {
 function renderMenu(host, payload) {
   const menu = payload.menu || {};
   const ws = payload.workspace || {};
-  const sections = Array.isArray(payload.sections) ? payload.sections : [];
+  const rawSections = Array.isArray(payload.sections) ? payload.sections : [];
   const dishes = Array.isArray(payload.dishes) ? payload.dishes : [];
   const dm = new Map(dishes.map((d) => [d.id, d]));
   const color = menu.color || 'navy';
   const icon = normalizeMenuClusterIcon(menu.icon);
-  const cl = getLang();
+  const menuType = normalizeMenuType(menu.type);
+  const sections = sectionsForMenuDisplay(
+    { type: menuType, dishes: { v: 2, sections: rawSections } },
+    rawSections,
+  ).filter((sec) => (sec.dish_ids || []).length > 0);
 
   const sectionHtml = sections
-    .filter((sec) => MENU_SECTION_KEYS.includes(sec.key) || sec.dish_ids?.length)
-    .filter((sec) => (sec.dish_ids || []).length > 0)
     .map((sec) => {
       const items = (sec.dish_ids || []).map((id) => {
         const d = dm.get(id);
@@ -215,7 +228,7 @@ function renderMenu(host, payload) {
       if (!items) return '';
       const secKey = sec.key || 'other';
       return `<section class="menu-print__section">
-        <h2 class="menu-print__section-title">${escapeHTML(t(menuSectionI18nKey(secKey)))}</h2>
+        <h2 class="menu-print__section-title">${escapeHTML(sectionLabel(secKey))}</h2>
         <ul class="menu-print__list">${items}</ul>
       </section>`;
     }).filter(Boolean).join('');
@@ -230,7 +243,10 @@ function renderMenu(host, payload) {
         <span class="menu-print__mark">${menuClusterIconHtml(icon, { size: 28 })}</span>
         <div>
           <h1 class="menu-print__title">${escapeHTML(menu.name || t('guest.menu_fallback'))}</h1>
-          <p class="menu-print__meta">${escapeHTML(ws.name || '')}</p>
+          <p class="menu-print__meta menu-print__meta-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0">
+            ${menuTypeBadgeHtml(menuType, t('menus.type.' + menuType), { size: 12 })}
+            ${ws.name ? `<span>${escapeHTML(ws.name)}</span>` : ''}
+          </p>
         </div>
       </header>
       ${sectionHtml || `<p class="guest-status">${escapeHTML(t('guest.empty_menu'))}</p>`}

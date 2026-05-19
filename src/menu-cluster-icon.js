@@ -11,13 +11,17 @@ export const MENU_CLUSTER_ICON_OPTIONS = [
   { id: 'menu_fork_knife', i18n: 'menus.icon_utensils' },
   { id: 'menu_sun', i18n: 'menus.icon_breakfast' },
   { id: 'menu_coffee', i18n: 'menus.icon_coffee' },
+  { id: 'menu_glass', i18n: 'menus.icon_beverages' },
   { id: 'menu_wine', i18n: 'menus.icon_wine' },
   { id: 'menu_cocktail', i18n: 'menus.icon_cocktail' },
+  { id: 'menu_beer', i18n: 'menus.icon_beer' },
   { id: 'menu_leaf', i18n: 'menus.icon_plant' },
   { id: 'menu_fish', i18n: 'menus.icon_seafood' },
   { id: 'menu_cake', i18n: 'menus.icon_dessert' },
+  { id: 'menu_snack', i18n: 'menus.icon_snack' },
   { id: 'menu_cloche', i18n: 'menus.icon_banquet' },
   { id: 'menu_grill', i18n: 'menus.icon_grill' },
+  { id: 'menu_layers', i18n: 'menus.icon_mixed' },
   { id: 'restaurant_menu', i18n: 'menus.icon_menu_card' },
 ];
 

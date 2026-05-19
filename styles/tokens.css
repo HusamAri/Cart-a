@@ -1702,6 +1702,80 @@ html[data-color-scheme="dark"] .studio-mobile-top__rule {
   pointer-events: none;
 }
 
+/* Menu type badges (My menus list, print preview, guest menu) */
+.menu-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 3px 9px 3px 6px;
+  border-radius: var(--r-pill);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  border: 1px solid transparent;
+  background: rgb(var(--primary-rgb) / 0.1);
+  color: var(--primary);
+}
+.menu-type-badge__ic {
+  display: inline-flex;
+  flex-shrink: 0;
+  opacity: 0.92;
+}
+.menu-type-badge__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.menu-type-badge--food { background: rgb(45 74 62 / 0.12); color: #2d4a3e; border-color: rgb(45 74 62 / 0.2); }
+.menu-type-badge--drinks { background: rgb(26 95 122 / 0.12); color: #1a5f7a; border-color: rgb(26 95 122 / 0.22); }
+.menu-type-badge--cocktail { background: rgb(107 45 60 / 0.11); color: #6b2d3c; border-color: rgb(107 45 60 / 0.2); }
+.menu-type-badge--wine { background: rgb(107 45 60 / 0.14); color: #5c2433; border-color: rgb(107 45 60 / 0.24); }
+.menu-type-badge--bar { background: rgb(154 123 26 / 0.14); color: #7a6218; border-color: rgb(154 123 26 / 0.26); }
+.menu-type-badge--buffet { background: rgb(27 42 34 / 0.1); color: var(--primary); border-color: rgb(27 42 34 / 0.18); }
+.menu-type-badge--snack { background: rgb(180 120 40 / 0.14); color: #8a5c18; border-color: rgb(180 120 40 / 0.24); }
+.menu-type-badge--breakfast { background: rgb(200 140 30 / 0.15); color: #9a6e12; border-color: rgb(200 140 30 / 0.28); }
+.menu-type-badge--coffee { background: rgb(92 60 32 / 0.12); color: #5c3c20; border-color: rgb(92 60 32 / 0.22); }
+.menu-type-badge--mixed { background: rgb(var(--ink-rgb) / 0.08); color: var(--on-surface-variant); border-color: rgb(var(--ink-rgb) / 0.14); }
+html[data-color-scheme="dark"] .menu-type-badge--food { background: rgb(143 181 160 / 0.14); color: #b8d4c4; border-color: rgb(143 181 160 / 0.22); }
+html[data-color-scheme="dark"] .menu-type-badge--drinks { background: rgb(120 190 220 / 0.12); color: #a8d4ea; border-color: rgb(120 190 220 / 0.2); }
+html[data-color-scheme="dark"] .menu-type-badge--cocktail,
+html[data-color-scheme="dark"] .menu-type-badge--wine { background: rgb(220 150 165 / 0.12); color: #e8b8c4; border-color: rgb(220 150 165 / 0.2); }
+html[data-color-scheme="dark"] .menu-type-badge--bar,
+html[data-color-scheme="dark"] .menu-type-badge--snack,
+html[data-color-scheme="dark"] .menu-type-badge--breakfast { background: rgb(220 190 120 / 0.12); color: #e8d4a8; border-color: rgb(220 190 120 / 0.2); }
+html[data-color-scheme="dark"] .menu-type-badge--coffee { background: rgb(200 170 130 / 0.12); color: #dcc8a8; border-color: rgb(200 170 130 / 0.2); }
+
+/* Studio nav: SVG icons inherit link color */
+.sidebar__link .sidebar__icon,
+.studio-mobile-tab .sidebar__icon {
+  color: var(--on-surface-variant);
+  transition: color var(--dur-2);
+}
+.sidebar__link:hover .sidebar__icon,
+.sidebar__link.active .sidebar__icon,
+.studio-mobile-tab:hover .sidebar__icon,
+.studio-mobile-tab.is-active .sidebar__icon {
+  color: var(--primary);
+}
+.studio-mobile-tab .sidebar__icon {
+  width: 24px;
+  height: 24px;
+}
+.studio-mobile-tab .sidebar__icon .carta-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Buttons with leading SVG icon */
+.btn:has(.carta-icon) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* ============================================================
    SHARED COMPONENTS — used across studio module pages
    (modal · empty state · data table · price status)
