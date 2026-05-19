@@ -371,6 +371,7 @@ import { mountIngredientAutocomplete } from '/src/ingredient-autocomplete.js';
 import { applyRoleGates, requireCan } from '/src/permissions.js';
 import { cartaIcon } from '/src/carta-icon.js';
 import { canAddRecipes, planLimitMessageKey } from '/src/plan-limits.js';
+import { syncRecipeMenus, menusContainingDish } from '/src/menu-structure.js';
 
 // ============================================================
 // 1. Mount sidebar shell + get workspace context
@@ -380,7 +381,7 @@ main.id = 'main';
 main.className = 'studio-page';
 
 const ctx = await mountStudioShell({ active: 'recipes', main });
-if (!ctx) throw new Error('No session/workspace');
+if (!ctx) return;
 const wsId = ctx.workspace.id;
 const wsPlan = ctx.workspace.plan;
 const orgId = ctx.workspace.organization_id ?? null;
@@ -453,6 +454,35 @@ applyRoleGates(role, main);
 // 3. Load recipes from Supabase
 // ============================================================
 let allRecipes = [];
+let menuClusters = [];
+let orgSiblingWorkspaceIds = null;
+
+async function getOrgSiblingWorkspaceIds() {
+  if (!orgId) return [];
+  if (orgSiblingWorkspaceIds) return orgSiblingWorkspaceIds;
+  const { data, error } = await supabase
+    .from('workspaces')
+    .select('id')
+    .eq('organization_id', orgId)
+    .neq('id', wsId);
+  if (error) {
+    console.warn('loadRecipes org workspaces', error);
+    orgSiblingWorkspaceIds = [];
+    return [];
+  }
+  orgSiblingWorkspaceIds = (data || []).map((w) => w.id);
+  return orgSiblingWorkspaceIds;
+}
+
+async function loadMenuClusters() {
+  const { data, error } = await supabase.from('menu_clusters').select('id,name,dishes').eq('workspace_id', wsId).order('name');
+  if (error) {
+    console.warn('loadMenuClusters', error);
+    menuClusters = [];
+    return;
+  }
+  menuClusters = data || [];
+}
 
 async function loadRecipes() {
   const { data: localRows, error } = await supabase
@@ -467,15 +497,18 @@ async function loadRecipes() {
   }
   let merged = [...(localRows || [])];
   if (orgId) {
-    const { data: sharedRows, error: shareErr } = await supabase
-      .from('saved_dishes')
-      .select('*')
-      .eq('share_with_org', true)
-      .not('share_consent_at', 'is', null)
-      .neq('workspace_id', wsId)
-      .order('updated_at', { ascending: false });
-    if (shareErr) console.warn('loadRecipes org shared', shareErr);
-    else merged = merged.concat(sharedRows || []);
+    const siblingIds = await getOrgSiblingWorkspaceIds();
+    if (siblingIds.length) {
+      const { data: sharedRows, error: shareErr } = await supabase
+        .from('saved_dishes')
+        .select('*')
+        .eq('share_with_org', true)
+        .not('share_consent_at', 'is', null)
+        .in('workspace_id', siblingIds)
+        .order('updated_at', { ascending: false });
+      if (shareErr) console.warn('loadRecipes org shared', shareErr);
+      else merged = merged.concat(sharedRows || []);
+    }
   }
   merged.sort((a, b) => {
     const ta = new Date(a.updated_at || 0).getTime();
@@ -771,6 +804,11 @@ async function runRecipeJsonImport(file) {
     });
     if (error) {
       console.warn('recipe import', row.name, error);
+      const pk = planLimitMessageKey(error);
+      if (pk) {
+        alert(t(pk));
+        break;
+      }
       skipped++;
     } else {
       n++;
@@ -910,6 +948,17 @@ function buildEditorEl({ recipe, data }) {
           ${isForeignShared ? `
           <div class="form-row">
             <p class="flash" style="margin:0;font-size:var(--type-caption)" data-i18n="recipes.foreign_readonly_banner" role="note"></p>
+          </div>` : ''}
+          ${!isForeignShared ? `
+          <div class="form-row" id="recipeMenusSection">
+            <span class="label" data-i18n="recipes.menus_heading">Menus</span>
+            <p class="text-muted" style="font-size:var(--type-caption);margin:0 0 var(--sp-3)" data-i18n="recipes.menus_help">Menus help</p>
+            <div class="dish-picker" id="recipeMenuPicker" style="max-height:160px">
+              ${menuClusters.length ? menuClusters.map((cl) => {
+    const checked = recipe ? menusContainingDish(menuClusters, recipe.id).includes(cl.id) : false;
+    return `<label class="chk"><input type="checkbox" value="${escapeHTML(cl.id)}" ${checked ? 'checked' : ''} data-require-disable="${editAction}"><span>${escapeHTML(cl.name)}</span></label>`;
+  }).join('') : `<p class="text-muted" style="margin:0;font-size:var(--type-caption)" data-i18n="recipes.menus_none">No menus</p>`}
+            </div>
           </div>` : ''}
           ${!isForeignShared && orgId ? `
           <div class="form-row paste-panel" id="shareOrgSection" style="margin-top:var(--sp-4)">
@@ -1099,7 +1148,10 @@ function buildEditorEl({ recipe, data }) {
   function buildSharePatch() {
     if (!orgId || !shareOrgCb || isForeignShared) return {};
     if (!shareOrgCb.checked) {
-      return { share_with_org: false, share_consent_at: null, share_consent_by: null };
+      if (recipe?.share_with_org || recipe?.share_consent_at) {
+        return { share_with_org: false, share_consent_at: null, share_consent_by: null };
+      }
+      return {};
     }
     if (!shareConsentCb?.checked) return null;
     if (recipe?.share_consent_at) {
@@ -1122,7 +1174,10 @@ function buildEditorEl({ recipe, data }) {
     const servings = Math.max(1, parseInt(wrap.querySelector('#editServings').value) || 1);
     const ingredients = readIngredients(wrap);
     const computed = computeRecipe({ ingredients, servings });
-    const data = { servings, ingredients, computed };
+    const selectedMenuIds = isForeignShared
+      ? []
+      : [...wrap.querySelectorAll('#recipeMenuPicker input[type=checkbox]:checked')].map((el) => el.value);
+    const data = { servings, ingredients, computed, menu_cluster_ids: selectedMenuIds };
     const saveBtn = wrap.querySelector('#saveBtn');
     const saveCloseBtn = wrap.querySelector('#saveCloseBtn');
     const btns = [saveBtn, saveCloseBtn].filter(Boolean);
@@ -1134,6 +1189,18 @@ function buildEditorEl({ recipe, data }) {
           .update({ name, kind: editorKind, data, ...sharePatch })
           .eq('id', recipe.id);
         if (error) throw error;
+        if (!isForeignShared) {
+          try {
+            await syncRecipeMenus({
+              supabase, workspaceId: wsId, dishId: recipe.id, kind: editorKind,
+              selectedMenuIds, clusters: menuClusters,
+            });
+          } catch (syncErr) {
+            console.warn('menu sync', syncErr);
+            alert(t('recipes.menus_sync_failed'));
+          }
+        }
+        await loadMenuClusters();
         await loadRecipes();
         if (closeAfter) closeEditor();
       } else {
@@ -1148,6 +1215,18 @@ function buildEditorEl({ recipe, data }) {
           .select()
           .single();
         if (error) throw error;
+        if (!isForeignShared) {
+          try {
+            await syncRecipeMenus({
+              supabase, workspaceId: wsId, dishId: saved.id, kind: editorKind,
+              selectedMenuIds, clusters: menuClusters,
+            });
+          } catch (syncErr) {
+            console.warn('menu sync', syncErr);
+            alert(t('recipes.menus_sync_failed'));
+          }
+        }
+        await loadMenuClusters();
         await loadRecipes();
         if (closeAfter) {
           closeEditor();
@@ -1285,6 +1364,7 @@ function buildIngRow(ing, editAction) {
 }
 
 
+await loadMenuClusters();
 await loadRecipes();
 const vh = document.createElement('style');
 vh.textContent = '.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}';

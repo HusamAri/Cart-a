@@ -4,7 +4,7 @@ import { getSessionAfterUrlAuth, onAuthChange } from './supabase-client.js';
 import { signOut } from './auth.js';
 import { getActiveWorkspace } from './workspaces.js';
 import { getMyRole, can, invalidateRoleCache } from './permissions.js';
-import { applyTranslations, t, setLang, getLang } from './i18n.js';
+import { applyTranslations, t, cycleLang, getLang, langButtonLabel } from './i18n.js';
 import { cartaIcon } from './carta-icon.js';
 import { mountFloatingBackToTop, mountShortcutsHelp } from './app-chrome.js';
 import { initTheme, cycleThemePref, getThemePref, themePrefGlyph } from './theme.js';
@@ -221,15 +221,21 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   window.addEventListener('carta-theme-change', syncSidebarThemeBtn);
 
   const langBtn = document.getElementById('sidebarLangBtn');
-  function syncLang(){ langBtn.textContent = getLang()==='en' ? 'TR' : 'EN'; }
+  function syncLang() {
+    if (!langBtn) return;
+    langBtn.textContent = langButtonLabel();
+    langBtn.setAttribute('aria-label', t('ui.lang.cycle_aria'));
+    langBtn.title = `${t('ui.lang.cycle_aria')} (${getLang().toUpperCase()} → ${langButtonLabel()})`;
+  }
   syncLang();
-  langBtn.addEventListener('click', () => {
-    setLang(getLang()==='en' ? 'tr' : 'en');
+  langBtn?.addEventListener('click', () => {
+    cycleLang();
     syncLang();
     applyTranslations();
     syncWorkspaceContextAria(ws);
     syncSidebarRailUi();
     syncSidebarThemeBtn();
+    window.dispatchEvent(new CustomEvent('carta-lang-change'));
   });
 
   applyTranslations();

@@ -47,6 +47,13 @@ for (const file of htmlFiles) {
     const rel = m[1].replace(/^\//, '');
     if (!exists(rel)) errors.push(`${file}: broken link ${m[1]}`);
   }
+  if (c.includes('href="/app/"') && !exists('app/index.html')) {
+    errors.push(`${file}: broken link /app/ (missing app/index.html)`);
+  }
+  for (const m of c.matchAll(/href="(\/legal\/[a-z]+)"/g)) {
+    const rel = `${m[1].replace(/^\//, '')}.html`;
+    if (!exists(rel)) errors.push(`${file}: broken link ${m[1]} (expected ${rel})`);
+  }
 }
 
 const studio = fs.readFileSync(path.join(root, 'app/studio.html'), 'utf8');

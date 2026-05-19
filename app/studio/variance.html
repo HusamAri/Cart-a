@@ -195,7 +195,7 @@ main.id = 'main';
 main.className = 'studio-page';
 
 const ctx = await mountStudioShell({ active: 'variance', main });
-if (!ctx) throw new Error('No session/workspace');
+if (!ctx) return;
 const ws = ctx.workspace;
 const wsId = ws.id;
 const currency = ws.currency || '₺';
@@ -258,8 +258,8 @@ function render() {
     container.innerHTML = `
       <div class="empty">
         <span class="accent-rule"></span>
-        <h2 class="h1" style="margin-top:var(--sp-4)"><em data-i18n="variance.no_costs">Your cost ledger is empty.</em></h2>
-        <p class="lead" style="margin:var(--sp-4) auto var(--sp-6)" data-i18n="variance.no_costs">Add ingredients first to compare against.</p>
+        <h2 class="h1" style="margin-top:var(--sp-4)"><em data-i18n="variance.no_costs_title">Your cost ledger is empty.</em></h2>
+        <p class="lead" style="margin:var(--sp-4) auto var(--sp-6)" data-i18n="variance.no_costs_intro">Add ingredients first to compare against.</p>
         <a class="btn btn-primary btn-lg" href="/app/studio/cost.html">
           ${cartaIcon('add', { size: 18 })}
           <span data-i18n="cost.new">New entry</span>
