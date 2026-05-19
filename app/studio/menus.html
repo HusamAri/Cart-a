@@ -88,6 +88,16 @@
   }
   .cluster-row.active .ico { color: var(--primary); }
   .cluster-row .ico .carta-icon { display: block; }
+  .menus-empty {
+    text-align: center;
+    padding: var(--sp-6) var(--sp-4);
+    border-radius: var(--r-xl);
+    border: 1px dashed var(--outline-variant);
+    background: rgb(var(--primary-rgb) / 0.04);
+  }
+  .menus-empty .carta-icon { color: var(--primary); margin-bottom: var(--sp-3); }
+  .menus-empty p { margin: 0 0 var(--sp-2); font-size: var(--type-body); color: var(--on-surface); }
+  .menus-empty .hint { margin: 0; font-size: var(--type-caption); color: var(--on-surface-variant); max-width: 28ch; margin-inline: auto; }
   .menu-cluster-ico-fallback { font-size: 1.25rem; line-height: 1; }
   .menu-icon-grid {
     display: grid;
@@ -448,7 +458,7 @@
 import { mountStudioShell } from '/src/studio-layout.js';
 import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
-import { computeRecipe } from '/src/recipe-compute.js';
+import { computeRecipe, formatMoney } from '/src/recipe-compute.js';
 import { applyRoleGates, requireCan } from '/src/permissions.js';
 import { downloadWorkbook } from '/src/xlsx-export.js';
 import { cartaIcon } from '/src/carta-icon.js';
@@ -496,6 +506,7 @@ let dishes = [];
 let selectedId = null;
 let draftSections = null;
 let workspaceLogoUrl = ctx.workspace.logo_url || null;
+const wsCurrency = ctx.workspace.currency || '₺';
 
 function escapeHTML(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -662,6 +673,7 @@ async function downloadGuestQr() {
       menuName: cl.name,
       workspaceName: wsName,
       logoUrl: workspaceLogoUrl || '',
+      scanHint: t('menus.qr_scan_hint'),
       filename: `carta-qr-${(cl.name || 'menu').replace(/[^\w\-]+/g, '-').slice(0, 40)}.png`,
     });
   } catch (err) {
@@ -713,10 +725,14 @@ function renderMenuPrint(cl, sections) {
         const data = d.data || {};
         const comp = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
         const kcal = Math.round(comp.perServing?.kcal || 0);
+        const price = Number(data.menu_price);
+        const priceHtml = price > 0
+          ? `<span class="menu-print__price" style="font-weight:600;color:var(--menu-accent,#1b2a22)">${escapeHTML(formatMoney(price, wsCurrency, 0))}</span>`
+          : '';
         return `<li class="menu-print__item">
           <span class="menu-print__dish">${escapeHTML(d.name)}</span>
           <span class="menu-print__dots" aria-hidden="true"></span>
-          <span class="menu-print__tail"><span class="chip ${d.kind === 'drink' ? 'chip-gold' : 'chip-mist'}" style="font-size:9px">${escapeHTML(kindLabel(d.kind))}</span>${kcal ? `<span class="menu-print__kcal">${kcal} kcal</span>` : ''}</span>
+          <span class="menu-print__tail">${priceHtml}<span class="chip ${d.kind === 'drink' ? 'chip-gold' : 'chip-mist'}" style="font-size:9px">${escapeHTML(kindLabel(d.kind))}</span>${kcal ? `<span class="menu-print__kcal">${kcal} kcal</span>` : ''}</span>
         </li>`;
       }).filter(Boolean).join('');
       return `<section class="menu-print__section">
@@ -870,7 +886,11 @@ async function load() {
 function renderList() {
   const host = main.querySelector('#clusterList');
   if (!clusters.length) {
-    host.innerHTML = `<p class="text-muted" style="margin:0;font-size:var(--type-caption)" data-i18n="menus.list_empty">No menus yet. Create one to group recipes.</p>`;
+    host.innerHTML = `<div class="menus-empty">
+      ${cartaIcon('restaurant_menu', { size: 36 })}
+      <p data-i18n="menus.list_empty">No menus yet. Create one to group recipes.</p>
+      <p class="hint" data-i18n="menus.list_empty_hint">Group recipes by meal period, outlet, or language — then publish a guest QR menu.</p>
+    </div>`;
     applyTranslations();
     return;
   }

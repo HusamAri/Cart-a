@@ -26,6 +26,7 @@ function loadImage(src) {
  * @param {string} [opts.workspaceName]
  * @param {string} [opts.logoUrl]
  * @param {string} [opts.filename]
+ * @param {string} [opts.scanHint] — localized CTA under QR (e.g. "Scan to view menu")
  */
 export async function downloadGuestMenuQrCard({
   url,
@@ -33,6 +34,7 @@ export async function downloadGuestMenuQrCard({
   workspaceName = '',
   logoUrl = '',
   filename = 'carta-menu-qr.png',
+  scanHint = 'Scan to view menu',
 }) {
   const QRCode = (await loadQrLib()).default;
   const W = 720;
@@ -102,7 +104,7 @@ export async function downloadGuestMenuQrCard({
 
   ctx.font = '400 10px system-ui, sans-serif';
   ctx.fillStyle = 'rgba(27, 42, 34, 0.45)';
-  ctx.fillText('Scan for the guest menu', W / 2, H - 56);
+  ctx.fillText(String(scanHint || 'Scan to view menu').slice(0, 80), W / 2, H - 56);
 
   const blob = await new Promise((resolve, reject) => {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('blob_failed'))), 'image/png');
