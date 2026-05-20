@@ -27,14 +27,22 @@
 <style>
   /* ===== Landing art direction (Occidental palette + Playfair titles) ===== */
   /* Image treatments + hero framing; fonts come from /styles/tokens.css */
-  body.carta-landing main img {
+  body.carta-landing main img:not(.is-brand-visual):not(.carta-wax-seal) {
     filter: sepia(0.08) saturate(0.88) contrast(1.04) brightness(0.97);
   }
   body.carta-landing main img.is-brand-visual {
     filter: none;
   }
+  /* Wax seal keeps true green/gold + shadow (no editorial sepia) */
+  body.carta-landing main img.carta-wax-seal {
+    filter:
+      drop-shadow(0 10px 18px rgb(27 42 34 / 0.28))
+      drop-shadow(0 3px 6px rgb(27 42 34 / 0.16));
+  }
   @media (prefers-reduced-motion: reduce) {
-    body.carta-landing main img:not(.is-brand-visual) { filter: sepia(0.06) saturate(0.9) contrast(1.02); }
+    body.carta-landing main img:not(.is-brand-visual):not(.carta-wax-seal) {
+      filter: sepia(0.06) saturate(0.9) contrast(1.02);
+    }
   }
   body.carta-landing .hero__figure {
     position: relative;
@@ -626,7 +634,7 @@
   <div class="container hero__grid">
     <div class="hero__inner">
       <div class="hero__eyebrow-row">
-        <img class="hero__brand-seal carta-wax-seal" src="/assets/carta-wax-seal.png?v=8" alt="" width="480" height="480" decoding="async" aria-hidden="true">
+        <img class="hero__brand-seal carta-wax-seal" src="/assets/carta-wax-seal.png?v=9" alt="" width="768" height="768" decoding="async" aria-hidden="true">
         <span class="accent-rule hero-accent-rule hero__accent-pulse" aria-hidden="true"></span>
         <span class="eyebrow eyebrow-accent hero-eyebrow-kinetic" data-i18n="hero.eyebrow">Carta · F&B Operations Studio</span>
       </div>
@@ -651,7 +659,7 @@
       <div class="hero__photo-wrap">
         <img class="is-brand-visual" src="/assets/carta-hero-plate.png" alt="Editorial still life: composed plate and glassware for an F&amp;B operations studio." data-i18n-alt="hero.figure_alt" width="1024" height="824" decoding="async" fetchpriority="high">
       </div>
-      <img class="carta-wax-seal carta-wax-seal--br" src="/assets/carta-wax-seal.png?v=8" alt="" width="480" height="480" decoding="async" aria-hidden="true">
+      <img class="carta-wax-seal carta-wax-seal--br" src="/assets/carta-wax-seal.png?v=9" alt="" width="768" height="768" decoding="async" aria-hidden="true">
     </figure>
   </div>
 </section>
