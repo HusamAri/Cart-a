@@ -1356,10 +1356,17 @@ html.motion-reduce .sidebar__link:hover { transform: none; }
   flex-shrink: 0;
   width: 22px;
   height: 22px;
+  border-radius: 8px;
+  transition: color var(--dur-2), background var(--dur-2);
 }
-.sidebar__icon .carta-icon {
+.sidebar__icon .carta-icon,
+.sidebar__icon .sidebar-icon {
   width: 22px;
   height: 22px;
+}
+.sidebar-icon__accent {
+  stroke: var(--primary);
+  color: var(--primary);
 }
 /* Studio left nav: custom sprite (5×4 grid on 1536×1024 asset). --s-col / --s-row = 0-based cell index. */
 .sidebar__icon--sheet {
@@ -1757,19 +1764,31 @@ html[data-color-scheme="dark"] .menu-type-badge--coffee { background: rgb(200 17
 .sidebar__link .sidebar__icon,
 .studio-mobile-tab .sidebar__icon {
   color: var(--on-surface-variant);
-  transition: color var(--dur-2);
+  transition: color var(--dur-2), background var(--dur-2);
 }
 .sidebar__link:hover .sidebar__icon,
 .sidebar__link.active .sidebar__icon,
+.sidebar__link[aria-current="page"] .sidebar__icon,
 .studio-mobile-tab:hover .sidebar__icon,
 .studio-mobile-tab.is-active .sidebar__icon {
-  color: var(--primary);
+  color: var(--on-surface);
+}
+.sidebar__link.active .sidebar__icon,
+.sidebar__link[aria-current="page"] .sidebar__icon,
+.studio-mobile-tab.is-active .sidebar__icon {
+  background: var(--secondary-container);
+}
+html[data-color-scheme="dark"] .sidebar__link.active .sidebar__icon,
+html[data-color-scheme="dark"] .sidebar__link[aria-current="page"] .sidebar__icon,
+html[data-color-scheme="dark"] .studio-mobile-tab.is-active .sidebar__icon {
+  background: rgb(var(--primary-rgb) / 0.14);
 }
 .studio-mobile-tab .sidebar__icon {
   width: 24px;
   height: 24px;
 }
-.studio-mobile-tab .sidebar__icon .carta-icon {
+.studio-mobile-tab .sidebar__icon .carta-icon,
+.studio-mobile-tab .sidebar__icon .sidebar-icon {
   width: 24px;
   height: 24px;
 }

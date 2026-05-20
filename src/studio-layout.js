@@ -7,37 +7,33 @@ import { getActiveWorkspace } from './workspaces.js';
 import { getMyRole, can, invalidateRoleCache } from './permissions.js';
 import { applyTranslations, t, getLang, wireLangSwitchers } from './i18n.js';
 import { cartaIcon } from './carta-icon.js';
+import { sidebarNavIcon } from './sidebar-icon.js';
 import { mountFloatingBackToTop, mountShortcutsHelp } from './app-chrome.js';
 import { initTheme, cycleThemePref, getThemePref, themePrefGlyph } from './theme.js';
 
 const RAIL_SESSION_KEY = 'carta_sidebar_rail';
 
-/** Studio nav glyph (SVG sprite, currentColor). */
-function sidebarNavIcon(iconId) {
-  return `<span class="sidebar__icon">${cartaIcon(iconId, { size: 22 })}</span>`;
-}
-
 /** Primary destinations on the mobile bottom bar (full list stays in the drawer). */
 const MOBILE_TABS = [
-  { key: 'overview', href: '/app/studio.html', icon: 'dashboard', i18n: 'studio.overview', fallback: 'Overview' },
-  { key: 'dashboard', href: '/app/studio/dashboard.html', icon: 'query_stats', i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
-  { key: 'recipes', href: '/app/studio/recipes.html', icon: 'menu_fork_knife', i18n: 'studio.m_builder', fallback: 'Recipes' },
-  { key: 'menus', href: '/app/studio/menus.html', icon: 'restaurant_menu', i18n: 'studio.m_menus', fallback: 'Menus' },
+  { key: 'overview', href: '/app/studio.html', icon: 'nav_overview', i18n: 'studio.overview', fallback: 'Overview' },
+  { key: 'dashboard', href: '/app/studio/dashboard.html', icon: 'nav_dashboard', i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
+  { key: 'recipes', href: '/app/studio/recipes.html', icon: 'nav_builder', i18n: 'studio.m_builder', fallback: 'Recipes' },
+  { key: 'menus', href: '/app/studio/menus.html', icon: 'nav_menus', i18n: 'studio.m_menus', fallback: 'Menus' },
 ];
 
 const MODULES = [
-  { key: 'dashboard', href: '/app/studio/dashboard.html', icon: 'query_stats', i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
-  { key: 'recipes', href: '/app/studio/recipes.html', icon: 'menu_fork_knife', i18n: 'studio.m_builder', fallback: 'Recipes' },
-  { key: 'menus', href: '/app/studio/menus.html', icon: 'restaurant_menu', i18n: 'studio.m_menus', fallback: 'My menus' },
-  { key: 'ingredients', href: '/app/studio/ingredients.html', icon: 'nutrition', i18n: 'studio.m_ing_db', fallback: 'Ingredient DB' },
-  { key: 'presets', href: '/app/studio/presets.html', icon: 'collections_bookmark', i18n: 'studio.m_presets', fallback: 'Presets' },
-  { key: 'cost', href: '/app/studio/cost.html', icon: 'account_balance_wallet', i18n: 'studio.m_ledger', fallback: 'Cost' },
-  { key: 'pricing', href: '/app/studio/pricing.html', icon: 'sell', i18n: 'studio.m_pricing', fallback: 'Pricing' },
-  { key: 'matrix', href: '/app/studio/matrix.html', icon: 'grid_view', i18n: 'studio.m_matrix', fallback: 'Engineering' },
-  { key: 'variance', href: '/app/studio/variance.html', icon: 'analytics', i18n: 'studio.m_audit', fallback: 'Variance' },
-  { key: 'audit', href: '/app/studio/audit.html', icon: 'history', i18n: 'studio.m_activity', fallback: 'Activity log' },
-  { key: 'capabilities', href: '/app/studio/capabilities.html', icon: 'table_chart', i18n: 'studio.m_capabilities', fallback: 'Capability map' },
-  { key: 'surface', href: '/app/studio/surface.html', icon: 'ios_share', i18n: 'studio.m_surface', fallback: 'Surface' },
+  { key: 'dashboard', href: '/app/studio/dashboard.html', icon: 'nav_dashboard', i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
+  { key: 'recipes', href: '/app/studio/recipes.html', icon: 'nav_builder', i18n: 'studio.m_builder', fallback: 'Recipes' },
+  { key: 'menus', href: '/app/studio/menus.html', icon: 'nav_menus', i18n: 'studio.m_menus', fallback: 'My menus' },
+  { key: 'ingredients', href: '/app/studio/ingredients.html', icon: 'nav_pantry', i18n: 'studio.m_ing_db', fallback: 'Ingredient DB' },
+  { key: 'presets', href: '/app/studio/presets.html', icon: 'nav_presets', i18n: 'studio.m_presets', fallback: 'Presets' },
+  { key: 'cost', href: '/app/studio/cost.html', icon: 'nav_cost', i18n: 'studio.m_ledger', fallback: 'Cost' },
+  { key: 'pricing', href: '/app/studio/pricing.html', icon: 'nav_pricing', i18n: 'studio.m_pricing', fallback: 'Pricing' },
+  { key: 'matrix', href: '/app/studio/matrix.html', icon: 'nav_matrix', i18n: 'studio.m_matrix', fallback: 'Engineering' },
+  { key: 'variance', href: '/app/studio/variance.html', icon: 'nav_variance', i18n: 'studio.m_audit', fallback: 'Variance' },
+  { key: 'audit', href: '/app/studio/audit.html', icon: 'nav_audit', i18n: 'studio.m_activity', fallback: 'Activity log' },
+  { key: 'capabilities', href: '/app/studio/capabilities.html', icon: 'nav_capabilities', i18n: 'studio.m_capabilities', fallback: 'Capability map' },
+  { key: 'surface', href: '/app/studio/surface.html', icon: 'nav_surface', i18n: 'studio.m_surface', fallback: 'Surface' },
 ];
 
 function moduleMetaForActive(active) {
@@ -86,7 +82,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     </div>
     <nav class="sidebar__nav" aria-label="Modules">
       <a class="sidebar__link ${active==='overview'?'active':''}" href="/app/studio.html" ${active==='overview'?'aria-current="page"':''}>
-        ${sidebarNavIcon('dashboard')}
+        ${sidebarNavIcon('nav_overview')}
         <span class="sidebar__label" data-i18n="studio.overview">Overview</span>
       </a>
       ${MODULES.map(m => `
@@ -163,7 +159,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   mobileBottom.setAttribute('aria-label', t('ui.mobile_nav_aria'));
   mobileBottom.innerHTML = MOBILE_TABS.map((tab) => `
     <a class="studio-mobile-tab ${active === tab.key ? 'is-active' : ''}" href="${tab.href}" ${active === tab.key ? 'aria-current="page"' : ''}>
-      ${sidebarNavIcon(tab.icon)}
+      ${sidebarNavIcon(tab.icon, { size: 24 })}
       <span class="studio-mobile-tab__label" data-i18n="${tab.i18n}">${escapeHTML(tab.fallback)}</span>
     </a>
   `).join('') + `
