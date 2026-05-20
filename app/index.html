@@ -336,6 +336,7 @@ import {
   listMembers, inviteMember, changeMemberRole, removeMember,
   acceptWorkspaceInvite, storeInviteToken, readStoredInviteToken,
   deleteWorkspace, getWorkspaceArtifactCounts,
+  consumeStoredSignupPlan,
 } from '/src/workspaces.js';
 import { planAllowsAdditionalMembers } from '/src/plan-limits.js';
 import { getMyRole, can, invalidateRoleCache } from '/src/permissions.js';
@@ -598,7 +599,8 @@ function setupCreateFirstWorkspace() {
     if (!name) return;
     const currency = $('wsCurrency').value || '₺';
     $('createBtn').disabled = true;
-    const result = await createWorkspace({ name, currency });
+    const pendingPlan = consumeStoredSignupPlan();
+    const result = await createWorkspace({ name, currency, plan: pendingPlan });
     $('createBtn').disabled = false;
     if (result.ok) {
       window.location.href = '/app/studio.html';

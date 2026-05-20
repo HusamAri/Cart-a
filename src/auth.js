@@ -16,7 +16,7 @@ export function buildMagicLinkRedirectUrl(inviteToken = '') {
   return `${APP_HOME}?invite=${encodeURIComponent(t)}`;
 }
 
-export async function signInWithPassword(email, password) {
+function validateEmailPassword(email, password) {
   const cleanEmail = (email || '').trim().toLowerCase();
   if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
     return { ok: false, error: 'Please enter a valid email address.' };
@@ -24,12 +24,33 @@ export async function signInWithPassword(email, password) {
   if (!password || password.length < 6) {
     return { ok: false, error: 'Password is required (min. 6 characters).' };
   }
+  return { ok: true, email: cleanEmail };
+}
+
+export async function signInWithPassword(email, password) {
+  const v = validateEmailPassword(email, password);
+  if (!v.ok) return v;
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: cleanEmail,
+    email: v.email,
     password,
   });
   if (error) return { ok: false, error: error.message };
-  return { ok: true, session: data.session, email: cleanEmail };
+  return { ok: true, session: data.session, email: v.email };
+}
+
+/** Email + password signup. Returns a session when email confirmation is disabled. */
+export async function signUpWithPassword(email, password) {
+  const v = validateEmailPassword(email, password);
+  if (!v.ok) return v;
+  const { data, error } = await supabase.auth.signUp({
+    email: v.email,
+    password,
+    options: { emailRedirectTo: APP_HOME },
+  });
+  if (error) return { ok: false, error: error.message };
+  if (data.session) return { ok: true, session: data.session, email: v.email };
+  if (data.user) return { ok: true, email: v.email, needsConfirmation: true };
+  return { ok: false, error: 'Sign up failed. Please try again.' };
 }
 
 export async function sendMagicLink(email, opts = {}) {
