@@ -70,7 +70,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     </div>
     <div class="sidebar__head">
       <a href="/app/studio.html" class="logo" aria-label="Carta studio home">
-        <img src="/assets/carta-brand-vertical.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1536" height="1024" decoding="async">
+        <img src="/assets/carta-brand-lockup-horizontal.png?v=8" alt="Carta · F&amp;B Operations Studio" width="1024" height="256" decoding="async">
       </a>
       <div class="sidebar__context" id="sidebarContextStrip" role="group" title="${escapeHTML([ws.organization_name, ws.name].filter(Boolean).join(' · '))}">
         ${ws.organization_name ? `<span class="sidebar__org" id="sidebarOrgName">${escapeHTML(ws.organization_name)}</span>` : ''}
@@ -121,7 +121,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   const facilitySubtitle = [ws.organization_name, ws.name].filter(Boolean).join(' · ');
   mobileTop.innerHTML = `
     <a href="/app/studio.html" class="site-logo studio-mobile-top__brand" aria-label="Carta studio home">
-      <img src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024">
+      <img src="/assets/carta-brand-lockup-horizontal.png?v=8" alt="Carta · F&amp;B Operations Studio" width="1024" height="256">
     </a>
     <div class="studio-mobile-top__context" id="mobileContextStrip" role="group" title="${escapeHTML(facilitySubtitle)}">
       ${ws.organization_name ? `<span class="studio-mobile-top__crumb studio-mobile-top__crumb--org">${escapeHTML(ws.organization_name)}</span><span class="studio-mobile-top__sep" aria-hidden="true">·</span>` : ''}
