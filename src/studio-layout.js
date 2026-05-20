@@ -14,12 +14,29 @@ const RAIL_SESSION_KEY = 'carta_sidebar_rail';
 
 /** Studio nav glyph (SVG sprite, currentColor). */
 function sidebarNavIcon(iconId) {
+  const iconSpriteMap = {
+    overview: { x: 38, y: 50 },
+    dashboard: { x: 38, y: 114 },
+    query_stats: { x: 38, y: 114 },
+    menu_fork_knife: { x: 38, y: 177 },
+    restaurant_menu: { x: 38, y: 241 },
+    nutrition: { x: 38, y: 303 },
+    collections_bookmark: { x: 38, y: 368 },
+    account_circle: { x: 38, y: 452 },
+    swap_horiz: { x: 38, y: 503 },
+    language: { x: 38, y: 553 },
+    logout: { x: 38, y: 614 },
+  };
+  const sprite = iconSpriteMap[iconId];
+  if (sprite) {
+    return `<span class="sidebar__icon" aria-hidden="true" style="background-image:url('/assets/carta-icon-set.png');background-repeat:no-repeat;background-size:1024px 683px;background-position:-${sprite.x}px -${sprite.y}px;"></span>`;
+  }
   return `<span class="sidebar__icon">${cartaIcon(iconId, { size: 22 })}</span>`;
 }
 
 /** Primary destinations on the mobile bottom bar (full list stays in the drawer). */
 const MOBILE_TABS = [
-  { key: 'overview', href: '/app/studio.html', icon: 'dashboard', i18n: 'studio.overview', fallback: 'Overview' },
+  { key: 'overview', href: '/app/studio.html', icon: 'overview', i18n: 'studio.overview', fallback: 'Overview' },
   { key: 'dashboard', href: '/app/studio/dashboard.html', icon: 'query_stats', i18n: 'studio.m_dashboard', fallback: 'Dashboard' },
   { key: 'recipes', href: '/app/studio/recipes.html', icon: 'menu_fork_knife', i18n: 'studio.m_builder', fallback: 'Recipes' },
   { key: 'menus', href: '/app/studio/menus.html', icon: 'restaurant_menu', i18n: 'studio.m_menus', fallback: 'Menus' },
@@ -86,7 +103,7 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
     </div>
     <nav class="sidebar__nav" aria-label="Modules">
       <a class="sidebar__link ${active==='overview'?'active':''}" href="/app/studio.html" ${active==='overview'?'aria-current="page"':''}>
-        ${sidebarNavIcon('dashboard')}
+        ${sidebarNavIcon('overview')}
         <span class="sidebar__label" data-i18n="studio.overview">Overview</span>
       </a>
       ${MODULES.map(m => `
