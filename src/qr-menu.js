@@ -54,7 +54,7 @@ export async function downloadGuestMenuQrCard({
 
   const logosY = 56;
   try {
-    const carta = await loadImage('/assets/carta-brand-lockup-horizontal.png?v=7');
+    const carta = await loadImage('/assets/carta-brand-lockup-horizontal.png?v=8');
     const cartaW = 200;
     const cartaH = (carta.height / carta.width) * cartaW;
     ctx.drawImage(carta, 48, logosY, cartaW, cartaH);
