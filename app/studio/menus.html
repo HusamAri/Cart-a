@@ -115,7 +115,7 @@
     padding: 0;
     border-radius: var(--r-lg);
     border: 1px solid var(--outline-variant);
-    background: var(--surface-container-low);
+    background: rgb(var(--ink-rgb) / 0.04);
     cursor: pointer;
     color: var(--primary);
     transition: border-color var(--dur-2), background var(--dur-2), box-shadow var(--dur-2);
@@ -126,6 +126,16 @@
     box-shadow: var(--shadow-focus);
     background: rgb(var(--sage-mist-rgb) / 0.35);
   }
+  /* Icon-style tint: 10% hue background per icon family */
+  .menu-icon-opt[data-icon-hue="neutral"] { background: hsl(200 10% 50% / 0.10); }
+  .menu-icon-opt[data-icon-hue="amber"] { background: hsl(42 88% 52% / 0.10); }
+  .menu-icon-opt[data-icon-hue="brown"] { background: hsl(28 42% 42% / 0.10); }
+  .menu-icon-opt[data-icon-hue="aqua"] { background: hsl(187 78% 46% / 0.10); }
+  .menu-icon-opt[data-icon-hue="wine"] { background: hsl(338 52% 45% / 0.10); }
+  .menu-icon-opt[data-icon-hue="gold"] { background: hsl(48 90% 50% / 0.10); }
+  .menu-icon-opt[data-icon-hue="mint"] { background: hsl(146 54% 45% / 0.10); }
+  .menu-icon-opt[data-icon-hue="ocean"] { background: hsl(206 65% 50% / 0.10); }
+  .menu-icon-opt[data-icon-hue="violet"] { background: hsl(264 68% 58% / 0.10); }
   .cluster-row .meta .row-sub {
     display: flex;
     align-items: center;
@@ -466,6 +476,7 @@ import {
   MENU_CLUSTER_ICON_OPTIONS,
   normalizeMenuClusterIcon,
   menuClusterIconHtml,
+  menuClusterIconHue,
 } from '/src/menu-cluster-icon.js';
 import {
   clusterDishIds,
@@ -995,7 +1006,10 @@ function renderEditor() {
             ${MENU_CLUSTER_ICON_OPTIONS.map((opt) => {
     const cur = normalizeMenuClusterIcon(cl.icon);
     const sel = opt.id === cur ? ' selected' : '';
-    return `<button type="button" class="menu-icon-opt${sel}" data-menu-icon="${escapeHTML(opt.id)}" title="${escapeHTML(t(opt.i18n))}" aria-label="${escapeHTML(t(opt.i18n))}" aria-pressed="${opt.id === cur ? 'true' : 'false'}">${cartaIcon(opt.id, { size: 22 })}</button>`;
+    const translated = t(opt.i18n);
+    const label = translated === opt.i18n ? (opt.label || opt.id) : translated;
+    const hue = menuClusterIconHue(opt.id);
+    return `<button type="button" class="menu-icon-opt${sel}" data-menu-icon="${escapeHTML(opt.id)}" data-icon-hue="${escapeHTML(hue)}" title="${escapeHTML(label)}" aria-label="${escapeHTML(label)}" aria-pressed="${opt.id === cur ? 'true' : 'false'}">${cartaIcon(opt.id, { size: 22 })}</button>`;
   }).join('')}
           </div>
         </div>

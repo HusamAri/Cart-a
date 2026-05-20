@@ -386,7 +386,7 @@ function renderMenu(host, payload) {
   ).filter((sec) => (sec.dish_ids || []).length > 0);
 
   let hasAllergens = false;
-  const sectionHtml = sections
+  const renderedSections = sections
     .map((sec, idx) => {
       const items = (sec.dish_ids || []).map((id) => {
         const d = dm.get(id);
@@ -411,22 +411,26 @@ function renderMenu(host, payload) {
           </span>
         </li>`;
       }).filter(Boolean).join('');
-      if (!items) return '';
+      if (!items) return null;
       const secKey = sec.key || 'other';
       const secId = `sec-${secKey}-${idx}`;
-      return `<section class="menu-print__section" id="${escapeHTML(secId)}" aria-labelledby="${escapeHTML(secId)}-title">
+      return {
+        secId,
+        label: sectionLabel(secKey),
+        html: `<section class="menu-print__section" id="${escapeHTML(secId)}" aria-labelledby="${escapeHTML(secId)}-title">
         <h2 class="menu-print__section-title" id="${escapeHTML(secId)}-title">${escapeHTML(sectionLabel(secKey))}</h2>
         <ul class="menu-print__list">${items}</ul>
-      </section>`;
-    }).filter(Boolean).join('');
+      </section>`,
+      };
+    }).filter(Boolean);
 
-  const sectionNav = sections.length >= 3
+  const sectionHtml = renderedSections.map((section) => section.html).join('');
+
+  const sectionNav = renderedSections.length >= 3
     ? `<nav class="guest-section-nav-wrap" aria-label="${escapeHTML(t('guest.section_nav'))}">
         <ul class="guest-section-nav">
-          ${sections.map((sec, idx) => {
-      const secKey = sec.key || 'other';
-      const secId = `sec-${secKey}-${idx}`;
-      return `<li><a href="#${escapeHTML(secId)}">${escapeHTML(sectionLabel(secKey))}</a></li>`;
+          ${renderedSections.map((section) => {
+      return `<li><a href="#${escapeHTML(section.secId)}">${escapeHTML(section.label)}</a></li>`;
     }).join('')}
         </ul>
       </nav>`

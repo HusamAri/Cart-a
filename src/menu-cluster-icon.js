@@ -6,7 +6,7 @@ import { cartaIcon } from './carta-icon.js';
 
 export const DEFAULT_MENU_CLUSTER_ICON = 'menu_fork_knife';
 
-/** @type {{ id: string, i18n: string }[]} */
+/** @type {{ id: string, i18n: string, label?: string }[]} */
 export const MENU_CLUSTER_ICON_OPTIONS = [
   { id: 'menu_fork_knife', i18n: 'menus.icon_utensils' },
   { id: 'menu_sun', i18n: 'menus.icon_breakfast' },
@@ -23,6 +23,14 @@ export const MENU_CLUSTER_ICON_OPTIONS = [
   { id: 'menu_grill', i18n: 'menus.icon_grill' },
   { id: 'menu_layers', i18n: 'menus.icon_mixed' },
   { id: 'restaurant_menu', i18n: 'menus.icon_menu_card' },
+  // Extended customization set (newly added icons in sprite).
+  { id: 'nutrition', i18n: 'menus.icon_menu_card', label: 'Nutrition' },
+  { id: 'grid_view', i18n: 'menus.icon_mixed', label: 'Grid' },
+  { id: 'analytics', i18n: 'menus.icon_menu_card', label: 'Analytics' },
+  { id: 'table_chart', i18n: 'menus.icon_menu_card', label: 'Table' },
+  { id: 'auto_awesome', i18n: 'menus.icon_menu_card', label: 'Signature' },
+  { id: 'photo_camera', i18n: 'menus.icon_menu_card', label: 'Photo menu' },
+  { id: 'tune', i18n: 'menus.icon_menu_card', label: 'Custom' },
 ];
 
 export const MENU_CLUSTER_ICON_IDS = MENU_CLUSTER_ICON_OPTIONS.map(o => o.id);
@@ -47,6 +55,36 @@ const LEGACY_EMOJI_TO_ID = {
   '🌞': 'menu_sun',
   '🥂': 'menu_wine',
   '🫖': 'menu_coffee',
+};
+
+const HUE_BY_ICON = {
+  menu_fork_knife: 'neutral',
+  menu_layers: 'neutral',
+  restaurant_menu: 'neutral',
+  grid_view: 'neutral',
+  table_chart: 'neutral',
+
+  menu_sun: 'amber',
+  menu_cake: 'amber',
+  menu_snack: 'amber',
+
+  menu_coffee: 'brown',
+  menu_grill: 'brown',
+
+  menu_glass: 'aqua',
+  menu_wine: 'wine',
+  menu_cocktail: 'wine',
+  menu_beer: 'gold',
+
+  menu_leaf: 'mint',
+  menu_fish: 'ocean',
+  menu_cloche: 'ocean',
+
+  nutrition: 'mint',
+  analytics: 'aqua',
+  auto_awesome: 'gold',
+  photo_camera: 'aqua',
+  tune: 'violet',
 };
 
 function escHTML(s) {
@@ -78,4 +116,14 @@ export function menuClusterIconHtml(storedValue, opts = {}) {
   if (KNOWN.has(s)) return cartaIcon(s, baseOpts);
   if (/^[a-z][a-z0-9_]+$/.test(s)) return cartaIcon(DEFAULT_MENU_CLUSTER_ICON, baseOpts);
   return `<span class="menu-cluster-ico-fallback" aria-hidden="true">${escHTML(s.slice(0, 8))}</span>`;
+}
+
+/**
+ * Style token for icon-picker background tint.
+ * @param {string|null|undefined} storedValue
+ * @returns {'neutral'|'amber'|'brown'|'aqua'|'wine'|'gold'|'mint'|'ocean'|'violet'}
+ */
+export function menuClusterIconHue(storedValue) {
+  const id = normalizeMenuClusterIcon(storedValue);
+  return HUE_BY_ICON[id] || 'neutral';
 }
