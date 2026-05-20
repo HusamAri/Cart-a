@@ -37,13 +37,25 @@
 <form class="auth-card" id="signupForm" novalidate aria-labelledby="signup-h">
   <a href="/" class="site-logo" aria-label="Carta home"><img src="/assets/carta-brand-lockup-horizontal.png?v=7" alt="Carta · F&amp;B Operations Studio" width="1024" height="1024"></a>
 
-  <span class="eyebrow eyebrow-accent" data-i18n="signup.eyebrow">Begin · Workspace</span>
+  <span class="eyebrow eyebrow-accent" id="signupEyebrow" data-i18n="signup.eyebrow">Begin · Workspace</span>
   <h1 class="h1" id="signup-h" style="margin-top:var(--sp-3)"><em data-i18n="auth.signup_title">Begin a workspace.</em></h1>
-  <p class="lead" style="margin-top:var(--sp-4)" data-i18n="auth.signup_intro">One email. A magic link. Your kitchen's operations studio in thirty seconds.</p>
+  <p class="lead" style="margin-top:var(--sp-4)" id="signupIntro" data-i18n="auth.signup_intro">One email. A magic link. Your kitchen's operations studio in thirty seconds.</p>
 
   <div style="margin-top:var(--sp-7)">
     <label class="label" for="email" data-i18n="auth.label_email">Work email</label>
     <input type="email" id="email" name="email" class="input" placeholder="you@hotel.com" required autocomplete="email">
+  </div>
+
+  <div id="passwordFields" hidden>
+    <div style="margin-top:var(--sp-5)">
+      <label class="label" for="password" data-i18n="auth.label_password">Password</label>
+      <input type="password" id="password" name="password" class="input" placeholder="••••••••" minlength="6" autocomplete="new-password">
+      <p class="caption" style="margin:var(--sp-2) 0 0" data-i18n="auth.password_hint">At least 6 characters.</p>
+    </div>
+    <div style="margin-top:var(--sp-5)">
+      <label class="label" for="passwordConfirm" data-i18n="auth.label_password_confirm">Confirm password</label>
+      <input type="password" id="passwordConfirm" name="passwordConfirm" class="input" placeholder="••••••••" minlength="6" autocomplete="new-password">
+    </div>
   </div>
 
   <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn" style="margin-top:var(--sp-7)">
@@ -63,9 +75,9 @@
 </main>
 
 <script type="module">
-import { sendMagicLink } from '/src/auth.js';
+import { sendMagicLink, signUpWithPassword } from '/src/auth.js';
 import { getSessionAfterUrlAuth } from '/src/supabase-client.js';
-import { storeInviteToken, readStoredInviteToken, storeSignupPlan } from '/src/workspaces.js';
+import { storeInviteToken, readStoredInviteToken, storeSignupPlan, normalizeSignupPlan, readStoredSignupPlan } from '/src/workspaces.js';
 import { applyTranslations, t } from '/src/i18n.js';
 import { initTheme, cycleThemePref, getThemePref, themePrefGlyph } from '/src/theme.js';
 applyTranslations();
@@ -89,9 +101,33 @@ window.addEventListener('carta-theme-change', syncAuthThemeBtn);
 const params = new URLSearchParams(window.location.search);
 const inviteToken = (params.get('invite') || '').trim();
 const prefillEmail = (params.get('email') || '').trim();
-const signupPlan = (params.get('plan') || '').trim();
+const signupPlan = normalizeSignupPlan(params.get('plan') || '') || readStoredSignupPlan();
 if (inviteToken) storeInviteToken(inviteToken);
 if (signupPlan) storeSignupPlan(signupPlan);
+
+const form = document.getElementById('signupForm');
+const submitBtn = document.getElementById('submitBtn');
+const submitLabel = document.getElementById('submitLabel');
+const flash = document.getElementById('flash');
+
+const isPasswordSignup = signupPlan === 'pro';
+const passwordFields = document.getElementById('passwordFields');
+const signupEyebrow = document.getElementById('signupEyebrow');
+const signupIntro = document.getElementById('signupIntro');
+const passwordInput = document.getElementById('password');
+const passwordConfirmInput = document.getElementById('passwordConfirm');
+
+if (isPasswordSignup) {
+  passwordFields.hidden = false;
+  passwordInput.required = true;
+  passwordConfirmInput.required = true;
+  signupEyebrow.dataset.i18n = 'auth.signup_pro_eyebrow';
+  signupEyebrow.textContent = t('auth.signup_pro_eyebrow');
+  signupIntro.dataset.i18n = 'auth.signup_pro_intro';
+  signupIntro.textContent = t('auth.signup_pro_intro');
+  submitLabel.dataset.i18n = 'auth.create_account_btn';
+  submitLabel.textContent = t('auth.create_account_btn');
+}
 
 (() => {
   const token = inviteToken || readStoredInviteToken() || '';
@@ -111,11 +147,6 @@ if (signupPlan) storeSignupPlan(signupPlan);
   window.location.replace(token ? `/app/?invite=${encodeURIComponent(token)}` : '/app/');
 })();
 
-const form = document.getElementById('signupForm');
-const submitBtn = document.getElementById('submitBtn');
-const submitLabel = document.getElementById('submitLabel');
-const flash = document.getElementById('flash');
-
 if (prefillEmail) document.getElementById('email').value = prefillEmail;
 if (inviteToken) {
   flash.innerHTML = `<div class="flash success">${escapeHTML(t('ws.invite_link_opened') || 'Invitation detected. Create your profile to continue.')}</div>`;
@@ -128,17 +159,39 @@ form.addEventListener('submit', async (e) => {
   submitLabel.innerHTML = '<span class="spinner"></span> ' + t('auth.sending');
   flash.innerHTML = '';
 
-  const tokenForRedirect = inviteToken || readStoredInviteToken() || '';
-  const result = await sendMagicLink(email, { allowSignup: true, inviteToken: tokenForRedirect });
+  let result;
+  if (isPasswordSignup) {
+    const password = passwordInput.value;
+    const passwordConfirm = passwordConfirmInput.value;
+    if (password !== passwordConfirm) {
+      submitBtn.disabled = false;
+      submitLabel.textContent = t('auth.create_account_btn');
+      flash.innerHTML = `<div class="flash error">${escapeHTML(t('auth.password_mismatch'))}</div>`;
+      return;
+    }
+    result = await signUpWithPassword(email, password);
+  } else {
+    const tokenForRedirect = inviteToken || readStoredInviteToken() || '';
+    result = await sendMagicLink(email, { allowSignup: true, inviteToken: tokenForRedirect });
+  }
 
   submitBtn.disabled = false;
-  submitLabel.textContent = t('auth.send_link');
+  submitLabel.textContent = isPasswordSignup ? t('auth.create_account_btn') : t('auth.send_link');
 
   if (result.ok) {
-    form.querySelectorAll('input, button').forEach(el => el.disabled = true);
-    flash.innerHTML = `<div class="flash success">${t('auth.check_inbox')} <strong>${result.email}</strong>.</div>`;
+    if (isPasswordSignup) {
+      if (result.session) {
+        const token = inviteToken || readStoredInviteToken() || '';
+        window.location.replace(token ? `/app/?invite=${encodeURIComponent(token)}` : '/app/');
+        return;
+      }
+      flash.innerHTML = `<div class="flash success">${escapeHTML(t('auth.signup_confirm_email'))}</div>`;
+    } else {
+      form.querySelectorAll('input, button').forEach(el => el.disabled = true);
+      flash.innerHTML = `<div class="flash success">${t('auth.check_inbox')} <strong>${result.email}</strong>.</div>`;
+    }
   } else {
-    flash.innerHTML = `<div class="flash error">${result.error}</div>`;
+    flash.innerHTML = `<div class="flash error">${escapeHTML(result.error)}</div>`;
   }
 });
 
