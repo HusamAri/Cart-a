@@ -9,7 +9,7 @@ import { getPublicAppOrigin } from './config.js';
 export function guestMenuUrl(token, opts = {}) {
   const t = String(token || '').trim();
   const base = getPublicAppOrigin();
-  const url = new URL(`${base}/m`);
+  const url = new URL(`${base}/app/m/index.html`);
   url.searchParams.set('t', t);
   const lang = String(opts.lang || '').toLowerCase();
   if (['en', 'tr', 'es'].includes(lang)) url.searchParams.set('lang', lang);
