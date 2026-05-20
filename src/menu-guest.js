@@ -27,7 +27,9 @@ export function newGuestToken() {
  * @param {string} token
  */
 export async function fetchGuestMenu(supabase, token) {
-  const { data, error } = await supabase.rpc('get_guest_menu', { p_token: token });
+  const cleanToken = String(token || '').trim();
+  if (!cleanToken) throw new Error('Guest menu token is required');
+  const { data, error } = await supabase.rpc('get_guest_menu', { p_token: cleanToken });
   if (error) throw error;
   return data;
 }
