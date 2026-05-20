@@ -54,11 +54,12 @@
   .guest-status.error { color: var(--error, #b3261e); }
   .menu-print {
     --menu-accent: #1b2a22;
+    --menu-paper-bg: linear-gradient(165deg, #fdfcfa 0%, #f8f5ef 48%, #eef3eb 100%);
     --menu-paper-text: #1b2a22;
     --menu-paper-text-muted: #4a5c54;
     --menu-paper-rule: rgb(27 42 34 / 0.2);
     color: var(--menu-paper-text);
-    background: linear-gradient(165deg, #fdfcfa 0%, #f8f5ef 48%, #eef3eb 100%);
+    background: var(--menu-paper-bg);
     border: 1px solid rgb(27 42 34 / 0.12);
     border-radius: var(--r-2xl);
     box-shadow: var(--shadow-3);
@@ -108,7 +109,7 @@
     top: 0;
     z-index: 2;
     padding: 10px 0 8px;
-    background: linear-gradient(180deg, #fdfcfa 70%, rgb(253 252 250 / 0.92));
+    background: var(--menu-paper-bg);
     box-shadow: 0 1px 0 var(--menu-paper-rule);
   }
   .menu-print__price {
