@@ -1,6 +1,9 @@
 # Free CI: static checks only (no paid services).
 name: CI
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main, master]
