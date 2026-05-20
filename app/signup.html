@@ -65,7 +65,7 @@
 <script type="module">
 import { sendMagicLink } from '/src/auth.js';
 import { getSessionAfterUrlAuth } from '/src/supabase-client.js';
-import { storeInviteToken, readStoredInviteToken } from '/src/workspaces.js';
+import { storeInviteToken, readStoredInviteToken, storeSignupPlan } from '/src/workspaces.js';
 import { applyTranslations, t } from '/src/i18n.js';
 import { initTheme, cycleThemePref, getThemePref, themePrefGlyph } from '/src/theme.js';
 applyTranslations();
@@ -89,13 +89,16 @@ window.addEventListener('carta-theme-change', syncAuthThemeBtn);
 const params = new URLSearchParams(window.location.search);
 const inviteToken = (params.get('invite') || '').trim();
 const prefillEmail = (params.get('email') || '').trim();
+const signupPlan = (params.get('plan') || '').trim();
 if (inviteToken) storeInviteToken(inviteToken);
+if (signupPlan) storeSignupPlan(signupPlan);
 
 (() => {
   const token = inviteToken || readStoredInviteToken() || '';
   const qp = new URLSearchParams();
   if (token) qp.set('invite', token);
   if (prefillEmail) qp.set('email', prefillEmail);
+  if (signupPlan) qp.set('plan', signupPlan);
   const q = qp.toString();
   const el = document.getElementById('authSigninLink');
   if (el) el.href = '/app/login.html' + (q ? `?${q}` : '');

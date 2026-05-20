@@ -5,6 +5,9 @@ import { PUBLIC_APP_ORIGIN } from './config.js';
 const ACTIVE_WS_KEY = 'carta_active_workspace_id';
 const ACTIVE_ORG_KEY = 'carta_active_org_id';
 const INVITE_TOKEN_KEY = 'carta_invite_token';
+const SIGNUP_PLAN_KEY = 'carta_signup_plan';
+
+const ALLOWED_SIGNUP_PLANS = new Set(['free', 'starter', 'pro', 'enterprise']);
 
 /** Merge duplicate org_members rows (same org, different role labels) for stable UI. */
 const ORG_ROLE_RANK = {
@@ -99,11 +102,11 @@ export async function listMyWorkspaces(orgId = null) {
 }
 
 /**
- * createWorkspace({name, currency, organizationId})
+ * createWorkspace({name, currency, organizationId, plan})
  *   If organizationId is omitted, a new organization with the same name is created.
  *   The new workspace becomes a facility under that organization.
  */
-export async function createWorkspace({ name, slug, currency = '₺', organizationId = null }) {
+export async function createWorkspace({ name, slug, currency = '₺', organizationId = null, plan = null }) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return { ok: false, error: 'Not signed in' };
 
@@ -117,9 +120,12 @@ export async function createWorkspace({ name, slug, currency = '₺', organizati
 
   // 2. Create the workspace (facility) inside the org
   const finalSlug = (slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')) + '-' + Math.random().toString(36).slice(2, 6);
+  const row = { name, slug: finalSlug, currency, organization_id: orgId };
+  const normalizedPlan = normalizeSignupPlan(plan);
+  if (normalizedPlan) row.plan = normalizedPlan;
   const { data, error } = await supabase
     .from('workspaces')
-    .insert({ name, slug: finalSlug, currency, organization_id: orgId })
+    .insert(row)
     .select()
     .single();
   if (error) {
@@ -251,6 +257,29 @@ export function consumeStoredInviteToken() {
     localStorage.removeItem(INVITE_TOKEN_KEY);
   } catch (e) {}
   return token;
+}
+
+/** Persist plan from onboarding link (?plan=pro) through magic-link auth. */
+export function normalizeSignupPlan(plan) {
+  const p = String(plan || '').trim().toLowerCase();
+  return ALLOWED_SIGNUP_PLANS.has(p) ? p : null;
+}
+
+export function storeSignupPlan(plan) {
+  const normalized = normalizeSignupPlan(plan);
+  if (!normalized) return;
+  try { localStorage.setItem(SIGNUP_PLAN_KEY, normalized); } catch (e) {}
+}
+
+export function readStoredSignupPlan() {
+  try { return normalizeSignupPlan(localStorage.getItem(SIGNUP_PLAN_KEY)); } catch (e) { return null; }
+}
+
+export function consumeStoredSignupPlan() {
+  const plan = readStoredSignupPlan();
+  if (!plan) return null;
+  try { localStorage.removeItem(SIGNUP_PLAN_KEY); } catch (e) {}
+  return plan;
 }
 
 function normalizeWorkspaceRow(workspace, role = null) {
