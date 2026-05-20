@@ -917,8 +917,15 @@ html[data-color-scheme="light"] .studio-mobile-top .site-logo img[src*='carta-br
 html[data-color-scheme="light"] .sidebar__head .logo img[src*='carta-brand-'],
 html[data-color-scheme="light"] img.carta-lockup[src*='carta-brand-'],
 html[data-color-scheme="light"] img.carta-mark[src*='carta-brand-'],
-html[data-color-scheme="light"] .hero__brand-seal {
+html[data-color-scheme="light"] .hero__brand-seal:not(.carta-wax-seal) {
   filter: var(--carta-logo-mono-on-light);
+}
+html[data-color-scheme="light"] .hero__brand-seal.carta-wax-seal,
+html[data-color-scheme="dark"] .hero__brand-seal.carta-wax-seal,
+.carta-wax-seal {
+  filter:
+    drop-shadow(0 14px 22px rgb(var(--ink-rgb) / 0.32))
+    drop-shadow(0 4px 8px rgb(var(--ink-rgb) / 0.2));
 }
 
 html[data-color-scheme="dark"] .site-header .site-logo img[src*='carta-brand-'],
@@ -929,7 +936,7 @@ html[data-color-scheme="dark"] .studio-mobile-top .site-logo img[src*='carta-bra
 html[data-color-scheme="dark"] .menus-branding__logos img[src*='carta-brand-'],
 html[data-color-scheme="dark"] img.carta-lockup[src*='carta-brand-'],
 html[data-color-scheme="dark"] img.carta-mark[src*='carta-brand-'],
-html[data-color-scheme="dark"] .hero__brand-seal,
+html[data-color-scheme="dark"] .hero__brand-seal:not(.carta-wax-seal),
 html[data-color-scheme="dark"] .closing__brand-mark img[src*='carta-brand-card'] {
   filter: var(--carta-logo-mono-on-dark);
   opacity: 1;
@@ -953,8 +960,14 @@ html[data-color-scheme="dark"] .closing__brand-mark img[src*='carta-brand-card']
 }
 
 /* Marketing landing: oval seal + closing band marks. */
-html[data-color-scheme="light"] body.carta-landing .hero__brand-seal {
+html[data-color-scheme="light"] body.carta-landing .hero__brand-seal:not(.carta-wax-seal) {
   filter: contrast(1.12) brightness(0.98);
+  opacity: 1;
+}
+html[data-color-scheme="light"] body.carta-landing .hero__brand-seal.carta-wax-seal {
+  filter:
+    drop-shadow(0 12px 20px rgb(var(--ink-rgb) / 0.3))
+    drop-shadow(0 3px 6px rgb(var(--ink-rgb) / 0.18));
   opacity: 1;
 }
 
@@ -2085,6 +2098,64 @@ html[data-color-scheme="dark"] .data-table tbody tr[role="button"]:hover {
   .studio-panel-visual__cell {
     --studio-v-max-h: min(48vh, 360px);
   }
+}
+
+/* ============================================================
+   WAX SEAL — editorial “stamped on” mark (transparent PNG)
+   Parent needs position: relative; optional .is-sealed for overflow
+   ============================================================ */
+.is-sealed {
+  position: relative;
+  overflow: visible;
+}
+.carta-wax-seal {
+  --wax-size: clamp(84px, 13vw, 128px);
+  position: absolute;
+  z-index: 5;
+  width: var(--wax-size);
+  height: var(--wax-size);
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  transform: rotate(-14deg) perspective(520px) rotateX(6deg);
+  filter:
+    drop-shadow(0 14px 22px rgb(var(--ink-rgb) / 0.32))
+    drop-shadow(0 4px 8px rgb(var(--ink-rgb) / 0.2))
+    drop-shadow(-2px -1px 0 rgb(255 255 255 / 0.12));
+}
+.hero__brand-seal.carta-wax-seal {
+  position: static;
+  width: auto;
+  height: clamp(88px, 15vw, 148px);
+  flex-shrink: 0;
+  transform: rotate(-10deg) perspective(480px) rotateX(4deg);
+}
+.carta-wax-seal--br {
+  right: clamp(-20px, -3vw, -10px);
+  bottom: clamp(-24px, -3.5vw, -12px);
+}
+.carta-wax-seal--tr {
+  right: clamp(-16px, -2.5vw, -8px);
+  top: clamp(-14px, -2vw, -6px);
+  transform: rotate(12deg) perspective(520px) rotateX(5deg);
+}
+.carta-wax-seal--bl {
+  left: clamp(-18px, -2.5vw, -8px);
+  bottom: clamp(-20px, -3vw, -10px);
+  transform: rotate(9deg) perspective(520px) rotateX(7deg);
+}
+@media (max-width: 640px) {
+  .carta-wax-seal {
+    --wax-size: clamp(72px, 22vw, 100px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carta-wax-seal {
+    transform: rotate(-12deg);
+    filter: drop-shadow(0 8px 14px rgb(var(--ink-rgb) / 0.28));
+  }
+  .carta-wax-seal--tr { transform: rotate(10deg); }
+  .carta-wax-seal--bl { transform: rotate(8deg); }
 }
 
 /* ============================================================

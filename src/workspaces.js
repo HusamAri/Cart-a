@@ -1,6 +1,6 @@
 // Carta — Workspace management
 import { supabase } from './supabase-client.js';
-import { getPublicAppOrigin } from './config.js';
+import { PUBLIC_APP_ORIGIN } from './config.js';
 
 const ACTIVE_WS_KEY = 'carta_active_workspace_id';
 const ACTIVE_ORG_KEY = 'carta_active_org_id';
@@ -209,7 +209,7 @@ export async function inviteMember(wsId, email, role = 'viewer') {
     ws_id: wsId,
     invitee_email: cleanEmail,
     invitee_role: role,
-    invite_base_url: `${getPublicAppOrigin()}/app/signup.html`,
+    invite_base_url: `${PUBLIC_APP_ORIGIN}/app/signup.html`,
   });
   if (!inviteError && inviteData?.ok) return inviteData;
 

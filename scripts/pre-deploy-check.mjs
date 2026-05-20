@@ -17,6 +17,7 @@ const required = [
   'src/qr-menu.js',
   'src/capability-map.js',
   'assets/carta-icons.svg',
+  'assets/carta-wax-seal.png',
   'app/m/index.html',
   'app/studio/menus.html',
   'supabase/migrations/20260519200000_guest_menu_qr.sql',
