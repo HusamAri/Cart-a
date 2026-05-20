@@ -1,8 +1,9 @@
 // Carta — Authentication (magic link + password)
 import { supabase, getSessionAfterUrlAuth } from './supabase-client.js';
-import { getPublicAppOrigin } from './config.js';
+import { PUBLIC_APP_ORIGIN } from './config.js';
 
-const APP_HOME = `${getPublicAppOrigin()}/app/`;
+/** Magic-link e-mails must always land on production, never localhost or preview URLs. */
+const APP_HOME = `${PUBLIC_APP_ORIGIN}/app/`;
 
 /**
  * Magic link landing URL. Include ?invite= when present so the token survives

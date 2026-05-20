@@ -177,6 +177,15 @@
     object-fit: cover;
     object-position: center;
   }
+  /* Overview bento: shift decor frames 3–5 right (editorial rhythm) */
+  @media (min-width: 901px) {
+    .bento > .bento-frame--shift-r1 { grid-column: 2; }
+    .bento > .bento-frame--shift-r2 { grid-column: 3; }
+  }
+  @media (min-width: 601px) and (max-width: 900px) {
+    .bento > .bento-frame--shift-r1 { grid-column: 2; }
+    .bento > .bento-frame--shift-r2 { grid-column: 2; }
+  }
   /* Module-card is .disabled when "coming soon" — give a different cursor */
   .module-card.disabled { cursor: default; }
   .module-card.disabled:hover { transform: none; box-shadow: var(--shadow-inner-glow), var(--shadow-2); }
@@ -203,6 +212,9 @@
     border: var(--glass-border);
     border-radius: var(--r-xl);
     box-shadow: var(--shadow-inner-glow), var(--shadow-2);
+  }
+  .studio-mast--lay-overview .studio-mast__cell.is-sealed {
+    overflow: visible;
   }
   .studio-mast--lay-overview .studio-mast__cell {
     padding: 0;
@@ -278,8 +290,10 @@ function pickShuffledSlice(pool, n) {
 
 const BENTO_FRAME_FALLBACK = '/assets/carta-hero-plate.png';
 
-function bentoFrameHtml() {
-  return `<div class="bento-frame" aria-hidden="true"><img class="bento-frame__img" alt="" width="640" height="480" loading="lazy" decoding="async"></div>`;
+function bentoFrameHtml(opts = {}) {
+  const shift = Number(opts.shiftRight) || 0;
+  const shiftClass = shift === 1 ? ' bento-frame--shift-r1' : shift === 2 ? ' bento-frame--shift-r2' : '';
+  return `<div class="bento-frame${shiftClass}" aria-hidden="true"><img class="bento-frame__img" alt="" width="640" height="480" loading="lazy" decoding="async"></div>`;
 }
 
 function initBentoDecorFrames(root) {
@@ -308,8 +322,9 @@ main.innerHTML = `
   </div>
 
   <div class="studio-mast studio-mast--lay-overview">
-    <figure class="studio-mast__cell studio-mast__cell--brand">
+    <figure class="studio-mast__cell studio-mast__cell--brand is-sealed">
       <img class="is-brand-visual mast-hero--plate" src="/assets/carta-hero-plate.png" alt="Editorial photograph: composed plate and glassware representing craft and mise en place in a hotel F&amp;B studio." data-i18n-alt="studio.overview_mast_alt" width="1024" height="824" loading="lazy" decoding="async">
+      <img class="carta-wax-seal carta-wax-seal--br" src="/assets/carta-wax-seal.png?v=8" alt="" width="480" height="480" decoding="async" aria-hidden="true">
     </figure>
   </div>
 
@@ -378,7 +393,7 @@ main.innerHTML = `
       </span>
     </a>
 
-    ${bentoFrameHtml()}
+    ${bentoFrameHtml({ shiftRight: 2 })}
 
     <a class="module-card module-card--sage" href="/app/studio/pricing.html">
       <span class="module-card__icon">${cartaIcon('sell', { size: 28 })}</span>
@@ -400,7 +415,7 @@ main.innerHTML = `
       </span>
     </a>
 
-    ${bentoFrameHtml()}
+    ${bentoFrameHtml({ shiftRight: 1 })}
 
     <a class="module-card" href="/app/studio/variance.html">
       <span class="module-card__icon">${cartaIcon('analytics', { size: 28 })}</span>
@@ -432,7 +447,7 @@ main.innerHTML = `
       </span>
     </a>
 
-    ${bentoFrameHtml()}
+    ${bentoFrameHtml({ shiftRight: 2 })}
 
     <a class="module-card" href="/app/studio/capabilities.html">
       <span class="module-card__icon">${cartaIcon('table_chart', { size: 28 })}</span>

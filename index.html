@@ -142,6 +142,10 @@
     border-radius: var(--r-2xl);
     box-shadow: var(--shadow-inner-glow), var(--shadow-3);
     aspect-ratio: 4 / 3;
+    position: relative;
+  }
+  .hero__figure.is-sealed {
+    overflow: visible;
   }
   .hero__figure .hero__photo-wrap img {
     width: 100%;
@@ -622,7 +626,7 @@
   <div class="container hero__grid">
     <div class="hero__inner">
       <div class="hero__eyebrow-row">
-        <img class="hero__brand-seal" src="/assets/carta-brand-seal.png?v=7" alt="" width="1536" height="1024" decoding="async" aria-hidden="true">
+        <img class="hero__brand-seal carta-wax-seal" src="/assets/carta-wax-seal.png?v=8" alt="" width="480" height="480" decoding="async" aria-hidden="true">
         <span class="accent-rule hero-accent-rule hero__accent-pulse" aria-hidden="true"></span>
         <span class="eyebrow eyebrow-accent hero-eyebrow-kinetic" data-i18n="hero.eyebrow">Carta · F&B Operations Studio</span>
       </div>
@@ -643,10 +647,11 @@
         <span class="chip" data-i18n="hero.meta_offline">Offline-capable</span>
       </div>
     </div>
-    <figure class="hero__figure">
+    <figure class="hero__figure is-sealed">
       <div class="hero__photo-wrap">
         <img class="is-brand-visual" src="/assets/carta-hero-plate.png" alt="Editorial still life: composed plate and glassware for an F&amp;B operations studio." data-i18n-alt="hero.figure_alt" width="1024" height="824" decoding="async" fetchpriority="high">
       </div>
+      <img class="carta-wax-seal carta-wax-seal--br" src="/assets/carta-wax-seal.png?v=8" alt="" width="480" height="480" decoding="async" aria-hidden="true">
     </figure>
   </div>
 </section>
