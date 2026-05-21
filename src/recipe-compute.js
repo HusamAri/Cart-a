@@ -106,7 +106,7 @@ export function computeRecipe(recipe, options = {}) {
     totals: { ...tot, kcal },
     perServing,
     allergens: [...allergens].sort(),
-    dietTags: deriveDietTags(ings, [...allergens]),
+    dietTags: deriveDietTags(ings, [...allergens], { ...options, ethanolTotal: tot.ethanol }),
   };
 }
 
@@ -130,23 +130,43 @@ export function computeRecipeClimate(recipe) {
 }
 
 // ---- Diet tags --------------------------------------------------
-// Auto-derive vegan / vegetarian / halal / gluten-free / pork-free flags.
+// Auto-derive vegan / vegetarian / halal / gluten-free flags (decision-support heuristics).
 const MEAT_KEYS    = ['et','tavuk','dana','kuzu','hindi','jambon','sucuk','pastirma','salam','sosis','balik','somon','levrek','cipura','hamsi','karides','kalamar','midye','ton','et suyu'];
 const ANIMAL_KEYS  = ['sut','peynir','tereyagi','yumurta','krema','yogurt','bal'];
 const PORK_KEYS    = ['domuz','jambon','salam','sosis','prosciutto','bacon'];
+const ALCOHOL_NAME_KEYS = [
+  'vodka', 'votka', 'viski', 'whisky', 'gin', 'rom', 'rum', 'tekila', 'bira', 'sarap', 'raki', 'cin',
+  'sampanya', 'prosecco', 'likor', 'brandy', 'cognac', 'arak', 'mezcal', 'vermut', 'porto',
+];
 
-export function deriveDietTags(ingredients, allergens = []) {
+/** True when recipe totals or any resolved ingredient carry ethanol (spirits, wine, beer, etc.). */
+export function recipeHasAlcohol(ingredients, options = {}) {
+  if ((Number(options.ethanolTotal) || 0) > 0) return true;
+  const registry = options.registry;
+  for (const i of ingredients || []) {
+    const n = turkNorm(i.name || '');
+    if (ALCOHOL_NAME_KEYS.some((k) => n.includes(k))) return true;
+    const nut = registry?.resolve
+      ? registry.resolve(i.name, { brand: i.brand })
+      : lookupNutrient(i.name);
+    if ((nut?.ethanol || 0) > 0) return true;
+  }
+  return false;
+}
+
+export function deriveDietTags(ingredients, allergens = [], options = {}) {
   const names = (ingredients || []).map(i => turkNorm(i.name || ''));
   const hasMeat   = names.some(n => MEAT_KEYS.some(k => n.includes(k)));
   const hasAnimal = names.some(n => ANIMAL_KEYS.some(k => n.includes(k)));
   const hasPork   = names.some(n => PORK_KEYS.some(k => n.includes(k)));
   const hasGluten = allergens.includes('gluten');
+  const hasAlcohol = recipeHasAlcohol(ingredients, options) || allergens.includes('alcohol');
 
   const tags = [];
-  if (!hasMeat && !hasAnimal) tags.push('vegan');
-  else if (!hasMeat)          tags.push('vegetarian');
-  if (!hasPork && !allergens.includes('alcohol')) tags.push('halal'); // simplified
-  if (!hasGluten)             tags.push('gluten_free');
+  if (!hasMeat && !hasAnimal && !hasAlcohol) tags.push('vegan');
+  else if (!hasMeat && !hasAlcohol) tags.push('vegetarian');
+  if (!hasPork && !hasAlcohol) tags.push('halal');
+  if (!hasGluten) tags.push('gluten_free');
   return tags;
 }
 

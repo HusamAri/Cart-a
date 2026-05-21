@@ -248,6 +248,15 @@
     border-radius: 999px;
     white-space: nowrap;
   }
+  .menu-print .chip-warn {
+    background: rgb(184 134 11 / 0.15);
+    color: #5c4a00;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    white-space: nowrap;
+    border: 1px solid rgb(184 134 11 / 0.35);
+  }
   .menu-print .chip-diet {
     background: rgb(45 74 62 / 0.12);
     color: #2d4a3e;
@@ -275,6 +284,7 @@ import { supabase } from '/src/supabase-client.js';
 import { fetchGuestMenu } from '/src/menu-guest.js';
 import { applyTranslations, t, setLang, getLang, wireLangSwitchers } from '/src/i18n.js';
 import { computeRecipe, formatMoney } from '/src/recipe-compute.js';
+import { auditRecipeIngredients } from '/src/ingredient-resolve.js';
 import { ALLERGEN_LABELS } from '/src/nutrient-db.js';
 import {
   menuSectionI18nKey,
@@ -311,9 +321,12 @@ function sectionLabel(sectionKey) {
   return label !== k ? label : sectionKey;
 }
 
-function dishMetaChips(comp) {
+function dishMetaChips(comp, audit) {
   const cl = getLang();
   const parts = [];
+  if (audit?.needsReview) {
+    parts.push(`<span class="chip chip-warn" title="${escapeHTML(t('guest.allergen_note'))}">${escapeHTML(t('guest.dish_verify'))}</span>`);
+  }
   for (const a of (comp.allergens || []).slice(0, 3)) {
     const lab = ALLERGEN_LABELS[a]?.[cl] || a;
     parts.push(`<span class="chip chip-allergen">${escapeHTML(lab)}</span>`);
@@ -394,9 +407,10 @@ function renderMenu(host, payload) {
         if (!d) return '';
         const data = d.data || {};
         const comp = computeRecipe({ ingredients: data.ingredients || [], servings: data.servings || 1 });
+        const audit = auditRecipeIngredients(data.ingredients || [], { lang: getLang() });
         if ((comp.allergens || []).length) hasAllergens = true;
         const kcal = Math.round(comp.perServing?.kcal || 0);
-        const meta = dishMetaChips(comp);
+        const meta = dishMetaChips(comp, audit);
         const price = Number(data.menu_price);
         const priceHtml = price > 0
           ? `<span class="menu-print__price">${escapeHTML(formatMoney(price, currency, 0))}</span>`

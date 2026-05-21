@@ -234,7 +234,6 @@ export const INGREDIENT_I18N = {
   'limonata': { tr: 'Limonata', en: 'Lemonade', es: 'Limonada' },
   'taze portakal suyu': { tr: 'Taze Portakal Suyu', en: 'Fresh orange juice', es: 'Zumo de naranja recién exprimido' },
   'kola': { tr: 'Kola', en: 'Cola', es: 'Cola' },
-  'salgam suyu': { tr: 'Şalgam Suyu', en: 'Şalgam juice (fermented turnip)', es: 'Zumo de nabo fermentado' },
   'gin': { tr: 'Gin', en: 'Gin', es: 'Ginebra' },
   'viski': { tr: 'Viski', en: 'Whisky', es: 'Whisky' },
   'tekila': { tr: 'Tekila', en: 'Tequila', es: 'Tequila' },

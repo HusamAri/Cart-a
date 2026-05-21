@@ -6,7 +6,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { computeRecipe, buildCostMap, computeDishCost, computeRecipeClimate, toGrams } from '../src/recipe-compute.js';
+import { computeRecipe, buildCostMap, computeDishCost, computeRecipeClimate, toGrams, deriveDietTags } from '../src/recipe-compute.js';
+import { auditRecipeIngredients } from '../src/ingredient-resolve.js';
 import { emissionIntensityKgCo2ePerKg } from '../src/carbon-factors.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -115,6 +116,39 @@ if (st.empty || st.n !== 2 || st.foodN !== 1 || st.drinkN !== 1) {
 
 if (!(st.avgKcal > 0)) fail('logic:kcal', 'avgKcal should be > 0 for mock recipes');
 else pass('logic:kcal', 'Average kcal computed');
+
+const vodka = computeRecipe({
+  servings: 1,
+  ingredients: [{ name: 'vodka', amount: 40, unit: 'ml' }],
+});
+if (vodka.dietTags.includes('halal') || vodka.dietTags.includes('vegan')) {
+  fail('diet:vodka', `Spirit must not be halal/vegan: ${vodka.dietTags.join(',')}`);
+} else pass('diet:vodka', 'Alcoholic spirit excludes halal and vegan tags');
+
+const beer = computeRecipe({
+  servings: 1,
+  ingredients: [{ name: 'bira', amount: 330, unit: 'ml' }],
+});
+if (beer.dietTags.includes('halal')) fail('diet:beer', 'Beer must not be halal');
+else pass('diet:beer', 'Beer excludes halal tag');
+
+const tomato = deriveDietTags([{ name: 'domates', amount: 1, unit: 'ad' }], []);
+if (!tomato.includes('vegan') || !tomato.includes('halal')) {
+  fail('diet:tomato', `Plant ingredient should stay vegan+halal: ${tomato.join(',')}`);
+} else pass('diet:tomato', 'Plant-only rows keep vegan and halal');
+
+const fuzzy = auditRecipeIngredients([{ name: 'Absolut Vodka', amount: 40, unit: 'ml' }]);
+if (!fuzzy.needsReview || fuzzy.lines[0]?.status !== 'contains') {
+  fail('audit:fuzzy', 'Partial spirit name should need review');
+} else pass('audit:fuzzy', 'Fuzzy spirit match flagged');
+
+const miss = auditRecipeIngredients([{ name: 'zzzznonexistentxyz', amount: 1, unit: 'ad' }]);
+if (!miss.hasUnmatched) fail('audit:miss', 'Unknown label should be unmatched');
+else pass('audit:miss', 'Unknown ingredient flagged');
+
+const exact = auditRecipeIngredients([{ name: 'vodka', amount: 40, unit: 'ml' }]);
+if (exact.needsReview) fail('audit:exact', 'Canonical vodka should not need review');
+else pass('audit:exact', 'Exact reference match needs no review');
 
 console.log('');
 if (errors.length) {

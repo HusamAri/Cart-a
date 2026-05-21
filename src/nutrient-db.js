@@ -297,7 +297,6 @@ export const NUTRIENT_DB = {
   'limonata':          { P: 0.2,  F: 0,    C: 10.5, Fi: 0,   allergens: [] },
   'taze portakal suyu':{ P: 0.9,  F: 0.2,  C: 11.5, Fi: 0.2, allergens: [] },
   'kola':              { P: 0,    F: 0,    C: 10.6, Fi: 0,   allergens: [] },
-  'salgam suyu':       { P: 1.0,  F: 0.2,  C: 5.0,  Fi: 1.0, allergens: [] },
 
   // ---- Alcohol (extended) ----
   'gin':               { P: 0,    F: 0,    C: 0,    Fi: 0,   ethanol: 31.0, allergens: [] },
@@ -435,6 +434,34 @@ export const NUTRIENT_EN = {
   'bıldırcın': 'Quail',
 };
 
+/**
+ * Extra labels → canonical NUTRIENT_DB key (keys are turkNorm-shaped).
+ * Use for SAP / English menu lines before fuzzy contains matching.
+ */
+export const INGREDIENT_ALIASES = {
+  whisky: 'viski',
+  whiskey: 'viski',
+  scotch: 'viski',
+  bourbon: 'viski',
+  tequila: 'tekila',
+  champagne: 'sampanya',
+  prosecco: 'prosecco',
+  beer: 'bira',
+  gin: 'gin',
+  rum: 'rom',
+  vodka: 'vodka',
+  brandy: 'brandy',
+  cognac: 'kanyak',
+  'red wine': 'sarap (kirmizi)',
+  'white wine': 'sarap (beyaz)',
+  'kirmizi sarap': 'sarap (kirmizi)',
+  'beyaz sarap': 'sarap (beyaz)',
+  aperol: 'campari',
+  'tonic water': 'su',
+  'soda water': 'su',
+  'mineral water': 'su',
+};
+
 // Allergen catalog (14 EU categories + Türkiye additions)
 export const ALLERGEN_LABELS = {
   gluten:     { en: 'Gluten',         tr: 'Glüten', es: 'Gluten' },
@@ -453,19 +480,52 @@ export const ALLERGEN_LABELS = {
   mollusk:    { en: 'Molluscs',       tr: 'Yumuşakça', es: 'Moluscos' },
 };
 
+/** @typedef {'exact'|'alias'|'contains'|'unmatched'} NutrientMatchKind */
+
+/**
+ * Resolve a label to reference data and how it was matched.
+ * @returns {{ hit: (object & { key: string })|null, match: NutrientMatchKind, matchedKey: string|null }}
+ */
+export function lookupNutrientDetailed(name) {
+  if (!name) return { hit: null, match: 'unmatched', matchedKey: null };
+  const key = turkNorm(name);
+  const aliasCanon = INGREDIENT_ALIASES[key];
+  if (aliasCanon) {
+    for (const k in NUTRIENT_DB) {
+      if (turkNorm(k) === turkNorm(aliasCanon)) {
+        return { hit: { key: k, ...NUTRIENT_DB[k] }, match: 'alias', matchedKey: k };
+      }
+    }
+  }
+  for (const k in NUTRIENT_DB) {
+    if (turkNorm(k) === key) {
+      return { hit: { key: k, ...NUTRIENT_DB[k] }, match: 'exact', matchedKey: k };
+    }
+  }
+  /** Avoid false positives (e.g. SAP codes matching «un» for flour). */
+  const MIN_FUZZY_LEN = 4;
+  let best = null;
+  let bestLen = 0;
+  for (const k in NUTRIENT_DB) {
+    const nk = turkNorm(k);
+    const hit =
+      (key.length >= MIN_FUZZY_LEN && nk.includes(key)) ||
+      (nk.length >= MIN_FUZZY_LEN && key.includes(nk));
+    if (!hit) continue;
+    if (nk.length > bestLen) {
+      bestLen = nk.length;
+      best = k;
+    }
+  }
+  if (best) {
+    return { hit: { key: best, ...NUTRIENT_DB[best] }, match: 'contains', matchedKey: best };
+  }
+  return { hit: null, match: 'unmatched', matchedKey: null };
+}
+
 // Returns normalised lookup (Turkish-aware, accent-stripped, lowercase)
 export function lookupNutrient(name) {
-  if (!name) return null;
-  const key = turkNorm(name);
-  // Try exact match first
-  for (const k in NUTRIENT_DB) {
-    if (turkNorm(k) === key) return { key: k, ...NUTRIENT_DB[k] };
-  }
-  // Try contains
-  for (const k in NUTRIENT_DB) {
-    if (turkNorm(k).includes(key) || key.includes(turkNorm(k))) return { key: k, ...NUTRIENT_DB[k] };
-  }
-  return null;
+  return lookupNutrientDetailed(name).hit;
 }
 
 // Suggest ingredients matching a query (for autocomplete)

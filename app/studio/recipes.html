@@ -232,6 +232,35 @@
   }
   .ing-row .rm-btn:hover { background: var(--error-container); color: var(--on-error-container); }
   .ing-row .rm-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .ing-row--review .ing-name {
+    border-color: var(--warning, #b8860b);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--warning, #b8860b) 35%, transparent);
+  }
+  .ing-match-hint {
+    margin: 4px 0 0;
+    font-size: var(--type-caption);
+    line-height: 1.35;
+    color: var(--on-warning-container, #5c4a00);
+    background: var(--warning-container, #fff8e6);
+    padding: 6px 10px;
+    border-radius: var(--r-sm, 6px);
+  }
+  .preview-review {
+    margin-top: var(--sp-3);
+    padding: var(--sp-3);
+    border-radius: var(--r-md);
+    background: var(--warning-container, #fff8e6);
+    color: var(--on-warning-container, #5c4a00);
+    font-size: var(--type-caption);
+    line-height: 1.45;
+  }
+  .preview-review ul { margin: 6px 0 0; padding-left: 1.1rem; }
+  .preview-review li { margin: 4px 0; }
+  .chip-warn {
+    background: var(--warning-container, #fff8e6);
+    color: var(--on-warning-container, #5c4a00);
+    border: 1px solid color-mix(in srgb, var(--warning, #b8860b) 40%, transparent);
+  }
 
   /* Autocomplete — fixed to viewport in JS so modal overflow does not clip it */
   .ac-dropdown {
@@ -367,6 +396,7 @@ import { supabase } from '/src/supabase-client.js';
 import { applyTranslations, t, getLang } from '/src/i18n.js';
 import { ALLERGEN_LABELS, lookupNutrient, ingredientLabel } from '/src/nutrient-db.js';
 import { computeRecipe, formatNumber } from '/src/recipe-compute.js';
+import { auditRecipeIngredients, formatAuditMessage } from '/src/ingredient-resolve.js';
 import { normalizeRecipeUnit, recipeUnitSelectHtml } from '/src/recipe-units.js';
 import {
   parsePastedIngredients,
@@ -414,6 +444,25 @@ async function ensureIngredientRegistry() {
 
 function computeRecipeWs(recipe) {
   return computeRecipe(recipe, ingredientRegistry ? { registry: ingredientRegistry } : {});
+}
+
+function auditRecipeWs(ingredients) {
+  return auditRecipeIngredients(ingredients, {
+    registry: ingredientRegistry || undefined,
+    lang: getLang(),
+  });
+}
+
+function fillI18nVars(key, vars = {}) {
+  let s = t(key);
+  for (const [k, v] of Object.entries(vars)) {
+    s = s.split(`{${k}}`).join(String(v ?? ''));
+  }
+  return s;
+}
+
+function auditMessageText(msg) {
+  return fillI18nVars(msg.key, msg.vars);
 }
 
 async function loadPantryNames() {
@@ -628,6 +677,7 @@ function renderCard(r, cl) {
   const kindClass = r.kind === 'drink' ? 'chip-gold' : 'chip-mist';
   const allergens = (computed.allergens || []).slice(0, 3);
   const diets = (computed.dietTags || []).slice(0, 2);
+  const audit = auditRecipeWs(data.ingredients || []);
   const sister = r.workspace_id !== wsId;
   const orgShared = !!(r.share_with_org && r.share_consent_at);
   return `
@@ -645,6 +695,7 @@ function renderCard(r, cl) {
       <div class="recipe-card__tags">
         ${allergens.map(a => `<span class="chip chip-gold" style="font-size:11px">${escapeHTML(ALLERGEN_LABELS[a]?.[cl] || a)}</span>`).join('')}
         ${diets.map(d => `<span class="chip" style="font-size:11px">${escapeHTML(t('diet.' + d) || d)}</span>`).join('')}
+        ${audit.needsReview ? `<span class="chip chip-warn" style="font-size:10px" title="${escapeHTML(t('recipes.review_banner').replace('{n}', String(audit.unmatchedCount + audit.fuzzyCount)))}">${escapeHTML(t('recipes.review_chip'))}</span>` : ''}
       </div>
     </article>
   `;
@@ -1000,6 +1051,7 @@ function buildEditorEl({ recipe, data }) {
             <h4 data-i18n="recipes.diet_tags">Diet tags</h4>
             <div class="chip-row" id="prevDiet"><span class="text-muted" data-i18n="recipes.diet_none">—</span></div>
           </div>
+          <div class="preview-review" id="prevReview" hidden></div>
         </aside>
       </div>
       <footer class="modal__foot">
@@ -1362,10 +1414,52 @@ function buildEditorEl({ recipe, data }) {
   // Wire compute on any input within form
   wrap.querySelector('.modal__form').addEventListener('input', () => recompute());
 
+  function applyIngredientRowAudit(row, line) {
+    const hint = row.querySelector('.ing-match-hint');
+    const nameInput = row.querySelector('.ing-name');
+    if (!hint || !nameInput) return;
+    if (line?.needsReview && line.inputName) {
+      row.classList.add('ing-row--review');
+      const msg = formatAuditMessage(line, getLang());
+      hint.hidden = false;
+      hint.textContent = auditMessageText(msg);
+      nameInput.setAttribute('aria-describedby', hint.id || '');
+    } else {
+      row.classList.remove('ing-row--review');
+      hint.hidden = true;
+      hint.textContent = '';
+    }
+  }
+
+  function applyRecipeAuditPanel(audit, dietTagCount) {
+    const panel = wrap.querySelector('#prevReview');
+    if (!panel) return;
+    if (!audit.needsReview) {
+      panel.hidden = true;
+      panel.innerHTML = '';
+      return;
+    }
+    const n = audit.unmatchedCount + audit.fuzzyCount;
+    const items = audit.messages.slice(0, 6).map((m) => `<li>${escapeHTML(auditMessageText(m))}</li>`).join('');
+    const extra = audit.messages.length > 6 ? `<li>…</li>` : '';
+    const dietNote = audit.hasUnmatched && dietTagCount
+      ? `<p style="margin:8px 0 0">${escapeHTML(t('recipes.review_diet'))}</p>`
+      : '';
+    panel.hidden = false;
+    panel.innerHTML = `
+      <strong>${escapeHTML(fillI18nVars('recipes.review_banner', { n }))}</strong>
+      <ul>${items}${extra}</ul>
+      ${dietNote}`;
+  }
+
   function recompute() {
     const servings = Math.max(1, parseInt(wrap.querySelector('#editServings').value) || 1);
     const ings = readIngredients(wrap);
     const c = computeRecipeWs({ ingredients: ings, servings });
+    const audit = auditRecipeWs(ings);
+    const rows = [...wrap.querySelectorAll('.ing-row')];
+    rows.forEach((row, i) => applyIngredientRowAudit(row, audit.lines[i]));
+    applyRecipeAuditPanel(audit, (c.dietTags || []).length);
     wrap.querySelector('#prevKcal').textContent = formatNumber(c.perServing.kcal, 0);
     wrap.querySelector('#prevP').textContent  = formatNumber(c.perServing.P, 1) + ' g';
     wrap.querySelector('#prevF').textContent  = formatNumber(c.perServing.F, 1) + ' g';
@@ -1423,9 +1517,11 @@ function buildIngRow(ing, editAction) {
   row.className = 'ing-row';
   const brandList = brandDatalistHtml(ing.name || '');
   const brandListId = brandList.match(/id="([^"]+)"/)?.[1] || '';
+  const hintId = `ing-hint-${Math.random().toString(36).slice(2, 9)}`;
   row.innerHTML = `
     <div class="col-name" style="position:relative">
-      <input class="input ing-name" type="text" placeholder="${escapeHTML(t('recipes.col_name'))}" value="${escapeHTML(ing.name || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" data-require-disable="${editAction}">
+      <input class="input ing-name" type="text" placeholder="${escapeHTML(t('recipes.col_name'))}" value="${escapeHTML(ing.name || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="${hintId}" data-require-disable="${editAction}">
+      <p class="ing-match-hint" id="${hintId}" hidden></p>
     </div>
     <div class="col-brand">
       <input class="input ing-brand" type="text" placeholder="${escapeHTML(t('recipes.col_brand'))}" value="${escapeHTML(ing.brand || '')}" ${brandListId ? `list="${brandListId}"` : ''} autocomplete="off" data-require-disable="${editAction}">
@@ -1451,7 +1547,10 @@ function buildIngRow(ing, editAction) {
     emptyMessage: t('recipes.no_match'),
   });
   const nameInput = row.querySelector('.ing-name');
-  nameInput.addEventListener('change', () => syncIngBrandList(row));
+  nameInput.addEventListener('change', () => {
+    syncIngBrandList(row);
+    document.getElementById('recipeEditor')?.querySelector('.modal__form')?.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   nameInput.addEventListener('blur', () => syncIngBrandList(row));
   row.querySelector('.rm-btn').addEventListener('click', () => {
     row.remove();

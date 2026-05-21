@@ -609,6 +609,11 @@ export default {
   "recipes.edit_title": "Editar receta",
   "recipes.new_title": "Nueva receta",
   "recipes.no_match": "Sin coincidencia: ingrediente personalizado (añádelo al libro mayor de costes).",
+  "recipes.match_unmatched": "{name} no está en la lista de referencia: macros y alérgenos pueden ser incorrectos. Elige de las sugerencias o mapea en Ingredientes.",
+  "recipes.match_fuzzy": "{name} se emparejó como «{canonical}»: verifica.",
+  "recipes.review_banner": "{n} línea(s) de ingrediente requieren verificación antes de publicar.",
+  "recipes.review_diet": "Las etiquetas dietéticas pueden estar incompletas si hay ingredientes sin emparejar.",
+  "recipes.review_chip": "Verificar",
   "recipes.no_results": "Ninguna receta coincide con tu búsqueda.",
   "recipes.name_placeholder": "p. ej. Lubina salvaje · puré de hinojo",
   "recipes.allergens_none": "Sin alérgenos declarados.",
@@ -830,6 +835,7 @@ export default {
   "guest.print": "Imprimir menú",
   "guest.section_nav": "Ir a sección",
   "guest.allergen_note": "Las etiquetas de alérgenos se derivan de los ingredientes de la receta. Consulta al personal si tienes alergias o necesidades dietéticas.",
+  "guest.dish_verify": "Consultar al personal",
   "guest.loading": "Cargando menú…",
   "menus.qr_scan_hint": "Escanea para ver el menú"
 };
