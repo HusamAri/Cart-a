@@ -46,7 +46,10 @@ export async function mountStudioShell({ active = 'overview', main } = {}) {
   const session = await getSessionAfterUrlAuth();
   if (!session) { window.location.href = '/app/login.html'; return null; }
   const ws = await getActiveWorkspace();
-  if (!ws) { window.location.href = '/app/'; return null; }
+  if (!ws) {
+    window.location.href = '/app/';
+    return null;
+  }
   const role = await getMyRole(ws.id);
   const canSwitchProperty = can(role, 'property_switch');
 

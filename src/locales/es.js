@@ -240,6 +240,7 @@ export default {
   "ws.invite_migration_required": "El flujo de enlace de invitación aún no está desplegado. Aplica primero la última migración de Supabase.",
   "ws.org_unknown": "Organización",
   "ws.property_switch_denied": "Solo administradores y controladores de coste pueden cambiar de propiedad.",
+  "ws.stale_flash": "El espacio anterior ya no está disponible. Elige uno abajo.",
   "ws.remove_member": "Eliminar",
   "ws.remove_member_confirm": "¿Eliminar a este miembro del espacio?",
   "ws.role_owner": "Propietario",

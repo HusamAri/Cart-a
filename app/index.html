@@ -299,6 +299,8 @@
       </div>
       <h1 class="h1" id="list-h" style="margin-bottom:var(--sp-8)"><em data-i18n="ws.list_title">Choose a workspace.</em></h1>
 
+      <div id="wsPickerFlash" class="flash info" role="status" hidden style="margin-bottom:var(--sp-6)"></div>
+
       <div id="orgList"></div>
 
       <div class="ws-create-card">
@@ -332,7 +334,7 @@ import { getSessionAfterUrlAuth } from '/src/supabase-client.js';
 import { signOut } from '/src/auth.js';
 import {
   listMyWorkspaces, listMyOrganizations, createWorkspace, createOrganization,
-  setActiveWorkspace, setActiveOrg, getActiveWorkspaceId,
+  setActiveWorkspace, setActiveOrg, getActiveWorkspaceId, clearActiveWorkspace, consumeStaleWorkspaceFlash,
   listMembers, inviteMember, changeMemberRole, removeMember,
   acceptWorkspaceInvite, storeInviteToken, readStoredInviteToken,
   deleteWorkspace, getWorkspaceArtifactCounts,
@@ -423,17 +425,30 @@ async function boot() {
   }
 
   [orgs, workspaces] = await Promise.all([listMyOrganizations(), listMyWorkspaces()]);
+
+  const storedWsId = getActiveWorkspaceId();
+  if (storedWsId && !workspaces.some((w) => w.id === storedWsId)) {
+    clearActiveWorkspace();
+  }
+
   $('screen-loading').hidden = true;
 
   if (acceptedInviteWorkspaceId) {
+    const invited = workspaces.find((w) => w.id === acceptedInviteWorkspaceId);
+    if (invited) {
+      if (invited.organization_id) setActiveOrg(invited.organization_id);
+      setActiveWorkspace(invited.id);
+    }
     window.location.href = '/app/studio.html';
     return;
   }
 
-  // Auto-navigate: 1 org with exactly 1 workspace → go straight to studio
-  if (orgs.length === 1 && workspaces.length === 1) {
-    setActiveOrg(orgs[0].id);
-    setActiveWorkspace(workspaces[0].id);
+  // Auto-navigate when there is a single workspace (any org layout)
+  if (workspaces.length === 1) {
+    const only = workspaces[0];
+    if (only.organization_id) setActiveOrg(only.organization_id);
+    else if (orgs.length === 1) setActiveOrg(orgs[0].id);
+    setActiveWorkspace(only.id);
     window.location.href = '/app/studio.html';
     return;
   }
@@ -445,6 +460,11 @@ async function boot() {
   }
 
   $('screen-list').hidden = false;
+  if (consumeStaleWorkspaceFlash()) {
+    const flash = $('wsPickerFlash');
+    flash.textContent = t('ws.stale_flash');
+    flash.hidden = false;
+  }
   renderOrgGroups();
   setupCreateMore();
 }

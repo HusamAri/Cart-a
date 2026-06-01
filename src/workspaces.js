@@ -3,6 +3,7 @@ import { supabase } from './supabase-client.js';
 import { PUBLIC_APP_ORIGIN } from './config.js';
 
 const ACTIVE_WS_KEY = 'carta_active_workspace_id';
+const STALE_WS_FLAG = 'carta_ws_stale_flash';
 const ACTIVE_ORG_KEY = 'carta_active_org_id';
 const INVITE_TOKEN_KEY = 'carta_invite_token';
 const SIGNUP_PLAN_KEY = 'carta_signup_plan';
@@ -141,21 +142,69 @@ export function getActiveWorkspaceId() {
   try { return localStorage.getItem(ACTIVE_WS_KEY); } catch(e) { return null; }
 }
 
-export function setActiveWorkspace(id) {
-  try { localStorage.setItem(ACTIVE_WS_KEY, id); } catch(e) {}
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isValidWorkspaceId(id) {
+  return typeof id === 'string' && UUID_RE.test(id);
 }
 
-export async function getActiveWorkspace() {
-  const id = getActiveWorkspaceId();
-  if (!id) return null;
+export function clearActiveWorkspace() {
+  try { localStorage.removeItem(ACTIVE_WS_KEY); } catch (e) {}
+}
+
+export function setActiveWorkspace(id) {
+  try {
+    if (id && isValidWorkspaceId(id)) localStorage.setItem(ACTIVE_WS_KEY, id);
+    else localStorage.removeItem(ACTIVE_WS_KEY);
+  } catch (e) {}
+}
+
+async function fetchWorkspaceById(id) {
   const { data, error } = await supabase
     .from('workspaces')
     .select('*, organizations(name)')
     .eq('id', id)
     .maybeSingle();
-  if (error) { console.warn(error); return null; }
+  if (error) {
+    console.warn('fetchWorkspaceById', error);
+    return null;
+  }
   if (!data) return null;
   return normalizeWorkspaceRow(data);
+}
+
+/**
+ * Resolve the active workspace for studio pages.
+ * Reconciles stale localStorage IDs against listMyWorkspaces (membership join).
+ * Auto-selects when exactly one workspace is available.
+ */
+export async function getActiveWorkspace() {
+  let id = getActiveWorkspaceId();
+  if (id && !isValidWorkspaceId(id)) {
+    clearActiveWorkspace();
+    id = null;
+  }
+  if (id) {
+    const direct = await fetchWorkspaceById(id);
+    if (direct) return direct;
+  }
+
+  const list = await listMyWorkspaces();
+  if (id) {
+    const fromList = list.find((w) => w.id === id);
+    if (fromList) return fromList;
+    clearActiveWorkspace();
+    try { sessionStorage.setItem(STALE_WS_FLAG, '1'); } catch (e) {}
+  }
+
+  if (list.length === 1) {
+    const only = list[0];
+    setActiveWorkspace(only.id);
+    if (only.organization_id) setActiveOrg(only.organization_id);
+    return only;
+  }
+
+  return null;
 }
 
 export async function updateWorkspace(id, patch) {
@@ -269,6 +318,16 @@ export function storeSignupPlan(plan) {
   const normalized = normalizeSignupPlan(plan);
   if (!normalized) return;
   try { localStorage.setItem(SIGNUP_PLAN_KEY, normalized); } catch (e) {}
+}
+
+export function consumeStaleWorkspaceFlash() {
+  try {
+    const v = sessionStorage.getItem(STALE_WS_FLAG);
+    sessionStorage.removeItem(STALE_WS_FLAG);
+    return v === '1';
+  } catch (e) {
+    return false;
+  }
 }
 
 export function readStoredSignupPlan() {
