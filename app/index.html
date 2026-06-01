@@ -90,8 +90,9 @@
     border-radius: var(--r-xl);
     box-shadow: var(--shadow-inner-glow), var(--shadow-2);
     color: inherit;
-    transition: background var(--dur-2) var(--ease-linear-out),
-                transform var(--dur-2), box-shadow var(--dur-2);
+    transition: background var(--dur-2) var(--ease-out),
+                transform 180ms var(--ease-out),
+                box-shadow var(--dur-2) var(--ease-out);
   }
   .ws-card__link {
     grid-column: 1; display: flex; align-items: center; gap: var(--sp-5);
@@ -99,7 +100,14 @@
     padding: var(--sp-2) 0;
   }
   .ws-card { cursor: pointer; }
-  .ws-card:hover { background: rgb(var(--sage-mist-rgb) / 0.45); box-shadow: var(--shadow-3); transform: translateY(-2px); }
+  @media (hover: hover) and (pointer: fine) {
+    .ws-card:hover {
+      background: rgb(var(--sage-mist-rgb) / 0.45);
+      box-shadow: var(--shadow-inner-glow), var(--shadow-3), var(--depth-lift);
+      transform: translateY(-3px);
+    }
+  }
+  .ws-card:active { transform: scale(0.99); }
   .ws-card:focus-within { outline: 2px solid var(--primary); outline-offset: 3px; }
   .ws-card__name {
     font-family: var(--font-display); font-weight: 400; font-style: italic;
@@ -292,7 +300,7 @@
       </div>
     </section>
 
-    <section id="screen-list" hidden aria-labelledby="list-h">
+    <section id="screen-list" class="carta-reveal" hidden aria-labelledby="list-h">
       <div style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-5)">
         <span class="accent-rule" style="width:56px"></span>
         <span class="eyebrow eyebrow-accent" data-i18n="ws.section">Workspaces</span>
@@ -467,6 +475,7 @@ async function boot() {
   }
   renderOrgGroups();
   setupCreateMore();
+  document.dispatchEvent(new CustomEvent('carta-reveal-refresh'));
 }
 
 function renderOrgGroups() {
@@ -584,7 +593,7 @@ function renderWsCard(w, cl) {
   const dateStr = w.created_at ? new Date(w.created_at).toLocaleDateString(cl==='tr'?'tr-TR':'en-GB') : '';
   const roleLabel = w.role ? (t('ws.role_' + w.role) || w.role.toUpperCase()) : '';
   return `
-    <article class="ws-card" data-ws-id="${escapeHTML(w.id)}">
+    <article class="ws-card carta-reveal" data-ws-id="${escapeHTML(w.id)}">
       <a href="/app/studio.html" class="ws-card__link">
         <div>
           <h3 class="ws-card__name">${escapeHTML(w.name)}</h3>

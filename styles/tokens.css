@@ -187,12 +187,16 @@
   --shadow-inner-glow: inset 0 1px 0 rgb(255 255 255 / 0.72);
   --shadow-focus: 0 0 0 3px rgb(201 162 39 / 0.4);
 
-  /* ---- Motion (brand ease) --------------------- */
+  /* ---- Motion (brand ease + Emil-style punch) -- */
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-linear-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-1: 140ms;
   --dur-2: 220ms;
   --dur-3: 380ms;
+  --depth-ambient: 0 28px 48px rgb(var(--ink-rgb) / 0.09);
+  --depth-lift: 0 14px 28px rgb(var(--ink-rgb) / 0.11);
 
   /* ---- Layout ---------------------------------- */
   --max-w:        1280px;
@@ -556,10 +560,15 @@ button { font-family: inherit; cursor: pointer; }
   border: 0;
   border-radius: var(--r-pill);
   cursor: pointer;
-  transition: background var(--dur-2) var(--ease-linear-out),
-              color var(--dur-2),
-              transform var(--dur-2),
-              box-shadow var(--dur-2);
+  transition: background var(--dur-2) var(--ease-out),
+              color var(--dur-2) var(--ease-out),
+              transform 160ms var(--ease-out),
+              box-shadow var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
 }
 .btn:focus-visible {
   outline: 2px solid var(--primary);
@@ -692,10 +701,15 @@ button { font-family: inherit; cursor: pointer; }
     var(--shadow-2);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  transition: transform var(--dur-2) var(--ease-linear-out),
-              box-shadow var(--dur-2);
+  transition: transform var(--dur-2) var(--ease-out),
+              box-shadow var(--dur-2) var(--ease-out);
 }
-.card:hover, .glass:hover { transform: translateY(-3px); box-shadow: var(--shadow-inner-glow), var(--shadow-3); }
+@media (hover: hover) and (pointer: fine) {
+  .card:hover, .glass:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-inner-glow), var(--shadow-3), var(--depth-lift);
+  }
+}
 
 .glass-strong {
   background: var(--surface-container-lowest);
@@ -2188,20 +2202,20 @@ html[data-color-scheme="dark"] .data-table tbody tr[role="button"]:hover {
 
 @keyframes carta-vt-fade-out {
   from { opacity: 1; filter: blur(0); }
-  to { opacity: 0.88; filter: blur(2px); }
+  to { opacity: 0.9; filter: blur(2px); }
 }
 
 @keyframes carta-vt-fade-in {
-  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+  from { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(3px); }
   to { opacity: 1; transform: none; filter: blur(0); }
 }
 
 ::view-transition-old(root) {
-  animation: carta-vt-fade-out 0.32s var(--ease) both;
+  animation: carta-vt-fade-out 0.24s var(--ease-out) both;
 }
 
 ::view-transition-new(root) {
-  animation: carta-vt-fade-in 0.48s var(--ease) both;
+  animation: carta-vt-fade-in 0.38s var(--ease-out) both;
 }
 
 html.motion-reduce ::view-transition-old(root),
@@ -2211,12 +2225,12 @@ html.motion-reduce ::view-transition-new(root) {
 
 /* Studio: main column entrance after shell mounts */
 @keyframes carta-content-in {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(12px) scale(0.985); }
   to { opacity: 1; transform: none; }
 }
 
 .studio-main main.content-reveal {
-  animation: carta-content-in 0.62s var(--ease) both;
+  animation: carta-content-in 0.48s var(--ease-out) both;
 }
 
 /* Without this, reduced-motion users keep opacity:0 (animation fill-mode both). */
@@ -2237,31 +2251,114 @@ html.motion-reduce .studio-main main.content-reveal {
 /* Marketing hero: staggered editorial reveal */
 @media (prefers-reduced-motion: no-preference) {
   html.carta-ui-ready .hero .hero__eyebrow-row {
-    animation: carta-content-in 0.55s var(--ease) both;
-    animation-delay: 45ms;
+    animation: carta-content-in 0.5s var(--ease-out) both;
+    animation-delay: 40ms;
   }
   html.carta-ui-ready .hero .display {
-    animation: carta-content-in 0.62s var(--ease) both;
-    animation-delay: 100ms;
+    animation: carta-content-in 0.52s var(--ease-out) both;
+    animation-delay: 90ms;
   }
   html.carta-ui-ready .hero .hero__lead {
-    animation: carta-content-in 0.62s var(--ease) both;
-    animation-delay: 165ms;
+    animation: carta-content-in 0.52s var(--ease-out) both;
+    animation-delay: 150ms;
   }
   html.carta-ui-ready .hero .hero__cta {
-    animation: carta-content-in 0.62s var(--ease) both;
-    animation-delay: 220ms;
+    animation: carta-content-in 0.52s var(--ease-out) both;
+    animation-delay: 200ms;
   }
   html.carta-ui-ready .hero .hero__compliance {
-    animation: carta-content-in 0.62s var(--ease) both;
-    animation-delay: 275ms;
+    animation: carta-content-in 0.52s var(--ease-out) both;
+    animation-delay: 250ms;
   }
   html.carta-ui-ready .hero .hero__figure {
-    animation: carta-content-in 0.72s var(--ease) both;
-    animation-delay: 130ms;
+    animation: carta-content-in 0.58s var(--ease-out) both;
+    animation-delay: 120ms;
   }
   html.carta-ui-ready .auth-card {
-    animation: carta-content-in 0.55s var(--ease) both;
-    animation-delay: 80ms;
+    animation: carta-content-in 0.48s var(--ease-out) both;
+    animation-delay: 70ms;
   }
+}
+
+/* Scroll reveal (page-motion.js toggles .is-visible) */
+.carta-reveal,
+[data-carta-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0) scale(0.985);
+  transition:
+    opacity 0.52s var(--ease-out),
+    transform 0.52s var(--ease-out);
+  will-change: opacity, transform;
+}
+
+.carta-reveal.is-visible,
+[data-carta-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+.carta-reveal--stagger > * {
+  opacity: 0;
+  transform: translate3d(0, 10px, 0) scale(0.99);
+  transition:
+    opacity 0.45s var(--ease-out),
+    transform 0.45s var(--ease-out);
+}
+
+.carta-reveal--stagger.is-visible > * {
+  opacity: 1;
+  transform: none;
+}
+
+.carta-reveal--stagger.is-visible > *:nth-child(1) { transition-delay: 0ms; }
+.carta-reveal--stagger.is-visible > *:nth-child(2) { transition-delay: 55ms; }
+.carta-reveal--stagger.is-visible > *:nth-child(3) { transition-delay: 110ms; }
+.carta-reveal--stagger.is-visible > *:nth-child(4) { transition-delay: 165ms; }
+.carta-reveal--stagger.is-visible > *:nth-child(5) { transition-delay: 220ms; }
+.carta-reveal--stagger.is-visible > *:nth-child(6) { transition-delay: 275ms; }
+
+html.motion-reduce .carta-reveal,
+html.motion-reduce [data-carta-reveal],
+html.motion-reduce .carta-reveal--stagger > * {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carta-reveal,
+  [data-carta-reveal],
+  .carta-reveal--stagger > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Hero figure: parallax depth (page-motion sets --hero-depth) */
+body.carta-landing .hero__figure.is-sealed {
+  --hero-depth: 0;
+  transform: translateZ(0);
+}
+body.carta-landing .hero__figure.is-sealed::after {
+  content: '';
+  position: absolute;
+  inset: auto 8% -6% 8%;
+  height: 28%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgb(var(--ink-rgb) / calc(0.14 + var(--hero-depth))) 0%, transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(8px);
+  transform: translateY(calc(var(--hero-depth) * 6px));
+  transition: opacity 0.2s var(--ease-out);
+}
+body.carta-landing .hero__photo-wrap {
+  transition: transform 0.12s linear;
+  will-change: transform;
+}
+html.motion-reduce body.carta-landing .hero__photo-wrap,
+html.motion-reduce body.carta-landing .hero__figure.is-sealed::after {
+  transform: none !important;
 }
